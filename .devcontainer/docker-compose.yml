@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  app:
+    build: 
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    environment:
+      - NODE_ENV=development
+    networks:
+      - telemedicine-network
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:latest
+    restart: unless-stopped
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - telemedicine-network
+    
+networks:
+  telemedicine-network:
+
+volumes:
+  mongodb-data:
