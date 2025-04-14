@@ -1,0 +1,22 @@
+version: '3'
+services:
+  app:
+    image: mcr.microsoft.com/vscode/devcontainers/javascript-node:18
+    volumes:
+      - ..:/workspace
+    ports:
+      - "5000:5000" # Backend
+      - "3000:3000" # Frontend
+    links:
+      - mongo
+    command: sleep infinity
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
