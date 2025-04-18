@@ -1,0 +1,79 @@
+.dashboard-card {
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+  
+  .card-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+  }
+  
+  .card-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .card-content {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  
+  .card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+  }
+  
+  .trend-indicator {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    gap: 0.25rem;
+  }
+  
+  .trend-indicator.up {
+    color: var(--color-success);
+  }
+  
+  .trend-indicator.down {
+    color: var(--color-error);
+  }
+  
+  .trend-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  /* Variant-specific styles */
+  .bg-blue-50 { background-color: var(--color-primary-light); }
+  .text-blue-600 { color: var(--color-primary); }
+  
+  .bg-green-50 { background-color: var(--color-success-light); }
+  .text-green-600 { color: var(--color-success); }
+  
+  /* Add other variants as needed */

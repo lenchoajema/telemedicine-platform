@@ -1,3 +1,4 @@
-const API_URL = 'https://stunning-journey-wv5pxxvw49xh565g-5000.app.github.dev/';
+// Use Vite's proxy configuration instead of hardcoded URL
+const API_URL = '/api/auth';
 
 export default API_URL;
