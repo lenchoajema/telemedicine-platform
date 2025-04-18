@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
-import AppointmentService from '../../services/AppointmentService';
-import DashboardCard from '../../components/dashboard/DashboardCard';
+import AppointmentService from '../../api/AppointmentService';
+//import DashboardCard from '../../components/dashboard/DashboardCard';
 import AppointmentList from '../../components/appointments/AppointmentList';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './DashboardPage.css';

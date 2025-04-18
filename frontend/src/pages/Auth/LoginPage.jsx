@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-//import { useAuth } from '../../../contexts/AuthContext';
-import { useNotification } from '../../../contexts/NotificationContext';
-import AuthForm from '../../../components/auth/AuthForm';
-import Button from '../../../components/shared/Button';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
+import './auth.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const { showNotification } = useNotification();
+  const { addNotification } = useNotifications();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,10 +18,10 @@ export default function LoginPage() {
     
     try {
       await login({ email, password });
-      showNotification('Login successful!', 'success');
+      addNotification('Login successful!', 'success');
       navigate('/dashboard');
     } catch (err) {
-      showNotification(err.message || 'Login failed', 'error');
+      addNotification(err.message || 'Login failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -34,23 +33,29 @@ export default function LoginPage() {
         <h1 className="auth-title">Welcome Back</h1>
         <p className="auth-subtitle">Sign in to access your account</p>
         
-        <AuthForm onSubmit={handleSubmit}>
-          <AuthForm.Input
-            type="email"
-            label="Email Address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoFocus
-          />
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
+              className="auth-input"
+            />
+          </div>
           
-          <AuthForm.Input
-            type="password"
-            label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="auth-input"
+            />
+          </div>
           
           <div className="auth-actions">
             <Link to="/forgot-password" className="auth-link">
@@ -58,14 +63,14 @@ export default function LoginPage() {
             </Link>
           </div>
           
-          <Button 
+          <button 
             type="submit" 
-            loading={loading}
-            fullWidth
+            disabled={loading}
+            className="btn btn-primary"
           >
-            Sign In
-          </Button>
-        </AuthForm>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
         
         <div className="auth-footer">
           Don't have an account?{' '}
