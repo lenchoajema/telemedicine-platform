@@ -1,4 +1,4 @@
-FROM node:18-alpine3.18
+FROM node:18.17.1-slim-bullseye
 
 WORKDIR /app
 
@@ -12,5 +12,5 @@ COPY . .
 # Expose the API port
 EXPOSE 5000
 
-# Start the server
-CMD ["node", "server.js"]
+# Start the server from the src directory
+CMD ["node", "src/server.js"]

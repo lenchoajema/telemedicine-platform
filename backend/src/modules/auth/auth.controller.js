@@ -27,6 +27,15 @@ export const login = async (req, res) => {
   }
 };
 
+// Add this function
+export const getCurrentUser = async (req, res) => {
+  try {
+    res.json({ user: req.user });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 // Helpers
 const generateToken = (user) => {
   return jwt.sign(

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../../modules/auth/user.model.js';
+import User from '../../../modules/auth/user.model.js';  // Corrected path
 
 export default async (req, res, next) => {
   try {
