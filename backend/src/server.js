@@ -2,10 +2,17 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import connectDB from './shared/db.js';
+import authRoutes from './modules/auth/auth.routes.js';
+import appointmentRoutes from './modules/appointments/appointment.routes.js';
+
 
 dotenv.config();
+await connectDB();
 
 const app = express();
+app.use('/api/auth', authRoutes);
+app.use('/api/appointments', appointmentRoutes);
 const PORT = process.env.PORT || 5000;
 
 // Middleware
