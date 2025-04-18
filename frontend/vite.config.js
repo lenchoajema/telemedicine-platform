@@ -1,15 +1,23 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000' || process.env.VITE_API_URL,
-        changeOrigin: true,
-        secure: false
-      }
-    }
+  resolve: {
+    extensions: ['.js', '.jsx', '.json']
+  },
+  esbuild: {
+    jsx: 'automatic'
+  },
+  // Add build configuration for Netlify
+  build: {
+    outDir: 'dist',
+    // Generate a _redirects file for SPA routing
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
   }
-});
+})
