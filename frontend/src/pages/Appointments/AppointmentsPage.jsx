@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 //import AppointmentCard from '../../components/appointments/AppointmentCard';
 //import AppointmentFilter from '../../components/appointments/AppointmentFilter';
 //import NewAppointmentModal from '../../components/appointments/NewAppointmentModal';
@@ -18,6 +20,7 @@ const AppointmentsPage = () => {
     date: 'upcoming',
     sortBy: 'date-asc'
   });
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -50,7 +53,7 @@ const AppointmentsPage = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [filterOptions, appointments]);
+  }, [filterOptions, appointments, selectedDate]);
 
   const applyFilters = () => {
     let filtered = [...appointments];
@@ -74,6 +77,16 @@ const AppointmentsPage = () => {
     } else if (filterOptions.sortBy === 'date-desc') {
       filtered.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
     }
+
+    // Filter by selected date
+    filtered = filtered.filter(appointment => {
+      const appointmentDate = new Date(appointment.startTime);
+      return (
+        appointmentDate.getFullYear() === selectedDate.getFullYear() &&
+        appointmentDate.getMonth() === selectedDate.getMonth() &&
+        appointmentDate.getDate() === selectedDate.getDate()
+      );
+    });
     
     setFilteredAppointments(filtered);
   };
@@ -114,6 +127,10 @@ const AppointmentsPage = () => {
     setShowNewModal(false);
   };
 
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
   if (loading) return <div className="loading-spinner">Loading appointments...</div>;
 
   return (
@@ -131,6 +148,11 @@ const AppointmentsPage = () => {
       <AppointmentFilter 
         filterOptions={filterOptions} 
         onFilterChange={handleFilterChange} 
+      />
+
+      <Calendar
+        onChange={handleDateChange}
+        value={selectedDate}
       />
 
       {error && <div className="error-message">{error}</div>}

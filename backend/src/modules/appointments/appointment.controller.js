@@ -2,13 +2,16 @@ import Appointment from './appointment.model.js';
 
 export const createAppointment = async (req, res) => {
   try {
-    const { doctorId, date, duration } = req.body;
+    const { doctorId, date, duration, reason, symptoms, meetingUrl } = req.body;
     
     const appointment = await Appointment.create({
       patient: req.user._id,  // From auth middleware
       doctor: doctorId,
       date,
-      duration
+      duration,
+      reason,
+      symptoms,
+      meetingUrl
     });
     
     res.status(201).json(appointment);

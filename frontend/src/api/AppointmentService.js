@@ -12,6 +12,13 @@ class AppointmentService {
     const response = await axios.get(`${API_URL}/stats`);
     return response;
   }
+
+  static async getAvailableSlots(date) {
+    const response = await axios.get(`${API_URL}/available-slots`, {
+      params: { date }
+    });
+    return response;
+  }
 }
 
 export default AppointmentService;
