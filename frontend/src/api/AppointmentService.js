@@ -19,6 +19,13 @@ class AppointmentService {
     });
     return response;
   }
+
+  static async getAppointmentsByDate(date) {
+    const response = await axios.get(`${API_URL}/by-date`, {
+      params: { date }
+    });
+    return response;
+  }
 }
 
 export default AppointmentService;
