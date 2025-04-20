@@ -6,6 +6,7 @@ import 'react-calendar/dist/Calendar.css';
 //import AppointmentCard from '../../components/appointments/AppointmentCard';
 //import AppointmentFilter from '../../components/appointments/AppointmentFilter';
 //import NewAppointmentModal from '../../components/appointments/NewAppointmentModal';
+import AppointmentService from '../../api/AppointmentService';
 
 const AppointmentsPage = () => {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ const AppointmentsPage = () => {
     sortBy: 'date-asc'
   });
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [availableSlots, setAvailableSlots] = useState([]);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -54,6 +56,10 @@ const AppointmentsPage = () => {
   useEffect(() => {
     applyFilters();
   }, [filterOptions, appointments, selectedDate]);
+
+  useEffect(() => {
+    fetchAvailableSlots(selectedDate);
+  }, [selectedDate]);
 
   const applyFilters = () => {
     let filtered = [...appointments];
@@ -129,6 +135,15 @@ const AppointmentsPage = () => {
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
+  };
+
+  const fetchAvailableSlots = async (date) => {
+    try {
+      const response = await AppointmentService.getAvailableSlots(date);
+      setAvailableSlots(response.data);
+    } catch (err) {
+      addNotification('Failed to fetch available slots', 'error');
+    }
   };
 
   if (loading) return <div className="loading-spinner">Loading appointments...</div>;
