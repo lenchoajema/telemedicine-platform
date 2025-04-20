@@ -1,18 +1,20 @@
+# Use the node:18-alpine base image
 FROM node:18-alpine
 
+# Set the working directory to /app
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy the package.json and package-lock.json files
+COPY package.json package-lock.json ./
 
-# Install dependencies
+# Install the dependencies
 RUN npm install
 
-# Copy client files
-COPY . ./
+# Copy the rest of the application files
+COPY . .
 
-# Expose the frontend port
+# Expose the port the app runs on
 EXPOSE 5173
 
-# Start the development server
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Command to run the application
+CMD ["npm", "run", "dev"]
