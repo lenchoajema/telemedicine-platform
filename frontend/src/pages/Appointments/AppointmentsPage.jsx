@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-//import AppointmentCard from '../../components/appointments/AppointmentCard';
-//import AppointmentFilter from '../../components/appointments/AppointmentFilter';
-//import NewAppointmentModal from '../../components/appointments/NewAppointmentModal';
+import AppointmentCard from '../../components/appointments/AppointmentCard';
+import AppointmentFilter from '../../components/appointments/AppointmentFilter';
+import NewAppointmentModal from '../../components/appointments/NewAppointmentModal';
 import AppointmentService from '../../api/AppointmentService';
 
 const AppointmentsPage = () => {
@@ -24,44 +24,8 @@ const AppointmentsPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [availableSlots, setAvailableSlots] = useState([]);
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        setLoading(true);
-        // Replace with your actual API call
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch appointments');
-        }
-        
-        const data = await response.json();
-        setAppointments(data);
-        setFilteredAppointments(data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-        addNotification(err.message, 'error');
-      }
-    };
-
-    fetchAppointments();
-  }, [addNotification]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [filterOptions, appointments, selectedDate]);
-
-  useEffect(() => {
-    fetchAvailableSlots(selectedDate);
-  }, [selectedDate]);
-
-  const applyFilters = () => {
+  // Use useCallback to memoize functions used in useEffect dependencies
+  const applyFilters = useCallback(() => {
     let filtered = [...appointments];
     
     // Filter by status
@@ -95,7 +59,52 @@ const AppointmentsPage = () => {
     });
     
     setFilteredAppointments(filtered);
-  };
+  }, [appointments, filterOptions, selectedDate]);
+
+  const fetchAvailableSlots = useCallback(async (date) => {
+    try {
+      const response = await AppointmentService.getAvailableSlots(date);
+      setAvailableSlots(response.data);
+    } catch (err) {
+      addNotification(`Failed to fetch available slots: ${err.message}`, 'error');
+    }
+  }, [addNotification]);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch appointments');
+        }
+        
+        const data = await response.json();
+        setAppointments(data);
+        setFilteredAppointments(data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+        addNotification(err.message, 'error');
+      }
+    };
+
+    fetchAppointments();
+  }, [addNotification]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [filterOptions, appointments, selectedDate, applyFilters]);
+
+  useEffect(() => {
+    fetchAvailableSlots(selectedDate);
+  }, [selectedDate, fetchAvailableSlots]);
 
   const handleFilterChange = (newFilters) => {
     setFilterOptions(prev => ({ ...prev, ...newFilters }));
@@ -103,7 +112,6 @@ const AppointmentsPage = () => {
 
   const handleCancelAppointment = async (id) => {
     try {
-      // Replace with your actual API call
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments/${id}/cancel`, {
         method: 'PUT',
         headers: {
@@ -116,7 +124,6 @@ const AppointmentsPage = () => {
         throw new Error('Failed to cancel appointment');
       }
       
-      // Update local state after successful cancellation
       setAppointments(prev => 
         prev.map(app => app._id === id ? { ...app, status: 'cancelled' } : app)
       );
@@ -137,15 +144,6 @@ const AppointmentsPage = () => {
     setSelectedDate(date);
   };
 
-  const fetchAvailableSlots = async (date) => {
-    try {
-      const response = await AppointmentService.getAvailableSlots(date);
-      setAvailableSlots(response.data);
-    } catch (err) {
-      addNotification('Failed to fetch available slots', 'error');
-    }
-  };
-
   if (loading) return <div className="loading-spinner">Loading appointments...</div>;
 
   return (
@@ -160,21 +158,40 @@ const AppointmentsPage = () => {
         </button>
       </div>
 
+      <div className="calendar-container">
+        <h2>Select Date</h2>
+        <Calendar
+          onChange={handleDateChange}
+          value={selectedDate}
+        />
+        
+        {/* Display available slots */}
+        <div className="available-slots">
+          <h3>Available Slots on {selectedDate.toLocaleDateString()}</h3>
+          {availableSlots.length > 0 ? (
+            <ul className="slots-list">
+              {availableSlots.map((slot, index) => (
+                <li key={index} className="time-slot">
+                  {new Date(slot).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No available slots for this date</p>
+          )}
+        </div>
+      </div>
+
       <AppointmentFilter 
         filterOptions={filterOptions} 
         onFilterChange={handleFilterChange} 
-      />
-
-      <Calendar
-        onChange={handleDateChange}
-        value={selectedDate}
       />
 
       {error && <div className="error-message">{error}</div>}
 
       {!loading && filteredAppointments.length === 0 && (
         <div className="empty-state">
-          <p>No appointments found. Schedule your first appointment now!</p>
+          <p>No appointments found for {selectedDate.toLocaleDateString()}.</p>
         </div>
       )}
 
@@ -193,6 +210,8 @@ const AppointmentsPage = () => {
         <NewAppointmentModal
           onClose={() => setShowNewModal(false)}
           onCreate={handleCreateAppointment}
+          availableSlots={availableSlots}
+          selectedDate={selectedDate}
         />
       )}
     </div>
