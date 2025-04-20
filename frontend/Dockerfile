@@ -1,5 +1,5 @@
 # Use the node:18-alpine base image
-FROM node:18-alpine
+FROM mcr.microsoft.com/devcontainers/javascript-node:18
 
 # Set the working directory to /app
 WORKDIR /app

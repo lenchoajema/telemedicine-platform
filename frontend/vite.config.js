@@ -10,10 +10,16 @@ export default defineConfig({
   esbuild: {
     jsx: 'automatic'
   },
-  // Add build configuration for Netlify
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+    watch: {
+      usePolling: true
+    }
+  },
   build: {
     outDir: 'dist',
-    // Generate a _redirects file for SPA routing
     rollupOptions: {
       output: {
         manualChunks: undefined,

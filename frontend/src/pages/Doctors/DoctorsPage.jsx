@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import DoctorService from '../../api/DoctorService';
 //import DoctorCard from '../../components/doctors/DoctorCard';
@@ -23,7 +22,8 @@ export default function DoctorsPage() {
         setDoctors(response.data);
         setFilteredDoctors(response.data);
       } catch (err) {
-        addNotification('Failed to load doctors', 'error');
+        console.error('Error fetching doctors:', err);
+        addNotification(`Failed to load doctors: ${err.message}`, 'error');
       } finally {
         setLoading(false);
       }

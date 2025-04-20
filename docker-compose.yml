@@ -1,4 +1,4 @@
-version: '3.8'
+# Docker Compose configuration for Telemedicine Platform
 
 services:
   mongodb:
@@ -37,10 +37,10 @@ services:
       - /app/node_modules
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
-      interval: 30s
+      interval: 45s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
   frontend:
     build:

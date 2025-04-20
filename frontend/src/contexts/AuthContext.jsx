@@ -1,52 +1,72 @@
-import { createContext, useState, useEffect } from 'react';
-import AuthService from '../api/AuthService';
+import { createContext, useState, useEffect, useContext } from 'react';
 
-export const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    initializeAuth();
+    // Check if user is stored in local storage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
-  const initializeAuth = async () => {
+  const login = async (credentials) => {
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const userData = await AuthService.getMe();
-        setUser(userData);
-      }
-    } finally {
-      setLoading(false);
+      // Call your login API
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
+      
+      if (!response.ok) throw new Error('Login failed');
+      
+      const data = await response.json();
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      return data.user;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
   };
 
-  const login = async (credentials) => {
-    const { user, token } = await AuthService.login(credentials);
-    localStorage.setItem('token', token);
-    setUser(user);
-  };
-
   const register = async (userData) => {
-    const { user, token } = await AuthService.register(userData);
-    localStorage.setItem('token', token);
-    setUser(user);
+    try {
+      // Call your register API
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      
+      if (!response.ok) throw new Error('Registration failed');
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
     setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);

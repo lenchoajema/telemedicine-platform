@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNotification } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import AppointmentService from '../../api/AppointmentService';
 //import DashboardCard from '../../components/dashboard/DashboardCard';
 import AppointmentList from '../../components/appointments/AppointmentList';
@@ -9,7 +9,7 @@ import './DashboardPage.css';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { showNotification } = useNotification();
+  const { showNotification } = useNotifications();
   const [stats, setStats] = useState(null);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
