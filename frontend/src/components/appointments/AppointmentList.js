@@ -4,17 +4,27 @@ import { formatDate, formatTime } from '../../utils/dateUtils';
 export default function AppointmentList({ 
   appointments, 
   emptyMessage = 'No appointments scheduled', 
-  onCancel 
+  onCancel,
+  selectedDate 
 }) {
+  const filteredAppointments = appointments.filter(appointment => {
+    const appointmentDate = new Date(appointment.date);
+    return (
+      appointmentDate.getFullYear() === selectedDate.getFullYear() &&
+      appointmentDate.getMonth() === selectedDate.getMonth() &&
+      appointmentDate.getDate() === selectedDate.getDate()
+    );
+  });
+
   return (
     <div className="appointment-list">
-      {appointments.length === 0 ? (
+      {filteredAppointments.length === 0 ? (
         <div className="empty-state">
           <p>{emptyMessage}</p>
         </div>
       ) : (
         <ul className="appointment-items">
-          {appointments.map((appointment) => (
+          {filteredAppointments.map((appointment) => (
             <li key={appointment._id} className="appointment-card">
               <div className="appointment-header">
                 <h3 className="doctor-name">
