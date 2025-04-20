@@ -13,7 +13,7 @@ export default function DoctorsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState('');
-  const { addNotification } = useNotification();
+  const { addNotification } = useNotifications();
 
   useEffect(() => {
     const fetchDoctors = async () => {
