@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = '/api/auth';
+const API_URL = import.meta.env.VITE_API_URL + '/auth';
 
 class AuthService {
   static async register(userData) {
@@ -14,9 +14,12 @@ class AuthService {
   }
 
   static async getMe() {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No authentication token found');
+    
     const response = await axios.get(`${API_URL}/me`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${token}`
       }
     });
     return response.data.user;
