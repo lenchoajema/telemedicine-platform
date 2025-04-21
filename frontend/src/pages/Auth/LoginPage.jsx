@@ -35,8 +35,10 @@ export default function LoginPage() {
         
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Email Address</label>
+            <label htmlFor="loginEmail">Email Address</label>
             <input
+              id="loginEmail" autoComplete="email"
+              name="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -47,8 +49,10 @@ export default function LoginPage() {
           </div>
           
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="loginPassword">Password</label>
             <input
+              id="loginPassword"
+              name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

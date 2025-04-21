@@ -74,7 +74,7 @@ const AppointmentsPage = () => {
     const fetchAppointments = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/appointments`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
@@ -168,7 +168,7 @@ const AppointmentsPage = () => {
         {/* Display available slots */}
         <div className="available-slots">
           <h3>Available Slots on {selectedDate.toLocaleDateString()}</h3>
-          {availableSlots.length > 0 ? (
+          {Array.isArray(availableSlots) && availableSlots.length > 0 ? (
             <ul className="slots-list">
               {availableSlots.map((slot, index) => (
                 <li key={index} className="time-slot">

@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import AppointmentService from '../../api/AppointmentService';
-//import DashboardCard from '../../components/dashboard/DashboardCard';
+import DashboardCard from '../../components/dashboard/DashboardCard';
 import AppointmentList from '../../components/appointments/AppointmentList';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './DashboardPage.css';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { showNotification } = useNotifications();
+  const { addNotification } = useNotifications();
   const [stats, setStats] = useState(null);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,14 +26,14 @@ export default function DashboardPage() {
         setUpcomingAppointments(appointmentsRes.data);
         setStats(statsRes.data);
       } catch (err) {
-        showNotification('Failed to load dashboard data', 'error');
+        addNotification(`Failed to load dashboard data: ${err.message}`, 'error');
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [showNotification]);
+  }, [addNotification]);
 
   if (loading) return <LoadingSpinner fullPage />;
 

@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from './modules/shared/db.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import appointmentRoutes from './modules/appointments/appointment.routes.js';
+import doctorRoutes from './modules/doctors/doctors.routes.js';
 
 dotenv.config();
 
@@ -18,10 +19,10 @@ const allowedOrigins = [
 
 // Updated CORS configuration
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl requests)
     if (!origin) return callback(null, true);
-    
+
     // Check if the origin is allowed
     const isAllowedOrigin = allowedOrigins.some(allowedOrigin => {
       if (allowedOrigin instanceof RegExp) {
@@ -29,7 +30,7 @@ app.use(cors({
       }
       return allowedOrigin === origin;
     });
-    
+
     if (isAllowedOrigin) {
       callback(null, true);
     } else {
@@ -47,6 +48,7 @@ await connectDB();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/doctors', doctorRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
