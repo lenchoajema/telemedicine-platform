@@ -2,12 +2,12 @@ import { ClockIcon, UserIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { formatDate, formatTime } from '../../utils/dateUtils';
 
 export default function AppointmentList({ 
-  appointments, 
+  appointments = [], 
   emptyMessage = 'No appointments scheduled', 
   onCancel,
   selectedDate 
 }) {
-  const filteredAppointments = appointments.filter(appointment => {
+  const filteredAppointments = (appointments || []).filter(appointment => {
     const appointmentDate = new Date(appointment.date);
     return (
       appointmentDate.getFullYear() === selectedDate.getFullYear() &&

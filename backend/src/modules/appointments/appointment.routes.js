@@ -1,5 +1,12 @@
 import express from 'express';
-import { createAppointment, getUpcomingAppointments, getAppointmentStats } from './appointment.controller.js';
+import {
+    createAppointment,
+    getUpcomingAppointments,
+    getAppointmentStats,
+    getAvailableSlots,
+    getAppointmentsByDate,
+    cancelAppointment
+} from './appointment.controller.js';
 import authMiddleware from '../shared/middleware/auth.js';
 
 const router = express.Router();
@@ -10,6 +17,8 @@ router.use(authMiddleware);
 router.post('/', createAppointment);
 router.get('/upcoming', getUpcomingAppointments);
 router.get('/stats', getAppointmentStats);
-// Add more routes as needed
+router.get('/available-slots', getAvailableSlots);
+router.get('/by-date', getAppointmentsByDate);
+router.put('/:id/cancel', cancelAppointment);
 
 export default router;

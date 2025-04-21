@@ -63,8 +63,9 @@ export default function RegisterPage() {
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="name-fields">
             <div className="form-group">
-              <label>First Name</label>
+              <label htmlFor="firstName">First Name</label>
               <input
+                id="firstName" autoComplete="given-name"
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
@@ -74,8 +75,9 @@ export default function RegisterPage() {
             </div>
             
             <div className="form-group">
-              <label>Last Name</label>
+              <label htmlFor="lastName">Last Name</label>
               <input
+                id="lastName"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
@@ -85,8 +87,9 @@ export default function RegisterPage() {
           </div>
           
           <div className="form-group">
-            <label>Email Address</label>
+            <label htmlFor="email">Email Address</label>
             <input
+              id="email"
               type="email"
               name="email"
               value={formData.email}
@@ -96,8 +99,9 @@ export default function RegisterPage() {
           </div>
           
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
               type="password"
               name="password"
               value={formData.password}
@@ -108,8 +112,9 @@ export default function RegisterPage() {
           </div>
           
           <div className="form-group">
-            <label>Confirm Password</label>
+            <label htmlFor="confirmPassword">Confirm Password</label>
             <input
+              id="confirmPassword"
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
@@ -121,8 +126,9 @@ export default function RegisterPage() {
           <div className="role-selection">
             <label>I am a:</label>
             <div className="radio-group">
-              <label>
+              <label htmlFor="patientRole">
                 <input
+                  id="patientRole"
                   type="radio"
                   name="role"
                   value="patient"
@@ -132,8 +138,9 @@ export default function RegisterPage() {
                 Patient
               </label>
               
-              <label>
+              <label htmlFor="doctorRole">
                 <input
+                  id="doctorRole"
                   type="radio"
                   name="role"
                   value="doctor"

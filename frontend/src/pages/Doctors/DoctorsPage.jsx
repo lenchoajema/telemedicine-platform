@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNotifications } from '../../contexts/NotificationContext';
 import DoctorService from '../../api/DoctorService';
-//import DoctorCard from '../../components/doctors/DoctorCard';
-//import SearchFilters from '../../components/doctors/SearchFilters';
-//import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import DoctorCard from '../../components/doctors/DoctorCard';
+import SearchFilters from '../../components/doctors/SearchFilters';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './DoctorsPage.css';
 
 export default function DoctorsPage() {
