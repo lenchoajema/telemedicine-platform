@@ -7,6 +7,14 @@ export default function AppointmentList({
   onCancel,
   selectedDate 
 }) {
+  if (!Array.isArray(appointments)) {
+    return (
+      <div className="empty-state">
+        <p>{emptyMessage}</p>
+      </div>
+    );
+  }
+
   const filteredAppointments = appointments.filter(appointment => {
     const appointmentDate = new Date(appointment.date);
     return (
