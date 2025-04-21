@@ -10,7 +10,9 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'patient'
+    role: 'patient',
+    licenseNumber: '',
+    specialization: ''
   });
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -35,7 +37,8 @@ export default function RegisterPage() {
     setLoading(true);
     
     try {
-      await register({
+      // Create registration data object
+      const registrationData = {
         email: formData.email,
         password: formData.password,
         profile: {
@@ -43,10 +46,18 @@ export default function RegisterPage() {
           lastName: formData.lastName
         },
         role: formData.role
-      });
+      };
+      
+      // Add doctor-specific fields if role is doctor
+      if (formData.role === 'doctor') {
+        registrationData.profile.licenseNumber = formData.licenseNumber;
+        registrationData.profile.specialization = formData.specialization;
+      }
+      
+      await register(registrationData);
       
       addNotification('Registration successful!', 'success');
-      navigate('/dashboard');
+      navigate('/login'); // Navigate to login instead of dashboard
     } catch (err) {
       addNotification(err.message || 'Registration failed', 'error');
     } finally {
@@ -65,7 +76,8 @@ export default function RegisterPage() {
             <div className="form-group">
               <label htmlFor="firstName">First Name</label>
               <input
-                id="firstName" autoComplete="given-name"
+                id="firstName" 
+                autoComplete="given-name"
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
@@ -79,6 +91,7 @@ export default function RegisterPage() {
               <input
                 id="lastName"
                 name="lastName"
+                autoComplete="family-name"
                 value={formData.lastName}
                 onChange={handleChange}
                 required
@@ -92,6 +105,7 @@ export default function RegisterPage() {
               id="email"
               type="email"
               name="email"
+              autoComplete="email"
               value={formData.email}
               onChange={handleChange}
               required
@@ -104,6 +118,7 @@ export default function RegisterPage() {
               id="password"
               type="password"
               name="password"
+              autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
               required
@@ -117,6 +132,7 @@ export default function RegisterPage() {
               id="confirmPassword"
               type="password"
               name="confirmPassword"
+              autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={handleChange}
               required
@@ -151,6 +167,45 @@ export default function RegisterPage() {
               </label>
             </div>
           </div>
+          
+          {/* Conditional doctor fields that only appear when "Doctor" role is selected */}
+          {formData.role === 'doctor' && (
+            <div className="doctor-fields">
+              <div className="form-group">
+                <label htmlFor="licenseNumber">License Number</label>
+                <input
+                  id="licenseNumber"
+                  name="licenseNumber"
+                  value={formData.licenseNumber}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="specialization">Specialization</label>
+                <select
+                  id="specialization"
+                  name="specialization"
+                  value={formData.specialization}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">-- Select Specialization --</option>
+                  <option value="General Medicine">General Medicine</option>
+                  <option value="Cardiology">Cardiology</option>
+                  <option value="Dermatology">Dermatology</option>
+                  <option value="Orthopedics">Orthopedics</option>
+                  <option value="Neurology">Neurology</option>
+                  <option value="Pediatrics">Pediatrics</option>
+                  <option value="Psychiatry">Psychiatry</option>
+                  <option value="Gynecology">Gynecology</option>
+                  <option value="Ophthalmology">Ophthalmology</option>
+                  <option value="ENT">ENT</option>
+                </select>
+              </div>
+            </div>
+          )}
           
           <button 
             type="submit"
