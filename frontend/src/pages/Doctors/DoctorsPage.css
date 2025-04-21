@@ -23,3 +23,21 @@
     padding: 3rem;
     color: var(--text-light);
   }
+  .no-results {
+    text-align: center;
+    padding: 3rem;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    margin-top: 2rem;
+  }
+  
+  .no-results p {
+    font-size: 1.1rem;
+    color: #64748b;
+  }
+  
+  @media (max-width: 768px) {
+    .doctors-grid {
+      grid-template-columns: 1fr;
+    }
+  }

@@ -141,6 +141,13 @@
 
 /* General font color and background */
 body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   color: #22223b;
   background: #f8f9fa;
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;

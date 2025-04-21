@@ -1,29 +1,46 @@
-import { useState, useEffect } from 'react';
-import { useNotifications } from '../../contexts/NotificationContext';
-import DoctorService from '../../api/DoctorService';
-import DoctorCard from '../../components/doctors/DoctorCard';
-import SearchFilters from '../../components/doctors/SearchFilters';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import './DoctorsPage.css';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useNotifications } from "../../contexts/NotificationContext";
+import DoctorCard from "../../components/doctors/DoctorCard";
+import SearchFilters from "../../components/doctors/SearchFilters";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import "./DoctorsPage.css";
 
-export default function DoctorsPage() {
-  const [doctors, setDoctors] = useState([]);
-  const [filteredDoctors, setFilteredDoctors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [specialtyFilter, setSpecialtyFilter] = useState('');
+const DoctorsPage = () => {
+  const navigate = useNavigate();
   const { addNotification } = useNotifications();
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [specialtyFilter, setSpecialtyFilter] = useState("");
+  const [specialties, setSpecialties] = useState([]);
+  const [filteredDoctors, setFilteredDoctors] = useState([]);
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
         setLoading(true);
-        const response = await DoctorService.getAllDoctors();
-        setDoctors(response.data);
-        setFilteredDoctors(response.data);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/doctors`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch doctors: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Ensure data is an array
+        const doctorsArray = Array.isArray(data) ? data : [];
+        setDoctors(doctorsArray);
+        
+        // Extract unique specialties
+        const uniqueSpecialties = [...new Set(doctorsArray
+          .filter(doctor => doctor.specialization)
+          .map(doctor => doctor.specialization))];
+        
+        setSpecialties(uniqueSpecialties);
       } catch (err) {
-        console.error('Error fetching doctors:', err);
-        addNotification(`Failed to load doctors: ${err.message}`, 'error');
+        console.error("Error fetching doctors:", err);
+        addNotification("Failed to load doctors. Please try again later.", "error");
+        setDoctors([]);
       } finally {
         setLoading(false);
       }
@@ -33,33 +50,33 @@ export default function DoctorsPage() {
   }, [addNotification]);
 
   useEffect(() => {
-    let results = doctors;
+    // Filter doctors based on search term and specialty
+    const filtered = doctors.filter(doctor => {
+      const nameMatch = `${doctor.profile?.firstName} ${doctor.profile?.lastName}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      
+      const specialtyMatch = !specialtyFilter || doctor.specialization === specialtyFilter;
+      
+      return nameMatch && specialtyMatch;
+    });
     
-    if (searchTerm) {
-      results = results.filter(doctor => 
-        doctor.profile.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    if (specialtyFilter) {
-      results = results.filter(doctor => 
-        doctor.specialization === specialtyFilter
-      );
-    }
-    
-    setFilteredDoctors(results);
-  }, [searchTerm, specialtyFilter, doctors]);
+    setFilteredDoctors(filtered);
+  }, [doctors, searchTerm, specialtyFilter]);
 
-  const specialties = [...new Set(doctors.map(d => d.specialization))];
+  const handleBookAppointment = (doctorId) => {
+    navigate(`/appointments/new?doctor=${doctorId}`);
+  };
 
-  if (loading) return <LoadingSpinner fullPage />;
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="doctors-page">
-      <h1>Find Your Doctor</h1>
+      <h1>Find a Doctor</h1>
       
-      <SearchFilters
+      <SearchFilters 
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         specialtyFilter={specialtyFilter}
@@ -67,21 +84,22 @@ export default function DoctorsPage() {
         specialties={specialties}
       />
       
-      <div className="doctors-grid">
-        {filteredDoctors.length > 0 ? (
-          filteredDoctors.map(doctor => (
-            <DoctorCard 
+      {filteredDoctors.length > 0 ? (
+        <div className="doctors-grid">
+          {Array.isArray(filteredDoctors) && filteredDoctors.map(doctor => (
+            <DoctorCard
               key={doctor._id}
               doctor={doctor}
-              onBookAppointment={() => {/* Implement booking */}}
+              onBookAppointment={handleBookAppointment}
             />
-          ))
-        ) : (
-          <div className="empty-state">
-            No doctors found matching your criteria
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="no-results">
+          <p>No doctors found matching your criteria.</p>
+        </div>
+      )}
     </div>
   );
-}
+};
+export default DoctorsPage;
