@@ -7,22 +7,28 @@ export default function AppointmentList({
   onCancel,
   selectedDate 
 }) {
-if (!Array.isArray(appointments)) {
-  return (
-    <div className="empty-state">
-      <p>{emptyMessage}</p>
-    </div>
-  );
-}
-
-const filteredAppointments = appointments.filter(appointment => {
-    const appointmentDate = new Date(appointment.date);
+  // Check if appointments is an array
+  if (!Array.isArray(appointments)) {
     return (
-      appointmentDate.getFullYear() === selectedDate.getFullYear() &&
-      appointmentDate.getMonth() === selectedDate.getMonth() &&
-      appointmentDate.getDate() === selectedDate.getDate()
+      <div className="empty-state">
+        <p>{emptyMessage}</p>
+      </div>
     );
-  });
+  }
+
+  let filteredAppointments = appointments;
+  
+  // Only filter by date if selectedDate is provided
+  if (selectedDate) {
+    filteredAppointments = appointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.date);
+      return (
+        appointmentDate.getFullYear() === selectedDate.getFullYear() &&
+        appointmentDate.getMonth() === selectedDate.getMonth() &&
+        appointmentDate.getDate() === selectedDate.getDate()
+      );
+    });
+  }
 
   return (
     <div className="appointment-list">
