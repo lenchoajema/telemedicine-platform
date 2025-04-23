@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import './Header.css';
 
 export default function Header() {
   const { user, logout } = useAuth();
