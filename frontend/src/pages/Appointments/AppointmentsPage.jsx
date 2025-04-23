@@ -112,7 +112,7 @@ const AppointmentsPage = () => {
 
   const handleCancelAppointment = async (id) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments/${id}/cancel`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/appointments/${id}/cancel`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
