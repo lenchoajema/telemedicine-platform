@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
-import { formatDate } from '../../utils/dateUtils';
+import { useState, useEffect } from "react";
+import { formatDate } from "../../utils/dateUtils";
 
 export default function NewAppointmentModal({ 
   onClose, 
   onCreate, 
-  availableSlots,
+  availableSlots = [],
   selectedDate 
 }) {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    doctorId: '',
+    doctorId: "",
     date: selectedDate,
-    slot: '',
-    reason: '',
-    symptoms: '',
+    slot: "",
+    reason: "",
+    symptoms: "",
     duration: 30
   });
 
@@ -22,12 +22,12 @@ export default function NewAppointmentModal({
     const fetchDoctors = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/doctors`);
-        if (!response.ok) throw new Error('Failed to fetch doctors');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/doctors`);
+        if (!response.ok) throw new Error("Failed to fetch doctors");
         const data = await response.json();
-        setDoctors(data);
+        setDoctors(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Error fetching doctors:', error);
+        console.error("Error fetching doctors:", error);
       } finally {
         setLoading(false);
       }
@@ -49,31 +49,34 @@ export default function NewAppointmentModal({
 
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
-        method: 'POST',
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/appointments`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
         body: JSON.stringify({
           doctorId: formData.doctorId,
           date: new Date(formData.slot),
           duration: formData.duration,
           reason: formData.reason,
-          symptoms: formData.symptoms ? formData.symptoms.split(',').map(s => s.trim()) : []
+          symptoms: formData.symptoms ? formData.symptoms.split(",").map(s => s.trim()) : []
         })
       });
 
-      if (!response.ok) throw new Error('Failed to create appointment');
+      if (!response.ok) throw new Error("Failed to create appointment");
       
       const appointment = await response.json();
       onCreate(appointment);
     } catch (error) {
-      console.error('Error creating appointment:', error);
+      console.error("Error creating appointment:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Ensure availableSlots is always an array
+  const slotsArray = Array.isArray(availableSlots) ? availableSlots : [];
 
   return (
     <div className="modal-overlay">
@@ -95,7 +98,7 @@ export default function NewAppointmentModal({
               <option value="">-- Select a doctor --</option>
               {doctors.map(doctor => (
                 <option key={doctor._id} value={doctor._id}>
-                  Dr. {doctor.profile.firstName} {doctor.profile.lastName} - {doctor.specialization}
+                  Dr. {doctor.profile?.firstName} {doctor.profile?.lastName} - {doctor.specialization}
                 </option>
               ))}
             </select>
@@ -115,11 +118,15 @@ export default function NewAppointmentModal({
               required
             >
               <option value="">-- Select a time --</option>
-              {availableSlots.map((slot, index) => (
-                <option key={index} value={slot}>
-                  {new Date(slot).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                </option>
-              ))}
+              {slotsArray.length > 0 ? (
+                slotsArray.map((slot, index) => (
+                  <option key={index} value={slot}>
+                    {new Date(slot).toLocaleTimeString([], {hour: "2-digit", minute:"2-digit"})}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>No available slots for this date</option>
+              )}
             </select>
           </div>
           
@@ -173,7 +180,7 @@ export default function NewAppointmentModal({
               className="btn btn-primary"
               disabled={loading}
             >
-              {loading ? 'Scheduling...' : 'Schedule Appointment'}
+              {loading ? "Scheduling..." : "Schedule Appointment"}
             </button>
           </div>
         </form>

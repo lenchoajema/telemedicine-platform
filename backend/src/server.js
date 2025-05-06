@@ -5,6 +5,7 @@ import connectDB from './modules/shared/db.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import appointmentRoutes from './modules/appointments/appointment.routes.js';
 import doctorRoutes from './modules/doctors/doctors.routes.js';
+import path from 'path';
 
 dotenv.config();
 
@@ -41,6 +42,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Add static file middleware here
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Database
 await connectDB();

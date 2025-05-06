@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mongodb-test:
+    image: mongo:latest
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb-test-data:/data/db
+    networks:
+      - test-network
+
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    environment:
+      - NODE_ENV=test
+      - PORT=5001
+      - MONGO_URI=mongodb://mongodb-test:27017/telemedicine-test
+      - JWT_SECRET=test_secret_key
+    depends_on:
+      - mongodb-test
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - test-network
+    command: npm test
+
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test
+    environment:
+      - NODE_ENV=test
+      - VITE_API_URL=http://backend-test:5001/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - test-network
+    command: npm test
+
+networks:
+  test-network:
+
+volumes:
+  mongodb-test-data:

@@ -1,3 +1,5 @@
+// Added import to resolve ReferenceError
+import VerificationReviewPage from "./pages/Admin/VerificationReviewPage";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -57,6 +59,16 @@ function App() {
                   <AppointmentsPage />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/verifications" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <VerificationReviewPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/verifications/:doctorId" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <VerificationReviewPage />
+              </ProtectedRoute>
+            } />
 
               {/* Error Handling */}
               <Route path="*" element={<NotFoundPage />} />
@@ -68,4 +80,5 @@ function App() {
   );
 }
 
-export default App;
+export default App;// Admin routes
+
