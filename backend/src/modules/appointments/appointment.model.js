@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const AppointmentSchema = new mongoose.Schema({
+const appointmentSchema = new mongoose.Schema({
   patient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -9,30 +9,16 @@ const AppointmentSchema = new mongoose.Schema({
   doctor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    validate: {
-      validator: async function(doctorId) {
-        const user = await mongoose.model('User').findById(doctorId);
-        return user?.role === 'doctor';
-      },
-      message: 'The specified user is not a doctor'
-    }
+    required: true
   },
   date: {
     type: Date,
-    required: true,
-    validate: {
-      validator: function(date) {
-        return date > new Date();
-      },
-      message: 'Appointment date must be in the future'
-    }
+    required: true
   },
-  duration: {  // in minutes
+  duration: {
     type: Number,
-    min: 15,
-    max: 120,
-    default: 30
+    default: 30, // Default 30 minutes
+    required: true
   },
   status: {
     type: String,
@@ -40,46 +26,32 @@ const AppointmentSchema = new mongoose.Schema({
     default: 'scheduled'
   },
   reason: {
-    type: String,
-    maxlength: 500
+    type: String
   },
   symptoms: [{
-    type: String,
-    maxlength: 100
+    type: String
   }],
-  meetingUrl: String,
-  // Medical data (doctor-editable)
-  diagnosis: {
-    type: String,
-    maxlength: 1000
+  notes: {
+    type: String
   },
-  prescription: [{
-    medication: String,
-    dosage: String,
-    instructions: String
-  }]
-}, { 
-  timestamps: true,
-  toJSON: { virtuals: true } 
+  meetingUrl: {
+    type: String
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  timestamps: true
 });
 
-// Compound index for doctor availability
-AppointmentSchema.index({ 
-  doctor: 1, 
-  date: 1,
-  status: 1 
-}, { unique: true });
+// Ensure doctor isn't double-booked
+appointmentSchema.index({ doctor: 1, date: 1 }, { unique: true });
 
-// Virtual for end time
-AppointmentSchema.virtual('endTime').get(function() {
-  const end = new Date(this.date);
-  end.setMinutes(end.getMinutes() + this.duration);
-  return end;
-});
+const Appointment = mongoose.model('Appointment', appointmentSchema);
 
-// Query helper for active appointments
-AppointmentSchema.query.active = function() {
-  return this.where({ status: { $in: ['scheduled'] } });
-};
-
-export default mongoose.model('Appointment', AppointmentSchema);
+export default Appointment;
