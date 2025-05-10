@@ -136,3 +136,131 @@ export const getAllDoctors = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+// Get all available specializations
+export const getSpecializations = async (req, res) => {
+  try {
+    // Get unique specializations from all doctors
+    const specializations = await Doctor.distinct('specialization', { verificationStatus: 'approved' });
+    
+    // Sort alphabetically
+    specializations.sort();
+    
+    res.status(200).json(specializations);
+  } catch (error) {
+    console.error('Error fetching specializations:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Get doctor by ID for public profile view
+export const getDoctorById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const doctor = await Doctor.findById(id)
+      .populate('user', 'email profile.firstName profile.lastName profile.fullName profile.photo');
+    
+    if (!doctor) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+    
+    // Only allow viewing approved doctors
+    if (doctor.verificationStatus !== 'approved') {
+      return res.status(403).json({ error: 'Doctor profile not available' });
+    }
+    
+    res.status(200).json(doctor);
+  } catch (error) {
+    console.error('Error fetching doctor:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+// Submit rating for a doctor
+export const rateDoctorById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, feedback } = req.body;
+    const userId = req.user._id;
+    
+    // Validate rating
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+    }
+    
+    // Check if doctor exists
+    const doctor = await Doctor.findById(id);
+    if (!doctor) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+    
+    // Check if doctor is approved
+    if (doctor.verificationStatus !== 'approved') {
+      return res.status(403).json({ error: 'Cannot rate unverified doctors' });
+    }
+    
+    // Create or update rating schema
+    const Rating = mongoose.model('Rating', new mongoose.Schema({
+      doctor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Doctor',
+        required: true
+      },
+      patient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      rating: {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 5
+      },
+      feedback: String,
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }));
+    
+    // Check if user has already rated this doctor
+    let existingRating = await Rating.findOne({
+      doctor: id,
+      patient: userId
+    });
+    
+    if (existingRating) {
+      // Update existing rating
+      existingRating.rating = rating;
+      existingRating.feedback = feedback;
+      await existingRating.save();
+    } else {
+      // Create new rating
+      await Rating.create({
+        doctor: id,
+        patient: userId,
+        rating,
+        feedback
+      });
+    }
+    
+    // Update doctor's average rating
+    const allRatings = await Rating.find({ doctor: id });
+    const totalRating = allRatings.reduce((sum, item) => sum + item.rating, 0);
+    const averageRating = totalRating / allRatings.length;
+    
+    doctor.rating = averageRating;
+    doctor.reviewCount = allRatings.length;
+    await doctor.save();
+    
+    res.status(200).json({
+      message: 'Rating submitted successfully',
+      averageRating: doctor.rating,
+      reviewCount: doctor.reviewCount
+    });
+    
+  } catch (error) {
+    console.error('Error submitting rating:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

@@ -3,7 +3,11 @@ import {
   uploadDocument,
   submitVerification,
   getVerificationStatus,
-  getAllDoctors
+  getAllDoctors,
+  getSpecializations, 
+  getDoctorById,
+  rateDoctorById,
+  rescheduleAppointment
 } from './doctor.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
 
@@ -11,6 +15,10 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getAllDoctors);
+router.get('/specializations', getSpecializations);
+router.get('/:id', getDoctorById);
+// Rating endpoint - requires authentication
+router.post('/:id/rate', authenticate, rateDoctorById);
 
 // Protected routes
 router.use(authenticate);

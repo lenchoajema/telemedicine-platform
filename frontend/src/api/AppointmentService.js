@@ -30,20 +30,34 @@ class AppointmentService {
       return response.data;
     } catch (error) {
       console.error("Error fetching appointment stats:", error);
-      return {};
+      return { upcomingCount: 0, completedCount: 0, todayCount: 0 };
     }
   }
 
-  static async getAvailableSlots(date) {
+  static async getAvailableSlots(date, doctorId = null) {
     try {
+      const params = { 
+        date: date.toISOString().split("T")[0]
+      };
+      
+      // Add doctorId to params if provided
+      if (doctorId) {
+        params.doctorId = doctorId;
+      }
+      
       const response = await axios.get(
         `${API_URL}/available-slots`, 
         {
           ...getAuthHeaders(),
-          params: { date: date.toISOString().split("T")[0] }
+          params
         }
       );
-      return Array.isArray(response.data) ? response.data : [];
+
+      // Ensure response.data is always an array
+      const slots = Array.isArray(response.data) ? response.data : [];
+      
+      // Convert string dates to Date objects for easier processing
+      return slots.map(slot => new Date(slot));
     } catch (error) {
       console.error("Error fetching available slots:", error);
       return [];
@@ -90,6 +104,20 @@ class AppointmentService {
       return response.data;
     } catch (error) {
       console.error("Error cancelling appointment:", error);
+      throw error;
+    }
+  }
+  
+  static async rescheduleAppointment(appointmentId, newDate) {
+    try {
+      const response = await axios.put(
+        `${API_URL}/${appointmentId}/reschedule`,
+        { date: newDate.toISOString() },
+        getAuthHeaders()
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error rescheduling appointment:", error);
       throw error;
     }
   }

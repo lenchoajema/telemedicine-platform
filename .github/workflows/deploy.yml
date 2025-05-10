@@ -29,14 +29,14 @@ jobs:
       with:
         context: ./backend
         push: true
-        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/telemedicine-backend:latest
+        tags: my-docker-username/telemedicine-backend:latest
     
     - name: Build and push Frontend image
       uses: docker/build-push-action@v4
       with:
         context: ./frontend
         push: true
-        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/telemedicine-frontend:latest
+        tags: my-docker-username/telemedicine-frontend:latest
     
     - name: Deploy to Production
       uses: appleboy/ssh-action@v0.1.10
