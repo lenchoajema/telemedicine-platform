@@ -23,8 +23,8 @@ const allowedOrigins = [
   // Explicit Codespace URLs
   `https://${CODESPACE_NAME}-5173.app.github.dev`,
   `https://${CODESPACE_NAME}-3000.app.github.dev`,
-  // Fallback regex pattern for any GitHub Codespaces URL
-  /^https:\/\/.*\.app\.github\.dev$/
+  // Fallback pattern for any GitHub Codespaces URL - fixed regex pattern
+  new RegExp('^https://.*\\.app\\.github\\.dev$')
 ];
 
 console.log('Allowed origins:', allowedOrigins);

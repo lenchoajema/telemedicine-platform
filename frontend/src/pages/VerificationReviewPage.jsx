@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { AuthContext, useAuth } from './AuthContextDefinition.js';
+import { AuthContext } from './authContext';
 
 // Don't re-export hooks from component files for Fast Refresh compatibility
 // Import useAuth directly from './authContext' where needed instead
-export { useAuth };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

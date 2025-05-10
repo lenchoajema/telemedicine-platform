@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';  // This import should now work
 import { useNotifications } from '../../contexts/NotificationContext';
 import VerificationStatus from '../../components/doctors/VerificationStatus';
 import './VerificationReviewPage.css';
