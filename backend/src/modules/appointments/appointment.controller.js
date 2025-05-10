@@ -317,3 +317,71 @@ export const getAvailableSlots = async (req, res) => {
     res.status(500).json({ error: 'Failed to get available slots' });
   }
 };
+
+// Reschedule an appointment
+export const rescheduleAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date } = req.body;
+    const userId = req.user._id;
+    
+    if (!date) {
+      return res.status(400).json({ error: 'New date is required' });
+    }
+    
+    const appointment = await Appointment.findById(id);
+    
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    
+    // Check if user owns this appointment or is the doctor
+    const isPatient = appointment.patient.toString() === userId.toString();
+    const isDoctor = appointment.doctor.toString() === userId.toString();
+    
+    if (!isPatient && !isDoctor && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to reschedule this appointment' });
+    }
+    
+    // Check if appointment is already completed or cancelled
+    if (appointment.status !== 'scheduled') {
+      return res.status(400).json({ 
+        error: `Cannot reschedule a ${appointment.status} appointment` 
+      });
+    }
+    
+    // Check if new date is in the future
+    const newDate = new Date(date);
+    if (newDate <= new Date()) {
+      return res.status(400).json({ error: 'New appointment date must be in the future' });
+    }
+    
+    // Check if slot is available
+    const conflictingAppointment = await Appointment.findOne({
+      doctor: appointment.doctor,
+      date: newDate,
+      status: { $ne: 'cancelled' },
+      _id: { $ne: id }
+    });
+    
+    if (conflictingAppointment) {
+      return res.status(400).json({ error: 'Selected timeslot is no longer available' });
+    }
+    
+    // Update appointment
+    appointment.date = newDate;
+    appointment.updatedAt = new Date();
+    
+    await appointment.save();
+    
+    // Populate patient and doctor information for response
+    const updatedAppointment = await Appointment.findById(id)
+      .populate('patient', 'profile.firstName profile.lastName email')
+      .populate('doctor', 'profile.firstName profile.lastName profile.specialization email');
+    
+    res.status(200).json(updatedAppointment);
+  } catch (error) {
+    console.error('Error rescheduling appointment:', error);
+    res.status(500).json({ error: 'Failed to reschedule appointment' });
+  }
+};
