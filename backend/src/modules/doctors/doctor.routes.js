@@ -6,8 +6,8 @@ import {
   getAllDoctors,
   getSpecializations, 
   getDoctorById,
-  rateDoctorById,
-  rescheduleAppointment
+  rateDoctorById
+  //rescheduleAppointment
 } from './doctor.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
 

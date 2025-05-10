@@ -264,3 +264,12 @@ export const rateDoctorById = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+export default {
+  uploadDocument,
+  submitVerification,
+  getVerificationStatus,
+  getAllDoctors,
+  getSpecializations,
+  getDoctorById,
+  rateDoctorById
+};
