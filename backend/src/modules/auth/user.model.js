@@ -67,7 +67,11 @@ UserSchema.virtual('profile.fullName').get(function() {
 
 // Instance method for password verification
 UserSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  console.log('comparePassword called with:', { candidatePassword: candidatePassword.substring(0, 3) + '...' });
+  console.log('Stored hash:', this.password);
+  const isMatch = await bcrypt.compare(candidatePassword, this.password);
+  console.log('Password match result:', isMatch);
+  return isMatch;
 };
 
 export default mongoose.model('User', UserSchema);

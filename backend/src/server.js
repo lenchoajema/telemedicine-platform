@@ -16,60 +16,14 @@ const app = express();
 const CODESPACE_NAME = process.env.CODESPACE_NAME || '';
 console.log('Codespace name:', CODESPACE_NAME);
 
-// Define allowed origins including explicit GitHub Codespaces URLs
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:3000',
-  'http://localhost:5173',
-  // Explicit Codespace URLs
-  `https://${CODESPACE_NAME}-5173.app.github.dev`,
-  `https://${CODESPACE_NAME}-3000.app.github.dev`,
-  // Fallback pattern for any GitHub Codespaces URL - fixed regex pattern
-  new RegExp('^https://.*\\.app\\.github\\.dev$')
-];
+// Simple CORS setup - allow all origins for development
+app.use(cors());
 
-console.log('Allowed origins:', allowedOrigins);
-
-// Pre-flight OPTIONS request handler - must come before other middleware
-app.options('*', cors());
-
-// CORS configuration - apply before any routes
-app.use(cors({
-  origin: function (origin, callback) {
-    console.log('Request origin:', origin);
-    
-    // Allow requests with no origin (like mobile apps, curl, etc)
-    if (!origin) {
-      console.log('No origin, allowing request');
-      return callback(null, true);
-    }
-    
-    // Check if origin is allowed
-    const isAllowedOrigin = allowedOrigins.some(allowedOrigin => {
-      if (allowedOrigin instanceof RegExp) {
-        const matches = allowedOrigin.test(origin);
-        console.log(`Testing ${allowedOrigin} against ${origin}: ${matches}`);
-        return matches;
-      }
-      const matches = allowedOrigin === origin;
-      console.log(`Comparing ${allowedOrigin} with ${origin}: ${matches}`);
-      return matches;
-    });
-    
-    if (isAllowedOrigin) {
-      console.log(`CORS allowed for: ${origin}`);
-      callback(null, true);
-    } else {
-      console.error(`CORS blocked for: ${origin}`);
-      const corsError = new Error(`CORS not allowed for ${origin}`);
-      callback(corsError);
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
+// Log important info about environment
+console.log('CORS enabled for all origins in development mode');
+if (CODESPACE_NAME) {
+  console.log(`Codespace URL: https://${CODESPACE_NAME}-5173.app.github.dev`);
+}
 
 // Body parsing middleware
 app.use(express.json());
@@ -108,5 +62,4 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`CORS is enabled for origins: ${allowedOrigins.map(o => typeof o === 'object' ? o.toString() : o).join(', ')}`);
 });

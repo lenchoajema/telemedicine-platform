@@ -139,16 +139,35 @@ export const getAllDoctors = async (req, res) => {
 // Get all available specializations
 export const getSpecializations = async (req, res) => {
   try {
+    console.log('Fetching specializations...');
+    
     // Get unique specializations from all doctors
-    const specializations = await Doctor.distinct('specialization', { verificationStatus: 'approved' });
+    // If no doctors are approved yet, we'll return a default list
+    let specializations = await Doctor.distinct('specialization', { verificationStatus: 'approved' });
+    
+    // If no specializations found, return a default list of common specializations
+    if (!specializations || specializations.length === 0) {
+      specializations = [
+        'General Medicine',
+        'Cardiology',
+        'Dermatology',
+        'Neurology',
+        'Orthopedics',
+        'Pediatrics',
+        'Psychiatry',
+        'Ophthalmology',
+        'Family Medicine'
+      ];
+    }
     
     // Sort alphabetically
     specializations.sort();
     
-    res.status(200).json(specializations);
+    console.log('Specializations found:', specializations);
+    return res.status(200).json(specializations);
   } catch (error) {
     console.error('Error fetching specializations:', error);
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 };
 

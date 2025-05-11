@@ -1,3 +1,13 @@
+// Generic middleware to check user's role
+export const checkRole = (role) => {
+  return (req, res, next) => {
+    if (!req.user || req.user.role !== role) {
+      return res.status(403).json({ error: `Unauthorized: ${role} access required` });
+    }
+    next();
+  };
+};
+
 // Middleware to check if user has admin role
 export const authorizeAdmin = (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
