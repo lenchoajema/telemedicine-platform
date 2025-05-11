@@ -6,7 +6,7 @@ dotenv.config();
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
-      dbName: 'telemedicine_db',
+      // Use the database name from the connection string
       autoIndex: process.env.NODE_ENV !== 'production' // Better performance in prod
     });
     

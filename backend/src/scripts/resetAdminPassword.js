@@ -11,11 +11,13 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const MONGODB_URI = process.env.MONGO_URI || 'mongodb://mongodb:27017/telemedicine_db';
+const MONGODB_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/telemedicine';
+
+console.log('Connecting to MongoDB at:', MONGODB_URI);
 
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
+  .then(() => console.log('MongoDB connected for admin reset'))
   .catch(err => {
     console.error('MongoDB connection error:', err);
     process.exit(1);
@@ -63,62 +65,46 @@ const UserSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Add presave hook for password hashing if needed
-UserSchema.pre('save', async function(next) {
-  if (this.isModified('password')) {
-    try {
-      const salt = await bcrypt.genSalt(10);
-      this.password = await bcrypt.hash(this.password, salt);
-      console.log('Password hashed successfully');
-    } catch (error) {
-      console.error('Error hashing password:', error);
-      return next(error);
-    }
-  }
-  
-  // Create fullName from firstName and lastName
-  if (this.profile && (this.profile.firstName || this.profile.lastName)) {
-    this.profile.fullName = [this.profile.firstName, this.profile.lastName].filter(Boolean).join(' ');
-  }
-  
-  next();
-});
-
 // Create User model
 const User = mongoose.model('User', UserSchema);
 
-async function createAdminUser() {
+async function resetAdminPassword() {
   try {
-    // Check if admin already exists
-    const adminExists = await User.findOne({ email: 'admin@telemedicine.com' });
+    // Find admin user
+    const admin = await User.findOne({ email: 'admin@telemedicine.com' });
     
-    if (adminExists) {
-      console.log('Admin user already exists');
-      return adminExists;
+    if (!admin) {
+      console.log('Admin user not found, creating new admin user...');
+      // Create admin user
+      const newAdmin = new User({
+        email: 'admin@telemedicine.com',
+        password: await bcrypt.hash('Admin@123', 10),
+        role: 'admin',
+        profile: {
+          firstName: 'System',
+          lastName: 'Administrator',
+          phone: '555-ADMIN',
+          isVerified: true
+        },
+        isActive: true
+      });
+      
+      await newAdmin.save();
+      console.log('New admin user created successfully');
+    } else {
+      console.log('Admin user found, resetting password...');
+      // Reset password
+      admin.password = await bcrypt.hash('Admin@123', 10);
+      await admin.save();
+      console.log('Admin password reset successfully');
     }
     
-    // Create admin user
-    const admin = new User({
-      email: 'admin@telemedicine.com',
-      password: 'Admin@123', // This will be hashed by the pre-save hook
-      role: 'admin',
-      profile: {
-        firstName: 'System',
-        lastName: 'Administrator',
-        phone: '555-ADMIN',
-        isVerified: true
-      },
-      isActive: true
-    });
-    
-    await admin.save();
-    console.log('Admin user created successfully');
+    console.log('Admin credentials:');
     console.log('Email: admin@telemedicine.com');
     console.log('Password: Admin@123');
     
-    return admin;
   } catch (error) {
-    console.error('Error creating admin user:', error);
+    console.error('Error resetting admin password:', error);
     throw error;
   } finally {
     // Disconnect from MongoDB
@@ -128,4 +114,4 @@ async function createAdminUser() {
 }
 
 // Execute the function
-createAdminUser()
+resetAdminPassword();

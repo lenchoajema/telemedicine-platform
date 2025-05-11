@@ -13,6 +13,10 @@ import AppointmentsPage from './pages/Appointments/AppointmentsPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
 import NotFoundPage from './pages/Error/NotFoundPage';
+import UsersManagementPage from './pages/Admin/UsersManagementPage';
+import ReportsPage from './pages/Admin/ReportsPage';
+import DoctorProfilePage from './pages/Doctors/DoctorProfilePage';
+import DoctorAvailabilityPage from './pages/Doctors/DoctorAvailabilityPage';
 import './App.css';
 
 function App() {
@@ -59,16 +63,44 @@ function App() {
                   <AppointmentsPage />
                 </ProtectedRoute>
               } />
+
+              {/* Admin Routes */}
               <Route path="/admin/verifications" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <VerificationReviewPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/verifications/:doctorId" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <VerificationReviewPage />
-              </ProtectedRoute>
-            } />
+                <ProtectedRoute roles={['admin']}>
+                  <VerificationReviewPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/verifications/:doctorId" element={
+                <ProtectedRoute roles={['admin']}>
+                  <VerificationReviewPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/users" element={
+                <ProtectedRoute roles={['admin']}>
+                  <UsersManagementPage />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/admin/reports" element={
+                <ProtectedRoute roles={['admin']}>
+                  <ReportsPage />
+                </ProtectedRoute>
+              } />
+
+              {/* Doctor Routes */}
+              <Route path="/doctor/profile" element={
+                <ProtectedRoute roles={['doctor']}>
+                  <DoctorProfilePage />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/doctor/availability" element={
+                <ProtectedRoute roles={['doctor']}>
+                  <DoctorAvailabilityPage />
+                </ProtectedRoute>
+              } />
 
               {/* Error Handling */}
               <Route path="*" element={<NotFoundPage />} />
@@ -80,5 +112,5 @@ function App() {
   );
 }
 
-export default App;// Admin routes
+export default App;
 

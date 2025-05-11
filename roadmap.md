@@ -1,11 +1,11 @@
 # Updated Telemedicine Platform Roadmap
 
-## Progress Summary (May 6, 2025)
+## Progress Summary (May 11, 2025)
 | Phase | Status | Completion |
 |-------|--------|------------|
 | Phase 1: Auth System | ✅ Complete | 100% |
 | Phase 2: User Profiles | ✅ Complete | 100% |
-| Phase 3: Doctor Management | 🟨 In Progress | 60% |
+| Phase 3: Doctor Management | 🟨 In Progress | 75% |
 | Phase 4: Appointment System | 🟨 In Progress | 40% |
 | Phase 5: Video Consultation | 🔴 Not Started | 0% |
 | Phase 6: Medical Records | 🔴 Not Started | 0% |
@@ -17,15 +17,20 @@
 - ✓ Added verification status component
 - ✓ Implemented file upload service
 - ✓ Created admin dashboard for verification reviews
+- ✓ Added role-specific dashboards for admin, doctors, and patients
+- ✓ Implemented doctor profile management page
+- ✓ Created doctor availability setting interface
+- ✓ Fixed API endpoints for specializations and recent doctors
+- ✓ Created patients module with recent-doctors endpoint
+- ✓ Improved admin stats endpoints
 
-## Current Sprint (May 6-13, 2025)
+## Current Sprint (May 11-18, 2025)
 
-### 1. Doctor Management (Phase 3) - Finish Remaining Tasks
+### 1. Doctor Management (Phase 3) - Complete Remaining Tasks
 - **Priority: High**
 - Test complete doctor verification workflow (frontend to backend)
-- Add specialization filtering to doctor search
+- ✓ Add specialization filtering to doctor search (API endpoint fixed)
 - Implement doctor rating system
-- Create doctor profile public view
 
 ### 2. Appointment System (Phase 4) - Core Functionality
 - **Priority: High**
@@ -34,11 +39,10 @@
 - Implement recurring appointment settings
 - Add appointment cancellation and rescheduling
 
-## Next Sprint (May 14-21, 2025)
+## Next Sprint (May 19-26, 2025)
 
 ### 1. Appointment System (Phase 4) - Advanced Features
 - **Priority: Medium**
-- Create doctor's availability setting interface
 - Implement recurring availability patterns
 - Add buffer time configuration between appointments
 - Implement appointment reminders
@@ -74,7 +78,6 @@
 - File upload service for document verification
 
 ### Current Blockers:
-- Need to fix admin role authentication in middleware
 - Need to optimize appointment slot calculation for better performance
 
 ## Team Focus
@@ -82,4 +85,3 @@
 - **Backend team**: Fix appointment system APIs and implement notification system
 - **DevOps**: Continue monitoring infrastructure and optimize API performance
 
-Would you like me to elaborate on any specific area of this roadmap or make any adjustments to the priorities?
