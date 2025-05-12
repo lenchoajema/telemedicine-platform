@@ -1,5 +1,61 @@
 import User from '../auth/user.model.js';
 import mongoose from 'mongoose';
+import Appointment from '../appointments/appointment.model.js';
+
+export const getDoctorStats = async (req, res) => {
+    try {
+        const doctorId = req.user._id;
+        
+        // Get today's date at midnight
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Get tomorrow's date at midnight
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        // Get appointments for this doctor
+        const [totalAppointments, todayAppointments, completedAppointments, pendingAppointments] = await Promise.all([
+            // Total appointments count
+            Appointment.countDocuments({ doctor: doctorId }),
+            
+            // Today's appointments count
+            Appointment.countDocuments({
+                doctor: doctorId,
+                appointmentDate: {
+                    $gte: today,
+                    $lt: tomorrow
+                }
+            }),
+            
+            // Completed appointments
+            Appointment.countDocuments({
+                doctor: doctorId,
+                status: 'completed'
+            }),
+            
+            // Pending verifications (if doctor profile needs verification)
+            User.countDocuments({
+                _id: doctorId,
+                'verificationStatus': 'pending'
+            })
+        ]);
+        
+        res.json({
+            totalAppointments,
+            todayAppointments,
+            completedAppointments,
+            pendingAppointments,
+            verificationStatus: req.user.verificationStatus || 'pending'
+        });
+    } catch (err) {
+        console.error('Error fetching doctor stats:', err);
+        res.status(500).json({
+            error: 'Failed to fetch doctor statistics',
+            details: err.message
+        });
+    }
+};
 
 export const getAllDoctors = async (req, res) => {
     try {
