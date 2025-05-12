@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react';
 // Create the notification context
 export const NotificationContext = createContext(null);
 
-// Create a hook to use the notification context
+// Re-export the hook from the core file
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {

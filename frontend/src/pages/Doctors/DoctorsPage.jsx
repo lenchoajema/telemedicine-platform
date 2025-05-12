@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useNotifications } from "../../contexts/NotificationContext";
+import { useNotifications } from "../../contexts/NotificationContextCore";
 import DoctorCard from "../../components/doctors/DoctorCard";
 import SearchFilters from "../../components/doctors/SearchFilters";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";

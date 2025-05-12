@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../contexts/NotificationContextCore';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './AdminPages.css';
 
@@ -24,6 +24,28 @@ export default function ReportsPage() {
         });
 
         if (!response.ok) {
+          console.error('Reports API error:', response.status);
+          
+          // Use mock data if API fails in development
+          if (import.meta.env.DEV) {
+            const mockData = {
+              timeRange: timeRange,
+              summary: {
+                userRegistrations: 125,
+                doctorRegistrations: 18,
+                patientRegistrations: 105,
+                appointmentsTotal: 210,
+                appointmentsCompleted: 180
+              },
+              registrations: [],
+              appointments: [],
+              verifications: []
+            };
+            setReportData(mockData);
+            addNotification('Using mock data - API returned an error', 'warning');
+            return;
+          }
+          
           throw new Error('Failed to fetch report data');
         }
 

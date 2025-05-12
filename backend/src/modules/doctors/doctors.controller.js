@@ -20,8 +20,13 @@ export const getAllDoctors = async (req, res) => {
 
 export const getDoctorById = async (req, res) => {
     try {
+        // Validate doctor ID format
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'Invalid doctor ID' });
+        }
         const doctor = await User.findOne({
-            _id: req.params.id,
+            _id: id,
             role: 'doctor'
         }).select('-password');
 

@@ -7,7 +7,13 @@ import appointmentRoutes from './modules/appointments/appointment.routes.js';
 import doctorRoutes from './modules/doctors/doctors.routes.js';
 import path from 'path';
 import apiRoutes from './api/index.js';
-
+// Import and mount admin routes
+import verificationRoutes from './modules/admin/verification.routes.js';
+import statsRoutes from './modules/admin/stats.routes.js';
+import reportsRoutes from './modules/admin/reports.routes.js';
+import usersRoutes from './modules/admin/users.routes.js';
+import patientRoutes from './modules/patients/patient.routes.js';
+import { logRegisteredRoutes } from './modules/shared/api-monitor.js';
 dotenv.config();
 
 const app = express();
@@ -38,11 +44,18 @@ await connectDB();
 if (process.env.USE_API_ROUTES === 'true') {
   // Use centralized API routes
   app.use('/api', apiRoutes);
+  console.log('Using centralized API routes');
 } else {
   // Direct route mounting
+  console.log('Using direct route mounting');
   app.use('/api/auth', authRoutes);
   app.use('/api/appointments', appointmentRoutes);
   app.use('/api/doctors', doctorRoutes);
+  app.use('/api/admin/verifications', verificationRoutes);
+  app.use('/api/admin/stats', statsRoutes);
+  app.use('/api/admin/users', usersRoutes);
+  app.use('/api/admin/reports', reportsRoutes);
+  app.use('/api/patients', patientRoutes);
 }
 
 // Health check endpoint
@@ -59,7 +72,18 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Log all registered routes to help debug missing endpoints
+if (process.env.NODE_ENV === 'development' && process.env.LOG_ROUTES === 'true') {
+  try {
+    logRegisteredRoutes(app);
+  } catch (error) {
+    console.log('Could not log routes:', error.message);
+    console.log('This is not critical and the server will continue to run.');
+  }
+}
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`API Health check available at: http://localhost:${PORT}/api/health`);
 });

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AuthContext } from './authContext';
+//import { useNotifications } from '../contexts/NotificationContextCore';
 
 // Don't re-export hooks from component files for Fast Refresh compatibility
 // Import useAuth directly from './authContext' where needed instead
