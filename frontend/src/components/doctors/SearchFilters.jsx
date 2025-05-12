@@ -19,9 +19,35 @@ export default function SearchFilters({ onFilterChange }) {
         if (response.ok) {
           const data = await response.json();
           setSpecializations(data);
+        } else {
+          // If API fails, use default specializations
+          setSpecializations([
+            'General Medicine',
+            'Cardiology',
+            'Dermatology',
+            'Neurology',
+            'Orthopedics',
+            'Pediatrics',
+            'Psychiatry',
+            'Ophthalmology',
+            'Family Medicine'
+          ]);
+          console.warn('Using default specializations due to API error');
         }
       } catch (error) {
         console.error('Error fetching specializations:', error);
+        // If API fails, use default specializations
+        setSpecializations([
+          'General Medicine',
+          'Cardiology',
+          'Dermatology',
+          'Neurology',
+          'Orthopedics',
+          'Pediatrics',
+          'Psychiatry',
+          'Ophthalmology',
+          'Family Medicine'
+        ]);
       }
     };
     

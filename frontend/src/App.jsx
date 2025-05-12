@@ -3,6 +3,7 @@ import VerificationReviewPage from "./pages/Admin/VerificationReviewPage";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import ErrorBoundary from './components/shared/ErrorBoundary';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/Home/Home';
 import LoginPage from './pages/Auth/LoginPage';
@@ -25,7 +26,8 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <Layout>
-            <Routes>
+            <ErrorBoundary>
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={
                 <PublicRoute>
@@ -79,7 +81,9 @@ function App() {
 
               <Route path="/admin/users" element={
                 <ProtectedRoute roles={['admin']}>
-                  <UsersManagementPage />
+                  <ErrorBoundary>
+                    <UsersManagementPage />
+                  </ErrorBoundary>
                 </ProtectedRoute>
               } />
               
@@ -105,6 +109,7 @@ function App() {
               {/* Error Handling */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
+            </ErrorBoundary>
           </Layout>
         </NotificationProvider>
       </AuthProvider>

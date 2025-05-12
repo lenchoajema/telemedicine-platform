@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 //import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../contexts/NotificationContextCore';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './AdminPages.css';
 
@@ -22,12 +22,68 @@ export default function UsersManagementPage() {
         });
 
         if (!response.ok) {
+          console.error('Users API error:', response.status);
+          
+          // Use mock data if API fails in development
+          if (import.meta.env.DEV) {
+            const mockUsers = [
+              {
+                _id: '1',
+                email: 'admin@telemedicine.com',
+                profile: { 
+                  firstName: 'Admin', 
+                  lastName: 'User',
+                  fullName: 'Admin User'
+                },
+                role: 'admin',
+                status: 'active',
+                createdAt: new Date().toISOString()
+              },
+              {
+                _id: '2',
+                email: 'doctor@telemedicine.com',
+                profile: { 
+                  firstName: 'Sample', 
+                  lastName: 'Doctor',
+                  fullName: 'Sample Doctor'
+                },
+                role: 'doctor',
+                status: 'active',
+                createdAt: new Date().toISOString()
+              },
+              {
+                _id: '3',
+                email: 'patient@telemedicine.com',
+                profile: { 
+                  firstName: 'Sample', 
+                  lastName: 'Patient',
+                  fullName: 'Sample Patient'
+                },
+                role: 'patient',
+                status: 'active',
+                createdAt: new Date().toISOString()
+              }
+            ];
+            setUsers(mockUsers);
+            addNotification('Using mock data - API returned an error', 'warning');
+            return;
+          }
+          
           throw new Error('Failed to fetch users');
         }
 
         const data = await response.json();
-        setUsers(data);
+        // Check if the data is structured with a users property (pagination)
+        if (data.users && Array.isArray(data.users)) {
+          setUsers(data.users);
+        } else if (Array.isArray(data)) {
+          setUsers(data);
+        } else {
+          console.error('Unexpected API response format:', data);
+          throw new Error('Unexpected API response format');
+        }
       } catch (error) {
+        console.error('Error fetching users:', error);
         addNotification(`Error: ${error.message}`, 'error');
       } finally {
         setLoading(false);
@@ -50,9 +106,16 @@ export default function UsersManagementPage() {
     if (filter !== 'all' && user.role !== filter) return false;
     
     // Apply search filter
-    if (searchTerm && !user.email.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !user.profile?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
+    if (searchTerm) {
+      const email = user.email.toLowerCase();
+      const firstName = user.profile?.firstName?.toLowerCase() || '';
+      const lastName = user.profile?.lastName?.toLowerCase() || '';
+      const fullName = user.profile?.fullName?.toLowerCase() || `${firstName} ${lastName}`.trim();
+      
+      if (!email.includes(searchTerm.toLowerCase()) && 
+          !fullName.includes(searchTerm.toLowerCase())) {
+        return false;
+      }
     }
     
     return true;
@@ -130,7 +193,9 @@ export default function UsersManagementPage() {
             ) : (
               filteredUsers.map(user => (
                 <tr key={user._id}>
-                  <td>{user.profile?.fullName || 'N/A'}</td>
+                  <td>{user.profile?.fullName || (user.profile?.firstName && user.profile?.lastName) 
+                       ? `${user.profile.firstName || ''} ${user.profile.lastName || ''}`.trim() 
+                       : 'N/A'}</td>
                   <td>{user.email}</td>
                   <td>
                     <span className={`role-badge role-${user.role}`}>

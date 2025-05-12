@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../contexts/NotificationContextCore';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import './DoctorPages.css';
 

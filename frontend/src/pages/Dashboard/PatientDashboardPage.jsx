@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../contexts/NotificationContextCore';
 import AppointmentService from '../../api/AppointmentService';
 import DashboardCard from '../../components/dashboard/DashboardCard';
 import AppointmentList from '../../components/appointments/AppointmentList';
@@ -21,19 +21,33 @@ export default function PatientDashboardPage() {
       try {
         setLoading(true);
         
-        const [appointmentsRes, statsRes, recentDoctorsRes] = await Promise.all([
-          AppointmentService.getUpcomingAppointments(),
-          AppointmentService.getStats(),
-          fetch(`${import.meta.env.VITE_API_URL}/patients/recent-doctors`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
+        try {
+          const appointmentsRes = await AppointmentService.getUpcomingAppointments();
+          const statsRes = await AppointmentService.getStats();
+          
+          // Fetch recent doctors with better error handling
+          let recentDoctorsRes = [];
+          try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/patients/recent-doctors`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              }
+            });
+            if (response.ok) {
+              recentDoctorsRes = await response.json();
+            } else {
+              console.warn('Could not fetch recent doctors:', response.status);
             }
-          }).then(res => res.json())
-        ]);
-        
-        setUpcomingAppointments(appointmentsRes.data);
-        setStats(statsRes.data);
-        setRecentDoctors(recentDoctorsRes || []);
+          } catch (error) {
+            console.error('Error fetching recent doctors:', error);
+          }
+          
+          setUpcomingAppointments(appointmentsRes.data);
+          setStats(statsRes.data);
+          setRecentDoctors(recentDoctorsRes || []);
+        } catch (innerError) {
+          console.error('Error in Promise.all for dashboard data:', innerError);
+        }
       } catch (err) {
         addNotification(`Failed to load dashboard data: ${err.message}`, 'error');
       } finally {
