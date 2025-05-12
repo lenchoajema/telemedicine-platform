@@ -25,4 +25,13 @@ router.use('/admin/users', usersRoutes);
 router.use('/admin/reports', reportsRoutes);
 router.use('/patients', patientRoutes);
 
+// Temporary route for medical records until the feature is implemented
+router.get('/medical-records', (req, res) => {
+  res.status(200).json({ 
+    message: 'Medical Records feature is coming soon!',
+    status: 'in_development',
+    phase: 'Phase 6'
+  });
+});
+
 export default router;

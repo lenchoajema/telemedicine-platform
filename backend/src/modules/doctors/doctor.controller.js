@@ -1,6 +1,8 @@
 import Doctor from './doctor.model.js';
 import upload from '../../services/upload.service.js';
 import { getFileUrl } from '../../services/upload.service.js';
+import mongoose from 'mongoose'; 
+import Appointment from '../appointments/appointment.model.js';
 
 // Middleware for document upload
 export const uploadDocument = (req, res) => {
@@ -171,6 +173,62 @@ export const getSpecializations = async (req, res) => {
   }
 };
 
+// Get doctor statistics
+export const getDoctorStats = async (req, res) => {
+  try {
+    const doctorId = req.user._id;
+    
+    // Get today's date at midnight
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get tomorrow's date at midnight
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Find the doctor document for this user
+    const doctor = await Doctor.findOne({ user: doctorId });
+    
+    if (!doctor) {
+      return res.status(404).json({ error: 'Doctor profile not found' });
+    }
+    
+    // Get appointments for this doctor
+    const [totalAppointments, todayAppointments, completedAppointments] = await Promise.all([
+      // Total appointments count
+      Appointment.countDocuments({ doctor: doctor._id }),
+      
+      // Today's appointments count
+      Appointment.countDocuments({
+        doctor: doctor._id,
+        appointmentDate: {
+          $gte: today,
+          $lt: tomorrow
+        }
+      }),
+      
+      // Completed appointments
+      Appointment.countDocuments({
+        doctor: doctor._id,
+        status: 'completed'
+      })
+    ]);
+    
+    res.json({
+      totalAppointments,
+      todayAppointments,
+      completedAppointments,
+      verificationStatus: doctor.verificationStatus || 'pending'
+    });
+  } catch (err) {
+    console.error('Error fetching doctor stats:', err);
+    res.status(500).json({
+      error: 'Failed to fetch doctor statistics',
+      details: err.message
+    });
+  }
+};
+
 // Get doctor by ID for public profile view
 export const getDoctorById = async (req, res) => {
   try {
@@ -289,6 +347,7 @@ export default {
   getVerificationStatus,
   getAllDoctors,
   getSpecializations,
+  getDoctorStats,
   getDoctorById,
   rateDoctorById
 };
