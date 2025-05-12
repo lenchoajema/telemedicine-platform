@@ -1,22 +1,10 @@
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL + "/appointments";
-
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
-  return {
-    headers: {
-      Authorization: token ? `Bearer ${token}` : "",
-      "Content-Type": "application/json"
-    }
-  };
-};
+// filepath: /workspaces/telemedicine-platform/frontend/src/api/AppointmentService.js
+import apiClient from './apiClient';
 
 class AppointmentService {
   static async getUpcomingAppointments() {
     try {
-      const response = await axios.get(`${API_URL}/upcoming`, getAuthHeaders());
+      const response = await apiClient.get('/appointments/upcoming');
       return response.data;
     } catch (error) {
       console.error("Error fetching upcoming appointments:", error);
@@ -26,7 +14,7 @@ class AppointmentService {
 
   static async getStats() {
     try {
-      const response = await axios.get(`${API_URL}/stats`, getAuthHeaders());
+      const response = await apiClient.get('/appointments/stats');
       return response.data;
     } catch (error) {
       console.error("Error fetching appointment stats:", error);
@@ -45,13 +33,7 @@ class AppointmentService {
         params.doctorId = doctorId;
       }
       
-      const response = await axios.get(
-        `${API_URL}/available-slots`, 
-        {
-          ...getAuthHeaders(),
-          params
-        }
-      );
+      const response = await apiClient.get('/appointments/available-slots', { params });
 
       // Ensure response.data is always an array
       const slots = Array.isArray(response.data) ? response.data : [];
@@ -66,13 +48,9 @@ class AppointmentService {
 
   static async getAppointmentsByDate(date) {
     try {
-      const response = await axios.get(
-        `${API_URL}/by-date`, 
-        {
-          ...getAuthHeaders(),
-          params: { date: date.toISOString().split("T")[0] }
-        }
-      );
+      const response = await apiClient.get('/appointments/by-date', {
+        params: { date: date.toISOString().split("T")[0] }
+      });
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       console.error("Error fetching appointments by date:", error);
@@ -82,11 +60,7 @@ class AppointmentService {
 
   static async createAppointment(appointmentData) {
     try {
-      const response = await axios.post(
-        API_URL, 
-        appointmentData, 
-        getAuthHeaders()
-      );
+      const response = await apiClient.post('/appointments', appointmentData);
       return response.data;
     } catch (error) {
       console.error("Error creating appointment:", error);
@@ -96,11 +70,7 @@ class AppointmentService {
 
   static async cancelAppointment(appointmentId) {
     try {
-      const response = await axios.put(
-        `${API_URL}/${appointmentId}/cancel`, 
-        {}, 
-        getAuthHeaders()
-      );
+      const response = await apiClient.put(`/appointments/${appointmentId}/cancel`, {});
       return response.data;
     } catch (error) {
       console.error("Error cancelling appointment:", error);
@@ -110,10 +80,9 @@ class AppointmentService {
   
   static async rescheduleAppointment(appointmentId, newDate) {
     try {
-      const response = await axios.put(
-        `${API_URL}/${appointmentId}/reschedule`,
-        { date: newDate.toISOString() },
-        getAuthHeaders()
+      const response = await apiClient.put(
+        `/appointments/${appointmentId}/reschedule`,
+        { date: newDate.toISOString() }
       );
       return response.data;
     } catch (error) {

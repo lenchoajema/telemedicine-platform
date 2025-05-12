@@ -20,3 +20,4 @@ export const NotificationProvider = ({ children }) => {
     </NotificationContext.Provider>
   );
 };
+export const useNotifications = _useNotifications;

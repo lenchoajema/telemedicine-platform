@@ -8,6 +8,7 @@ WORKDIR /app
 # Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
+RUN npm install path-to-regexp@6.2.1
 
 # Copy the rest of the application
 COPY . .
