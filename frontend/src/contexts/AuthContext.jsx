@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AuthContext, useAuth } from './AuthContextDefinition.js';
+import AuthService from '../api/AuthService';
 
 // Don't re-export hooks from component files for Fast Refresh compatibility
 // Import useAuth directly from './authContext' where needed instead
@@ -20,16 +21,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      // Call your login API
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-      });
-      
-      if (!response.ok) throw new Error('Login failed');
-      
-      const data = await response.json();
+      // Use the AuthService for login
+      const data = await AuthService.login(credentials);
       setUser(data.user);
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
@@ -42,16 +35,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      // Call your register API
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      });
-      
-      if (!response.ok) throw new Error('Registration failed');
-      
-      const data = await response.json();
+      // Use AuthService for registration
+      const data = await AuthService.register(userData);
       return data;
     } catch (error) {
       console.error('Registration error:', error);

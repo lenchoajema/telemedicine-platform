@@ -1,15 +1,13 @@
-import axios from 'axios';
-
-const API_URL = '/api/doctors';
+import apiClient from './apiClient';
 
 class DoctorService {
   static async getAllDoctors() {
-    const response = await axios.get(API_URL);
+    const response = await apiClient.get('/doctors');
     return response;
   }
 
   static async getDoctorById(id) {
-    const response = await axios.get(`${API_URL}/${id}`);
+    const response = await apiClient.get(`/doctors/${id}`);
     return response;
   }
 }

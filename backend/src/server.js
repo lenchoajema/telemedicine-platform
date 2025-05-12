@@ -23,8 +23,7 @@ const CODESPACE_NAME = process.env.CODESPACE_NAME || '';
 console.log('Codespace name:', CODESPACE_NAME);
 
 // Simple CORS setup - allow all origins for development
-app.use(cors());
-
+app.use(cors({ origin: '*' }));
 // Log important info about environment
 console.log('CORS enabled for all origins in development mode');
 if (CODESPACE_NAME) {
