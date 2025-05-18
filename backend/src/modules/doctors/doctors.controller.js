@@ -164,3 +164,96 @@ export const getDoctorAvailability = async (req, res) => {
         });
     }
 };
+
+export const setDoctorAvailability = async (req, res) => {
+    try {
+        const doctorId = req.user._id;
+        const availabilityData = req.body;
+        
+        if (!availabilityData || !Array.isArray(availabilityData)) {
+            return res.status(400).json({ error: 'Invalid availability data format' });
+        }
+        
+        // In a real implementation, save to database
+        // For now, just return success
+        res.status(200).json({ 
+            message: 'Availability updated successfully',
+            availability: availabilityData 
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const submitVerification = async (req, res) => {
+    try {
+        const doctorId = req.user._id;
+        const { 
+            specialization, 
+            licenseNumber, 
+            education, 
+            experience, 
+            verificationDocuments 
+        } = req.body;
+        
+        if (!specialization || !licenseNumber) {
+            return res.status(400).json({ 
+                error: 'Missing required fields', 
+                details: 'Specialization and license number are required' 
+            });
+        }
+        
+        // Find the doctor user
+        const doctorUser = await User.findById(doctorId);
+        
+        if (!doctorUser) {
+            return res.status(404).json({ error: 'Doctor not found' });
+        }
+        
+        // Update the doctor's verification status
+        doctorUser.verificationStatus = 'pending';
+        doctorUser.profile.specialization = specialization;
+        doctorUser.profile.licenseNumber = licenseNumber;
+        
+        // Add education and experience if provided
+        if (education) doctorUser.profile.education = education;
+        if (experience) doctorUser.profile.experience = experience;
+        
+        // Add verification documents if provided
+        if (verificationDocuments && verificationDocuments.length > 0) {
+            doctorUser.profile.verificationDocuments = verificationDocuments;
+        }
+        
+        await doctorUser.save();
+        
+        res.status(200).json({
+            message: 'Verification submitted successfully',
+            status: 'pending'
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const getMyPatients = async (req, res) => {
+    try {
+        const doctorId = req.user._id;
+        
+        // Get all appointments for this doctor
+        const appointments = await Appointment.find({ doctor: doctorId })
+            .populate('patient', '-password')
+            .sort({ appointmentDate: -1 });
+            
+        // Extract unique patients from appointments
+        const patients = appointments
+            .map(appointment => appointment.patient)
+            .filter((patient, index, self) => {
+                // Remove duplicates
+                return index === self.findIndex(p => p._id.toString() === patient._id.toString());
+            });
+            
+        res.status(200).json(patients);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

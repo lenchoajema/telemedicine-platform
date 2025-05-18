@@ -7,7 +7,8 @@ import {
   getSpecializations, 
   getDoctorById,
   rateDoctorById,
-  getDoctorStats
+  getDoctorStats,
+  getDoctorProfile
   //rescheduleAppointment
 } from './doctor.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
@@ -17,14 +18,19 @@ const router = express.Router();
 // Public routes
 router.get('/', getAllDoctors);
 router.get('/specializations', getSpecializations);
-// Stats endpoint - requires authentication but defined before /:id to avoid path conflicts
-router.get('/stats', authenticate, getDoctorStats);
-router.get('/:id', getDoctorById);
-// Rating endpoint - requires authentication
-router.post('/:id/rate', authenticate, rateDoctorById);
 
-// Protected routes
+// Protected routes that require authentication for all routes below
 router.use(authenticate);
+
+// All authenticated routes go here (before the /:id wildcard route)
+router.get('/stats', getDoctorStats);
+router.get('/profile', getDoctorProfile);
+
+// Get doctor by ID - must be after all specific routes
+router.get('/:id', getDoctorById);
+
+// Rating endpoint - requires authentication
+router.post('/:id/rate', rateDoctorById);
 
 // Document upload route
 router.post('/upload-document', uploadDocument);

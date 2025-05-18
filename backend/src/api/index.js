@@ -1,6 +1,7 @@
 import express from 'express';
 import authRoutes from '../modules/auth/auth.routes.js';
 import doctorRoutes from '../modules/doctors/doctor.routes.js';
+import doctorsRoutes from '../modules/doctors/doctors.routes.js';
 import appointmentRoutes from '../modules/appointments/appointment.routes.js';
 import verificationRoutes from '../modules/admin/verification.routes.js';
 import statsRoutes from '../modules/admin/stats.routes.js';
@@ -18,6 +19,7 @@ router.get('/health', (req, res) => {
 // Register all routes
 router.use('/auth', authRoutes);
 router.use('/doctors', doctorRoutes);
+router.use('/doctors', doctorsRoutes); // Added doctors.routes.js routes
 router.use('/appointments', appointmentRoutes);
 router.use('/admin/verifications', verificationRoutes);
 router.use('/admin/stats', statsRoutes);
@@ -25,13 +27,10 @@ router.use('/admin/users', usersRoutes);
 router.use('/admin/reports', reportsRoutes);
 router.use('/patients', patientRoutes);
 
-// Temporary route for medical records until the feature is implemented
-router.get('/medical-records', (req, res) => {
-  res.status(200).json({ 
-    message: 'Medical Records feature is coming soon!',
-    status: 'in_development',
-    phase: 'Phase 6'
-  });
-});
+// Import medical records routes
+import medicalRecordsRoutes from '../modules/patients/medical-records.routes.js';
+
+// Register medical records routes
+router.use('/medical-records', medicalRecordsRoutes);
 
 export default router;

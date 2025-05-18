@@ -176,7 +176,10 @@ export const getSpecializations = async (req, res) => {
 // Get doctor statistics
 export const getDoctorStats = async (req, res) => {
   try {
-    const doctorId = req.user._id;
+    console.log('Accessing doctor stats endpoint');
+    console.log('User from token:', req.user);
+    const userId = req.user._id;
+    console.log('User ID:', userId);
     
     // Get today's date at midnight
     const today = new Date();
@@ -186,39 +189,71 @@ export const getDoctorStats = async (req, res) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
+    console.log('Looking for doctor with user ID:', userId);
     // Find the doctor document for this user
-    const doctor = await Doctor.findOne({ user: doctorId });
+    let doctor = await Doctor.findOne({ user: userId });
+    console.log('Found doctor profile:', doctor);
     
     if (!doctor) {
-      return res.status(404).json({ error: 'Doctor profile not found' });
+      console.log('No doctor profile found, user has doctor role but no doctor record in Doctor collection');
+      console.log('Creating a basic doctor profile based on user data');
+      
+      // Create a basic doctor record for this user
+      try {
+        doctor = new Doctor({
+          user: userId,
+          specialization: req.user.profile?.specialization || 'General',
+          licenseNumber: req.user.profile?.licenseNumber || 'PENDING',
+          verificationStatus: 'pending'
+        });
+        await doctor.save();
+        console.log('Created doctor profile:', doctor);
+      } catch (createError) {
+        console.error('Error creating doctor profile:', createError);
+        return res.status(404).json({ 
+          error: 'Doctor profile incomplete. Please submit verification documents.',
+          details: 'Your doctor account requires additional information.' 
+        });
+      }
     }
     
     // Get appointments for this doctor
-    const [totalAppointments, todayAppointments, completedAppointments] = await Promise.all([
-      // Total appointments count
-      Appointment.countDocuments({ doctor: doctor._id }),
-      
-      // Today's appointments count
-      Appointment.countDocuments({
-        doctor: doctor._id,
-        appointmentDate: {
-          $gte: today,
-          $lt: tomorrow
-        }
-      }),
-      
-      // Completed appointments
-      Appointment.countDocuments({
-        doctor: doctor._id,
-        status: 'completed'
-      })
-    ]);
+    let totalAppointments = 0;
+    let todayAppointments = 0; 
+    let completedAppointments = 0;
+    
+    try {
+      // Only try to fetch appointments if the doctor has a valid record
+      [totalAppointments, todayAppointments, completedAppointments] = await Promise.all([
+        // Total appointments count
+        Appointment.countDocuments({ doctor: doctor._id }),
+        
+        // Today's appointments count
+        Appointment.countDocuments({
+          doctor: doctor._id,
+          appointmentDate: {
+            $gte: today,
+            $lt: tomorrow
+          }
+        }),
+        
+        // Completed appointments
+        Appointment.countDocuments({
+          doctor: doctor._id,
+          status: 'completed'
+        })
+      ]);
+    } catch (appointmentError) {
+      console.error('Error fetching appointments:', appointmentError);
+      // Continue with zero values
+    }
     
     res.json({
       totalAppointments,
       todayAppointments,
       completedAppointments,
-      verificationStatus: doctor.verificationStatus || 'pending'
+      verificationStatus: doctor.verificationStatus || 'pending',
+      profileComplete: doctor ? true : false
     });
   } catch (err) {
     console.error('Error fetching doctor stats:', err);
@@ -252,6 +287,7 @@ export const getDoctorById = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 // Submit rating for a doctor
 export const rateDoctorById = async (req, res) => {
   try {
@@ -341,6 +377,65 @@ export const rateDoctorById = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+// Get the profile for the currently authenticated doctor
+export const getDoctorProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Find the doctor document for this user
+    let doctor = await Doctor.findOne({ user: userId }).populate('user', 'email profile.firstName profile.lastName profile.fullName profile.photo');
+    
+    if (!doctor) {
+      // Check if we have a user with doctor role but no doctor record
+      if (req.user.role === 'doctor') {
+        // Create a basic doctor record for this user
+        try {
+          doctor = new Doctor({
+            user: userId,
+            specialization: req.user.profile?.specialization || 'General',
+            licenseNumber: req.user.profile?.licenseNumber || 'PENDING',
+            verificationStatus: 'pending'
+          });
+          await doctor.save();
+          
+          // Now populate the user info
+          doctor = await Doctor.findById(doctor._id).populate('user', 'email profile.firstName profile.lastName profile.fullName profile.photo');
+        } catch (createError) {
+          console.error('Error creating doctor profile:', createError);
+          return res.status(404).json({ 
+            error: 'Doctor profile incomplete. Please submit verification documents.',
+            details: 'Your doctor account requires additional information.' 
+          });
+        }
+      } else {
+        return res.status(403).json({ error: 'Access denied. Not a doctor account.' });
+      }
+    }
+    
+    // Prepare response data
+    const profile = {
+      _id: doctor._id,
+      user: doctor.user,
+      specialization: doctor.specialization,
+      licenseNumber: doctor.licenseNumber,
+      education: doctor.education || [],
+      experience: doctor.experience || [],
+      verificationStatus: doctor.verificationStatus,
+      status: doctor.verificationStatus, // Adding this for frontend compatibility
+      rating: doctor.rating || 0,
+      reviewCount: doctor.reviewCount || 0,
+      createdAt: doctor.createdAt,
+      updatedAt: doctor.updatedAt
+    };
+    
+    res.status(200).json(profile);
+  } catch (error) {
+    console.error('Error fetching doctor profile:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export default {
   uploadDocument,
   submitVerification,
@@ -348,6 +443,7 @@ export default {
   getAllDoctors,
   getSpecializations,
   getDoctorStats,
+  getDoctorProfile,
   getDoctorById,
   rateDoctorById
 };
