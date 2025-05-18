@@ -82,6 +82,10 @@ const DoctorsPage = () => {
         specialtyFilter={specialtyFilter}
         onSpecialtyChange={setSpecialtyFilter}
         specialties={specialties}
+        onFilterChange={(filters) => {
+          if (filters.name) setSearchTerm(filters.name);
+          if (filters.specialization) setSpecialtyFilter(filters.specialization);
+        }}
       />
       
       {filteredDoctors.length > 0 ? (
