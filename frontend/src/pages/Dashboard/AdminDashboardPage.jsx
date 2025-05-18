@@ -100,8 +100,8 @@ export default function AdminDashboardPage() {
             {pendingVerifications.slice(0, 5).map(doctor => (
               <div key={doctor._id} className="verification-item">
                 <div className="doctor-info">
-                  <h3>{doctor.profile.fullName}</h3>
-                  <p>Specialization: {doctor.profile.specialization}</p>
+                  <h3>{doctor.user?.profile?.fullName || doctor.profile?.fullName || 'Doctor'}</h3>
+                  <p>Specialization: {doctor.specialization || doctor.profile?.specialization || 'Unknown'}</p>
                 </div>
                 <Link to={`/admin/verifications/${doctor._id}`} className="btn secondary">
                   Review

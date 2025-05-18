@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './SearchFilters.css';
 
-export default function SearchFilters({ onFilterChange }) {
+export default function SearchFilters({ onFilterChange = () => {} }) {
   const [filters, setFilters] = useState({
     specialization: '',
     name: '',
