@@ -23,6 +23,8 @@
     "react-router-dom": "^7.5.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
     "@eslint/js": "^9.21.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^13.2.0",
