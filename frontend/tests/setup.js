@@ -1,15 +1,16 @@
-import '@testing-library/jest-dom';
+// Change the setup.js file to use CommonJS syntax
+require('@testing-library/jest-dom');
 
 // Mock the Intersection Observer which is used by some React components
 class IntersectionObserver {
   constructor() {}
-  
+
   disconnect() {}
-  
+
   observe() {}
-  
+
   takeRecords() { return []; }
-  
+
   unobserve() {}
 }
 
@@ -19,8 +20,6 @@ window.IntersectionObserver = IntersectionObserver;
 global.fetch = jest.fn(() => 
   Promise.resolve({
     json: () => Promise.resolve({}),
-    ok: true,
-    status: 200,
   })
 );
 

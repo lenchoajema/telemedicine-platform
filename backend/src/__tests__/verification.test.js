@@ -1,3 +1,5 @@
+process.env.JWT_SECRET = 'test_secret';
+
 import request from 'supertest';
 import mongoose from 'mongoose';
 import app from '../app';
@@ -20,9 +22,12 @@ beforeAll(async () => {
     profile: {
       firstName: 'Test',
       lastName: 'Doctor',
+      specialization: 'Cardiology',
+      licenseNumber: 'TEST123456'
     },
     role: 'doctor'
   });
+  await doctorUser.save();
 
   adminUser = await User.create({
     email: 'admin_test@example.com',
@@ -30,29 +35,39 @@ beforeAll(async () => {
     profile: {
       firstName: 'Test',
       lastName: 'Admin',
+      specialization: 'General Medicine',
+      licenseNumber: 'ADMIN123456'
     },
     role: 'admin'
   });
+  await adminUser.save();
 
-  // Generate tokens
+  // Generate tokens after users are fully saved
   doctorToken = jwt.sign(
-    { id: doctorUser._id },
+    { id: doctorUser._id.toString(), role: doctorUser.role },
     process.env.JWT_SECRET || 'test_secret',
     { expiresIn: '1h' }
   );
 
   adminToken = jwt.sign(
-    { id: adminUser._id },
+    { id: adminUser._id.toString(), role: adminUser.role },
     process.env.JWT_SECRET || 'test_secret',
     { expiresIn: '1h' }
   );
+
+  // Debug: log user IDs and tokens
+  // console.log('doctorUser._id', doctorUser._id.toString());
+  // console.log('adminUser._id', adminUser._id.toString());
+  // console.log('doctorToken', doctorToken);
+  // console.log('adminToken', adminToken);
 });
 
 afterAll(async () => {
-  // Clean up
-  await Doctor.deleteMany({});
-  await User.deleteMany({});
-  await mongoose.connection.close();
+  // Clean up test data only if mongoose is connected
+  if (mongoose.connection.readyState === 1) {
+    await Doctor.deleteMany({});
+    await User.deleteMany({});
+  }
 });
 
 describe('Doctor Verification Workflow', () => {

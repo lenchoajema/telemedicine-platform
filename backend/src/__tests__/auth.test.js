@@ -1,6 +1,6 @@
-const request = require('supertest');
-const app = require('../app');
-const User = require('../modules/auth/user.model');
+import request from 'supertest';
+import app from '../app.js';
+import User from '../modules/auth/user.model.js';
 
 describe('Auth API', () => {
   describe('POST /api/auth/register', () => {

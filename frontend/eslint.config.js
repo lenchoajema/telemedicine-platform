@@ -30,4 +30,14 @@ export default [
       ],
     },
   },
+  {
+    files: ['jest.config.js', 'tests/**/*.js'],
+    languageOptions: {
+      globals: {
+        module: 'writable',
+        global: 'writable',
+        jest: 'readonly',
+      },
+    },
+  },
 ]

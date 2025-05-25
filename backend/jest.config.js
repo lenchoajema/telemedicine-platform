@@ -1,4 +1,5 @@
-module.exports = {
+// jest.config.js (ESM)
+export default {
   testEnvironment: 'node',
   collectCoverage: true,
   coverageDirectory: 'coverage',
@@ -10,10 +11,11 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'clover'],
   testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
   testPathIgnorePatterns: ['/node_modules/'],
-  setupFilesAfterEnv: ['./tests/setup.js'],
+  setupFilesAfterEnv: ['./tests/setup.cjs'],
   verbose: true,
   forceExit: true,
   clearMocks: true,
   resetMocks: true,
-  restoreMocks: true
+  restoreMocks: true,
+  transform: {}, // disables babel, use native ESM
 };
