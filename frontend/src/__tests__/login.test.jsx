@@ -1,14 +1,25 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../../contexts/AuthContext';
-import { NotificationProvider } from '../../contexts/NotificationContext';
-import LoginPage from '../../pages/Auth/LoginPage';
-import { jest, describe, test, expect } from '@jest/globals';
+// Polyfill TextEncoder and TextDecoder for Jest/node
+if (typeof global.TextEncoder === 'undefined') {
+  const { TextEncoder, TextDecoder } = require('util');
+  global.TextEncoder = TextEncoder;
+  global.TextDecoder = TextDecoder;
+}
 
-// Mock the useNavigate hook
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => jest.fn()
+const { render, screen, fireEvent, waitFor } = require('@testing-library/react');
+const { BrowserRouter } = require('react-router-dom');
+const { AuthProvider } = require('../../contexts/AuthContext.jsx');
+const { NotificationProvider } = require('../../contexts/NotificationContext.jsx');
+const LoginPage = require('../../pages/Auth/LoginPage').default;
+
+// Mock the context providers
+jest.mock('../../contexts/AuthContext.jsx', () => ({
+  AuthProvider: ({ children }) => children,
+  useAuth: () => ({ user: null, login: jest.fn(), register: jest.fn(), logout: jest.fn(), loading: false }),
+}));
+
+jest.mock('../../contexts/NotificationContext.jsx', () => ({
+  NotificationProvider: ({ children }) => children,
+  useNotifications: () => ({ addNotification: jest.fn(), removeNotification: jest.fn() }),
 }));
 
 describe('LoginPage', () => {
