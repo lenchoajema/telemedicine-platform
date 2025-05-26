@@ -6,6 +6,7 @@ import app from '../app';
 import Doctor from '../modules/doctors/doctor.model';
 import User from '../modules/auth/user.model';
 import jwt from 'jsonwebtoken';
+import jest from 'jest'; // Explicitly import jest
 
 // Mock users for testing
 let doctorUser;
@@ -13,6 +14,16 @@ let adminUser;
 let doctorToken;
 let adminToken;
 let doctorId;
+
+jest.mock('../middleware/auth.middleware', () => ({
+  authenticate: (req, res, next) => {
+    req.user = {
+      id: 'mockedUserId',
+      role: req.headers.authorization.includes('admin') ? 'admin' : 'doctor',
+    };
+    next();
+  },
+}));
 
 beforeAll(async () => {
   // Create test users
