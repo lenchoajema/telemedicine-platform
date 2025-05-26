@@ -1,8 +1,9 @@
+import React from 'react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContextCore';
-import './auth.css';
+// import './auth.css'; // Uncomment this line if your build setup supports CSS imports
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('handleSubmit triggered'); // Add this line
     setLoading(true);
     
     try {
@@ -27,7 +29,7 @@ export default function LoginPage() {
     }
   };
 
-  return (
+return (
     <div className="auth-page">
       <div className="auth-container">
         <h1 className="auth-title">Welcome Back</h1>

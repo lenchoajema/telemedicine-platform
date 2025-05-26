@@ -1,28 +1,45 @@
 // Polyfill TextEncoder and TextDecoder for Jest/node
-if (typeof global.TextEncoder === 'undefined') {
-  const { TextEncoder, TextDecoder } = require('util');
-  global.TextEncoder = TextEncoder;
-  global.TextDecoder = TextDecoder;
+import { TextEncoder, TextDecoder } from 'util';
+if (typeof globalThis.TextEncoder === 'undefined') {
+  globalThis.TextEncoder = TextEncoder;
+  globalThis.TextDecoder = TextDecoder;
 }
 
-const { render, screen, fireEvent, waitFor } = require('@testing-library/react');
-const { BrowserRouter } = require('react-router-dom');
-const { AuthProvider } = require('../../contexts/AuthContext.jsx');
-const { NotificationProvider } = require('../../contexts/NotificationContext.jsx');
-const LoginPage = require('../../pages/Auth/LoginPage').default;
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import LoginPage from '../pages/Auth/LoginPage.jsx';
+import apiClient from '../api/apiClient';
 
 // Mock the context providers
-jest.mock('../../contexts/AuthContext.jsx', () => ({
-  AuthProvider: ({ children }) => children,
-  useAuth: () => ({ user: null, login: jest.fn(), register: jest.fn(), logout: jest.fn(), loading: false }),
-}));
+jest.mock('../contexts/authContext.jsx', () => {
+  const actual = jest.requireActual('../contexts/authContext.jsx');
+  return {
+    ...actual,
+    AuthProvider: ({ children }) => children,
+    // Do NOT mock useAuth, use the real one
+  };
+});
 
-jest.mock('../../contexts/NotificationContext.jsx', () => ({
+jest.mock('../contexts/NotificationContext.jsx', () => ({
   NotificationProvider: ({ children }) => children,
   useNotifications: () => ({ addNotification: jest.fn(), removeNotification: jest.fn() }),
 }));
 
+jest.mock('../api/apiClient', () => ({
+  post: jest.fn((url, data) => {
+    // Throw an error with the arguments to debug
+    throw new Error(`apiClient.post called with URL: ${url}, Data: ${JSON.stringify(data)}`);
+    // Or, if you want to continue execution after logging:
+    // console.log(`apiClient.post called with URL: ${url}, Data: ${JSON.stringify(data)}`);
+    // return Promise.resolve({ data: { user: { email: 'test@example.com' }, token: 'fake-token' } });
+  }),
+}));
+
 describe('LoginPage', () => {
+  const { AuthProvider } = jest.requireMock('../contexts/authContext.jsx');
+  const { NotificationProvider } = jest.requireMock('../contexts/NotificationContext.jsx');
+
   const renderLoginPage = () => {
     return render(
       <BrowserRouter>
@@ -37,56 +54,39 @@ describe('LoginPage', () => {
 
   test('renders login form', () => {
     renderLoginPage();
-    
-    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Email Address')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
   test('validates form input', async () => {
     renderLoginPage();
-    
     const submitButton = screen.getByRole('button', { name: /sign in/i });
-    
-    // Submit form without filling fields
     fireEvent.click(submitButton);
-    
-    // Check that validation is working (HTML5 validation will prevent submission)
     await waitFor(() => {
-      expect(screen.getByLabelText(/email address/i)).toBeInvalid();
+      expect(screen.getByLabelText('Email Address')).toBeInvalid();
     });
   });
 
   test('submits form with valid data', async () => {
-    // Mock the fetch function
-    globalThis.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ user: { email: 'test@example.com' }, token: 'fake-token' }),
-      })
-    );
-    
+    apiClient.post.mockResolvedValueOnce({
+      data: { user: { email: 'test@example.com' }, token: 'fake-token' }
+    });
     renderLoginPage();
-    
-    const emailInput = screen.getByLabelText(/email address/i);
-    const passwordInput = screen.getByLabelText(/password/i);
+    const emailInput = screen.getByLabelText('Email Address');
+    const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: /sign in/i });
-    
-    // Fill the form
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
-    
-    // Submit the form
     fireEvent.click(submitButton);
-    
-    // Check if fetch was called with the right data
+
+    // Log the calls to apiClient.post
+    console.log('apiClient.post calls:', apiClient.post.mock.calls);
+
     await waitFor(() => {
-      expect(globalThis.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/auth/login'),
-        expect.objectContaining({
-          method: 'POST',
-          body: expect.stringContaining('test@example.com')
-        })
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/auth/login',
+        { email: 'test@example.com', password: 'password123' }
       );
     });
   });

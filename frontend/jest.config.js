@@ -9,7 +9,6 @@ export default {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^../../contexts/(.*)$': '<rootDir>/src/contexts/$1',
   },
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coveragePathIgnorePatterns: [
