@@ -1,17 +1,13 @@
-import { useState, useEffect } from 'react';
-import { AuthContext, useAuth } from './AuthContextDefinition.js';
+import { createContext, useContext, useState, useEffect } from 'react';
 import AuthService from '../api/AuthService';
 
-// Don't re-export hooks from component files for Fast Refresh compatibility
-// Import useAuth directly from './authContext' where needed instead
-export { useAuth };
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is stored in local storage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -21,7 +17,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      // Use the AuthService for login
       const data = await AuthService.login(credentials);
       setUser(data.user);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -35,7 +30,6 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      // Use AuthService for registration
       const data = await AuthService.register(userData);
       return data;
     } catch (error) {
@@ -55,4 +49,12 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

@@ -19,7 +19,23 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: '*' }));
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://scaling-xylophone-r4677j9j947g3594j-5173.app.github.dev'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 

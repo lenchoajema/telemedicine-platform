@@ -2,11 +2,29 @@ process.env.JWT_SECRET = 'test_secret';
 
 import request from 'supertest';
 import mongoose from 'mongoose';
+import express from 'express';
 import app from '../app';
 import Doctor from '../modules/doctors/doctor.model';
 import User from '../modules/auth/user.model';
 import jwt from 'jsonwebtoken';
-import jest from 'jest'; // Explicitly import jest
+import verificationRoutes from '../modules/admin/verification.routes.js';
+import doctorRoutes from '../modules/doctors/doctor.routes.js';
+
+// Create a test app with a mock authenticate middleware
+const testApp = express();
+testApp.use(express.json());
+
+testApp.use((req, res, next) => {
+  // Simple mock: set req.user based on Authorization header
+  req.user = {
+    id: 'mockedUserId',
+    role: req.headers.authorization && req.headers.authorization.includes('admin') ? 'admin' : 'doctor',
+  };
+  next();
+});
+
+testApp.use('/api/admin/verifications', verificationRoutes);
+testApp.use('/api/doctors', doctorRoutes);
 
 // Mock users for testing
 let doctorUser;
@@ -14,16 +32,6 @@ let adminUser;
 let doctorToken;
 let adminToken;
 let doctorId;
-
-jest.mock('../middleware/auth.middleware', () => ({
-  authenticate: (req, res, next) => {
-    req.user = {
-      id: 'mockedUserId',
-      role: req.headers.authorization.includes('admin') ? 'admin' : 'doctor',
-    };
-    next();
-  },
-}));
 
 beforeAll(async () => {
   // Create test users
@@ -65,12 +73,6 @@ beforeAll(async () => {
     process.env.JWT_SECRET || 'test_secret',
     { expiresIn: '1h' }
   );
-
-  // Debug: log user IDs and tokens
-  // console.log('doctorUser._id', doctorUser._id.toString());
-  // console.log('adminUser._id', adminUser._id.toString());
-  // console.log('doctorToken', doctorToken);
-  // console.log('adminToken', adminToken);
 });
 
 afterAll(async () => {
@@ -83,7 +85,7 @@ afterAll(async () => {
 
 describe('Doctor Verification Workflow', () => {
   test('Doctor submits verification', async () => {
-    const res = await request(app)
+    const res = await request(testApp)
       .post('/api/doctors/verify')
       .set('Authorization', `Bearer ${doctorToken}`)
       .send({
@@ -121,7 +123,7 @@ describe('Doctor Verification Workflow', () => {
   });
 
   test('Admin sees pending verification', async () => {
-    const res = await request(app)
+    const res = await request(testApp)
       .get('/api/admin/verifications/pending')
       .set('Authorization', `Bearer ${adminToken}`);
 
@@ -132,7 +134,7 @@ describe('Doctor Verification Workflow', () => {
   });
 
   test('Admin gets verification details', async () => {
-    const res = await request(app)
+    const res = await request(testApp)
       .get(`/api/admin/verifications/${doctorId}`)
       .set('Authorization', `Bearer ${adminToken}`);
 
@@ -143,7 +145,7 @@ describe('Doctor Verification Workflow', () => {
   });
 
   test('Admin approves verification', async () => {
-    const res = await request(app)
+    const res = await request(testApp)
       .put(`/api/admin/verifications/${doctorId}/approve`)
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ notes: 'Documents verified successfully' });
@@ -154,7 +156,7 @@ describe('Doctor Verification Workflow', () => {
   });
 
   test('Doctor checks verification status', async () => {
-    const res = await request(app)
+    const res = await request(testApp)
       .get('/api/doctors/verification-status')
       .set('Authorization', `Bearer ${doctorToken}`);
 
