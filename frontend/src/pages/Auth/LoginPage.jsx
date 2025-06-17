@@ -1,16 +1,9 @@
-<<<<<<< HEAD
-=======
 import React from 'react';
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContextCore';
-<<<<<<< HEAD
 import './auth.css';
-=======
-// import './auth.css'; // Uncomment this line if your build setup supports CSS imports
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -20,48 +13,39 @@ export default function LoginPage() {
   const { addNotification } = useNotifications();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-<<<<<<< HEAD
-=======
-    console.log('handleSubmit triggered'); // Add this line
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
-    setLoading(true);
-    
-    try {
-      await login({ email, password });
-      addNotification('Login successful!', 'success');
-      navigate('/dashboard');
-    } catch (err) {
-      addNotification(err.message || 'Login failed', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log('handleSubmit triggered');
+  setLoading(true);
+  try {
+    await login(email, password);
+    addNotification('Login successful!', 'success');
+    navigate('/dashboard');
+  } catch (error) {
+    addNotification(error.message || 'Login failed', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
-<<<<<<< HEAD
-  return (
-=======
 return (
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
-    <div className="auth-page">
-      <div className="auth-container">
-        <h1 className="auth-title">Welcome Back</h1>
-        <p className="auth-subtitle">Sign in to access your account</p>
-        
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="loginEmail">Email Address</label>
-            <input
-              id="loginEmail" autoComplete="email"
-              name="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoFocus
-              className="auth-input"
-            />
+  <div className="auth-page">
+    <div className="auth-container">
+      <h1 className="auth-title">Welcome Back</h1>
+      
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="form-group">
+          <label htmlFor="loginEmail">Email</label>
+          <input
+            id="loginEmail"
+            name="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoFocus
+            className="auth-input"
+          />
           </div>
           
           <div className="form-group">

@@ -1,27 +1,14 @@
-<<<<<<< HEAD
-import { useState, useEffect } from 'react';
-import { AuthContext, useAuth } from './AuthContextDefinition.js';
-import AuthService from '../api/AuthService';
-
-// Don't re-export hooks from component files for Fast Refresh compatibility
-// Import useAuth directly from './authContext' where needed instead
-export { useAuth };
-=======
 import { createContext, useContext, useState, useEffect } from 'react';
 import AuthService from '../api/AuthService';
 
 export const AuthContext = createContext(null);
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-<<<<<<< HEAD
     // Check if user is stored in local storage
-=======
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -31,10 +18,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-<<<<<<< HEAD
-      // Use the AuthService for login
-=======
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
       const data = await AuthService.login(credentials);
       setUser(data.user);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -48,10 +31,6 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-<<<<<<< HEAD
-      // Use AuthService for registration
-=======
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
       const data = await AuthService.register(userData);
       return data;
     } catch (error) {
@@ -71,8 +50,6 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-<<<<<<< HEAD
-=======
 };
 
 export const useAuth = () => {
@@ -81,5 +58,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
 };
