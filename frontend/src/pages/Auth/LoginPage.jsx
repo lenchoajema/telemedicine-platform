@@ -1,8 +1,16 @@
+<<<<<<< HEAD
+=======
+import React from 'react';
+>>>>>>> a67abca257d39517a26d636c680d417d5adda03f
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContextCore';
+<<<<<<< HEAD
 import './auth.css';
+=======
+// import './auth.css'; // Uncomment this line if your build setup supports CSS imports
+>>>>>>> a67abca257d39517a26d636c680d417d5adda03f
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,6 +22,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
+=======
+    console.log('handleSubmit triggered'); // Add this line
+>>>>>>> a67abca257d39517a26d636c680d417d5adda03f
     setLoading(true);
     
     try {
@@ -27,7 +39,11 @@ export default function LoginPage() {
     }
   };
 
+<<<<<<< HEAD
   return (
+=======
+return (
+>>>>>>> a67abca257d39517a26d636c680d417d5adda03f
     <div className="auth-page">
       <div className="auth-container">
         <h1 className="auth-title">Welcome Back</h1>

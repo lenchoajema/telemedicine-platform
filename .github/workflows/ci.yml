@@ -31,12 +31,25 @@ jobs:
     - name: Lint Backend
       run: |
         cd backend
+<<<<<<< HEAD
         npm ci
         npm run lint
     
     - name: Lint Frontend
       run: |
         cd frontend
+=======
+        npm install --package-lock-only
+        git diff --exit-code package-lock.json || (echo "package-lock.json is out of sync with package.json" && exit 1)
+        npm ci
+        npm run lint
+
+    - name: Lint Frontend
+      run: |
+        cd frontend
+        npm install --package-lock-only
+        git diff --exit-code package-lock.json || (echo "package-lock.json is out of sync with package.json" && exit 1)
+>>>>>>> a67abca257d39517a26d636c680d417d5adda03f
         npm ci
         npm run lint
 
