@@ -10,7 +10,7 @@ import {
   getUpcomingAppointments,
   getAvailableSlots
 } from './appointment.controller.js';
-import { authenticate } from '../../middleware/auth.middleware.js';
+import authenticate from '../shared/middleware/auth.js';
 import mongoose from 'mongoose';
 
 const router = express.Router();

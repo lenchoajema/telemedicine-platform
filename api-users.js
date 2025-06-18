@@ -116,7 +116,7 @@ async function createTestUser() {
     } else {
       console.log('⚠️  Test user creation failed:', result.error);
       if (result.error?.includes('duplicate') || result.error?.includes('exists')) {
-        console.log('   (User already exists - that\\'s okay!)');
+        console.log('   (User already exists - that\'s okay!)');
       }
     }
     

@@ -54,6 +54,16 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Add explicit OPTIONS handler for CORS preflight
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
@@ -72,6 +82,24 @@ if (process.env.USE_API_ROUTES === 'true') {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', environment: process.env.NODE_ENV });
+});
+
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ 
+    error: 'Endpoint not found',
+    message: `The requested endpoint ${req.originalUrl} does not exist`,
+    statusCode: 404
+  });
+});
+
+// General 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    error: 'Not found',
+    message: 'The requested resource was not found',
+    statusCode: 404
+  });
 });
 
 app.use((err, req, res, next) => {
