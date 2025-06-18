@@ -21,20 +21,38 @@ const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://scaling-xylophone-r4677j9j947g3594j-5173.app.github.dev'
+  'http://localhost:5000',
+  'https://scaling-xylophone-r4677j9j947g3594j-5173.app.github.dev',
+  'https://stunning-journey-wv5pxxvw49xh565g-5173.app.github.dev',
+  // Add pattern for any Codespace URL
+  /^https:\/\/[a-z0-9-]+-5173\.app\.github\.dev$/
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    
+    // Check if origin is in allowed list or matches pattern
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return allowedOrigin === origin;
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
       return callback(null, true);
     } else {
+      console.log('CORS blocked origin:', origin);
       return callback(new Error('Not allowed by CORS'), false);
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
