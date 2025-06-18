@@ -26,6 +26,7 @@ services:
       - NODE_ENV=development
       - PORT=5000
       - MONGO_URI=mongodb://mongodb:27017/telemedicine
+      - JWT_SECRET=your_secure_jwt_secret_key_12345
       - LOG_ROUTES=false
       - CLIENT_URL=${CLIENT_URL:-https://stunning-journey-wv5pxxvw49xh565g-5173.app.github.dev}
     depends_on:

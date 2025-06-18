@@ -18,14 +18,28 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+      console.log('Attempting login with:', { email: credentials.email });
       const data = await AuthService.login(credentials);
+      console.log('Login successful:', data);
       setUser(data.user);
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
       return data.user;
     } catch (error) {
       console.error('Login error:', error);
-      throw error;
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      // Provide a more specific error message based on the response
+      if (error.response?.status === 500) {
+        throw new Error('Server error. Please try again later.');
+      } else if (error.response?.status === 401) {
+        throw new Error('Invalid email or password.');
+      } else if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      } else {
+        throw new Error('Login failed. Please check your connection.');
+      }
     }
   };
 

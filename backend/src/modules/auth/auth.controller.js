@@ -16,6 +16,12 @@ export const login = async (req, res) => {
   
   try {
     console.log(`Login attempt for email: ${email}`);
+    
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    
     const user = await User.findOne({ email }).select('+password');
     
     if (!user) {
@@ -37,7 +43,8 @@ export const login = async (req, res) => {
     res.json({ user: safeUser(user), token });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(400).json({ error: err.message });
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 };
 
@@ -51,11 +58,19 @@ export const getCurrentUser = async (req, res) => {
 
 // Helpers
 const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
+  try {
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET environment variable is not set');
+    }
+    return jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+  } catch (error) {
+    console.error('Token generation error:', error);
+    throw error;
+  }
 };
 
 const safeUser = (user) => {

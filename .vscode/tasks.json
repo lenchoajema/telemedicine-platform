@@ -1,0 +1,51 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Telemedicine Platform",
+			"type": "shell",
+			"command": "docker-compose up --build",
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": [],
+			"args": []
+		},
+		{
+			"label": "Stop Telemedicine Platform",
+			"type": "shell",
+			"command": "docker-compose down",
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"args": []
+		},
+		{
+			"label": "Test Doctor Endpoints",
+			"type": "shell",
+			"command": "node",
+			"args": ["test-doctor-endpoints.js"],
+			"group": "test",
+			"isBackground": false,
+			"problemMatcher": [],
+			"dependsOn": "Start Telemedicine Platform"
+		},
+		{
+			"label": "Test Backend Health",
+			"type": "shell",
+			"command": "curl",
+			"args": ["-s", "http://localhost:5000/api/health"],
+			"group": "test",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Debug Start Platform",
+			"type": "shell",
+			"command": "bash",
+			"args": ["debug-start.sh"],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

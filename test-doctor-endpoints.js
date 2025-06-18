@@ -1,4 +1,41 @@
+#!/usr/bin/env node
+
+// Comprehensive test for doctor endpoints
 import fetch from 'node-fetch';
+
+const BASE_URL = 'http://localhost:5000';
+let authToken = '';
+
+// Test data
+const testDoctor = {
+  email: 'doctor@test.com',
+  password: 'password123',
+  role: 'doctor',
+  profile: {
+    firstName: 'Dr. John',
+    lastName: 'Smith',
+    specialization: 'Cardiology',
+    licenseNumber: 'DOC123456'
+  }
+};
+
+async function makeRequest(url, options = {}) {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authToken ? `Bearer ${authToken}` : '',
+        ...options.headers
+      },
+      ...options
+    });
+    
+    const data = await response.json();
+    return { status: response.status, data, ok: response.ok };
+  } catch (error) {
+    return { status: 0, data: { error: error.message }, ok: false };
+  }
+}
 
 async function loginAsDoctor(attempts = 0) {
   try {
@@ -9,9 +46,8 @@ async function loginAsDoctor(attempts = 0) {
     }
     
     // Try logging in with test user
-    const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
+    const loginResponse = await makeRequest(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         email: "doctor@example.com", 
         password: "password123" 
@@ -24,9 +60,9 @@ async function loginAsDoctor(attempts = 0) {
       return loginAsDoctor(attempts + 1); // Try again after creating the user
     }
 
-    const loginData = await loginResponse.json();
     console.log('Login successful');
-    return loginData.token;
+    authToken = loginResponse.data.token;
+    return loginResponse.data.token;
   } catch (error) {
     console.error('Error during login:', error.message);
     return null;
@@ -35,18 +71,15 @@ async function loginAsDoctor(attempts = 0) {
 
 async function createTestDoctor() {
   try {
-    // Register a test doctor
-    const registerResponse = await fetch('http://localhost:5000/api/auth/register', {
+    console.log('Creating test doctor...');
+    const result = await makeRequest(`${BASE_URL}/api/auth/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: "doctor@example.com",
         password: "password123",
-        confirmPassword: "password123",
         profile: {
           firstName: "Test",
           lastName: "Doctor",
-          dateOfBirth: "1990-01-01",
           specialization: "General Medicine",
           licenseNumber: "MD12345"
         },
@@ -54,56 +87,63 @@ async function createTestDoctor() {
       })
     });
     
-    const registerData = await registerResponse.json();
-    console.log('Doctor registration result:', registerData);
-    return registerData;
+    console.log('Doctor registration result:', result.status, result.ok ? '✅' : '❌');
+    if (result.data.error) console.log('Error:', result.data.error);
+    return result;
   } catch (error) {
     console.error('Error creating test doctor:', error.message);
   }
 }
 
-async function testDoctorStats(token) {
-  try {
-    console.log('\nTesting /doctors/stats endpoint...');
-    const response = await fetch('http://localhost:5000/api/doctors/stats', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    const data = await response.json();
-    console.log('Status:', response.status);
-    console.log('Response:', JSON.stringify(data, null, 2));
-    return data;
-  } catch (error) {
-    console.error('Error testing doctor stats:', error.message);
-  }
-}
-
-async function testDoctorProfile(token) {
-  try {
-    console.log('\nTesting /doctors/profile endpoint...');
-    const response = await fetch('http://localhost:5000/api/doctors/profile', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    const data = await response.json();
-    console.log('Status:', response.status);
-    console.log('Response:', JSON.stringify(data, null, 2));
-    return data;
-  } catch (error) {
-    console.error('Error testing doctor profile:', error.message);
-  }
-}
-
-// Run the tests
-async function runTests() {
-  const token = await loginAsDoctor();
-  if (!token) {
-    console.error('Could not obtain authentication token. Tests aborted.');
+async function testDoctorEndpoints() {
+  console.log('\n🧪 Testing Doctor Endpoints');
+  console.log('===========================');
+  
+  // Health check first
+  console.log('Testing health endpoint...');
+  const health = await makeRequest(`${BASE_URL}/api/health`);
+  console.log(`Health: ${health.status}`, health.ok ? '✅' : '❌');
+  
+  if (!health.ok) {
+    console.log('Backend not healthy, stopping tests');
     return;
   }
   
-  await testDoctorStats(token);
-  await testDoctorProfile(token);
+  // Try to login or create doctor
+  const token = await loginAsDoctor();
+  if (!token) {
+    console.log('Failed to get authentication token');
+    return;
+  }
+  
+  // Test doctor stats
+  console.log('\nTesting /api/doctors/stats endpoint...');
+  const statsResult = await makeRequest(`${BASE_URL}/api/doctors/stats`);
+  console.log(`Stats: ${statsResult.status}`, statsResult.ok ? '✅' : '❌');
+  if (statsResult.data) console.log('Data:', statsResult.data);
+  
+  // Test get all doctors
+  console.log('\nTesting /api/doctors endpoint...');
+  const doctorsResult = await makeRequest(`${BASE_URL}/api/doctors`);
+  console.log(`Doctors list: ${doctorsResult.status}`, doctorsResult.ok ? '✅' : '❌');
+  if (doctorsResult.data) {
+    console.log(`Found ${doctorsResult.data.length || 0} doctors`);
+  }
+  
+  // Test doctor search
+  console.log('\nTesting /api/doctors/search endpoint...');
+  const searchResult = await makeRequest(`${BASE_URL}/api/doctors/search?specialization=General Medicine`);
+  console.log(`Search: ${searchResult.status}`, searchResult.ok ? '✅' : '❌');
+  
+  // Test current user profile
+  console.log('\nTesting /api/auth/me endpoint...');
+  const meResult = await makeRequest(`${BASE_URL}/api/auth/me`);
+  console.log(`Profile: ${meResult.status}`, meResult.ok ? '✅' : '❌');
+  if (meResult.data?.user) {
+    console.log(`User: ${meResult.data.user.profile?.firstName} ${meResult.data.user.profile?.lastName} (${meResult.data.user.role})`);
+  }
+  
+  console.log('\n🏁 Doctor endpoints testing completed!');
 }
 
-runTests();
+testDoctorEndpoints().catch(console.error);
