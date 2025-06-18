@@ -12,13 +12,19 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-  
   try {
+    console.log('Login request received:');
+    console.log('- Headers:', req.headers);
+    console.log('- Body:', req.body);
+    console.log('- Content-Type:', req.headers['content-type']);
+    
+    const { email, password } = req.body;
+    
     console.log(`Login attempt for email: ${email}`);
     
     // Validate input
     if (!email || !password) {
+      console.log('Validation failed - missing email or password');
       return res.status(400).json({ error: 'Email and password are required' });
     }
     
