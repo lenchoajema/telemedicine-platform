@@ -11,7 +11,13 @@ import {
   getDoctorProfile
   //rescheduleAppointment
 } from './doctor.controller.js';
+import { 
+  getDoctorAvailability,
+  setDoctorAvailability,
+  getMyPatients
+} from './doctors.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
+import { checkRole } from '../../middleware/authorization.middleware.js';
 
 const router = express.Router();
 
@@ -25,6 +31,9 @@ router.use(authenticate);
 // All authenticated routes go here (before the /:id wildcard route)
 router.get('/stats', getDoctorStats);
 router.get('/profile', getDoctorProfile);
+router.get('/availability', checkRole(['doctor']), getDoctorAvailability);
+router.post('/availability', checkRole(['doctor']), setDoctorAvailability);
+router.get('/my-patients', checkRole(['doctor']), getMyPatients);
 
 // Get doctor by ID - must be after all specific routes
 router.get('/:id', getDoctorById);

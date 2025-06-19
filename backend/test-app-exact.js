@@ -1,19 +1,19 @@
-// backend/src/app.js
+// Exact replica of app.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-import connectDB from './modules/shared/db.js';
-import authRoutes from './modules/auth/auth.routes.js';
-import appointmentRoutes from './modules/appointments/appointment.routes.js';
-import doctorRoutes from './modules/doctors/doctor.routes.js';
-import apiRoutes from './api/index.js';
-import verificationRoutes from './modules/admin/verification.routes.js';
-import statsRoutes from './modules/admin/stats.routes.js';
-import reportsRoutes from './modules/admin/reports.routes.js';
-import usersRoutes from './modules/admin/users.routes.js';
-import patientRoutes from './modules/patients/patient.routes.js';
-import { logRegisteredRoutes } from './modules/shared/api-monitor.js';
+import connectDB from './src/modules/shared/db.js';
+import authRoutes from './src/modules/auth/auth.routes.js';
+import appointmentRoutes from './src/modules/appointments/appointment.routes.js';
+import doctorRoutes from './src/modules/doctors/doctor.routes.js';
+import apiRoutes from './src/api/index.js';
+import verificationRoutes from './src/modules/admin/verification.routes.js';
+import statsRoutes from './src/modules/admin/stats.routes.js';
+import reportsRoutes from './src/modules/admin/reports.routes.js';
+import usersRoutes from './src/modules/admin/users.routes.js';
+import patientRoutes from './src/modules/patients/patient.routes.js';
+import { logRegisteredRoutes } from './src/modules/shared/api-monitor.js';
 
 dotenv.config();
 
@@ -55,6 +55,15 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
+// Add explicit OPTIONS handler for CORS preflight
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
@@ -75,21 +84,22 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', environment: process.env.NODE_ENV });
 });
 
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ 
+    error: 'Endpoint not found',
+    message: `The requested endpoint ${req.originalUrl} does not exist`,
+    statusCode: 404
+  });
+});
+
 // General 404 handler
-app.use((req, res) => {
-  if (req.originalUrl.startsWith('/api/')) {
-    res.status(404).json({ 
-      error: 'Endpoint not found',
-      message: `The requested endpoint ${req.originalUrl} does not exist`,
-      statusCode: 404
-    });
-  } else {
-    res.status(404).json({ 
-      error: 'Not found',
-      message: 'The requested resource was not found',
-      statusCode: 404
-    });
-  }
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    error: 'Not found',
+    message: 'The requested resource was not found',
+    statusCode: 404
+  });
 });
 
 app.use((err, req, res, next) => {
@@ -99,5 +109,7 @@ app.use((err, req, res, next) => {
     message: process.env.NODE_ENV === 'development' ? err.message : undefined 
   });
 });
+
+console.log('✅ App configuration completed successfully!');
 
 export default app;
