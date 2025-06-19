@@ -14,6 +14,7 @@ import {
 import { 
   getDoctorAvailability,
   setDoctorAvailability,
+  deleteDoctorAvailability,
   getMyPatients
 } from './doctors.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
@@ -33,6 +34,7 @@ router.get('/stats', getDoctorStats);
 router.get('/profile', getDoctorProfile);
 router.get('/availability', checkRole(['doctor']), getDoctorAvailability);
 router.post('/availability', checkRole(['doctor']), setDoctorAvailability);
+router.delete('/availability/:day', checkRole(['doctor']), deleteDoctorAvailability);
 router.get('/my-patients', checkRole(['doctor']), getMyPatients);
 
 // Get doctor by ID - must be after all specific routes

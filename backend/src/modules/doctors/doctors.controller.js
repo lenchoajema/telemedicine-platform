@@ -99,64 +99,17 @@ export const getDoctorById = async (req, res) => {
     }
 };
 
+// In-memory storage for doctor availability (in production, use database)
+const doctorAvailability = new Map();
+
 export const getDoctorAvailability = async (req, res) => {
     try {
-        // Get doctor's booked slots to avoid conflicts
-        const { doctorId, date } = req.query;
-
-        // Parse date or use current date
-        const selectedDate = date ? new Date(date) : new Date();
-
-        // Set start of day and end of day
-        const startTime = new Date(selectedDate);
-        startTime.setHours(0, 0, 0, 0);
-
-        const endTime = new Date(selectedDate);
-        endTime.setHours(23, 59, 59, 999);
-
-        // Find all appointments for the doctor on selected day
-        const bookedAppointments = await mongoose.model('Appointment').find({
-            doctor: doctorId,
-            date: { $gte: startTime, $lte: endTime },
-            status: 'scheduled'
-        }).select('date duration');
-
-        // Generate available slots (assuming doctors work 9AM-5PM with 30min slots)
-        const availableSlots = [];
-        const workStart = new Date(selectedDate);
-        workStart.setHours(9, 0, 0, 0);
-
-        const workEnd = new Date(selectedDate);
-        workEnd.setHours(17, 0, 0, 0);
-
-        // Create 30-minute slots
-        let currentSlot = new Date(workStart);
-
-        while (currentSlot < workEnd) {
-            // Check if slot conflicts with any booked appointment
-            const isSlotAvailable = !bookedAppointments.some(appointment => {
-                const appointmentStart = new Date(appointment.date);
-                const appointmentEnd = new Date(appointmentStart.getTime() + appointment.duration * 60000);
-
-                // If current slot starts during another appointment
-                const slotStart = new Date(currentSlot);
-                const slotEnd = new Date(currentSlot.getTime() + 30 * 60000);
-
-                return (
-                    (slotStart >= appointmentStart && slotStart < appointmentEnd) ||
-                    (slotEnd > appointmentStart && slotEnd <= appointmentEnd)
-                );
-            });
-
-            if (isSlotAvailable) {
-                availableSlots.push(new Date(currentSlot));
-            }
-
-            // Move to next slot (30 minutes later)
-            currentSlot = new Date(currentSlot.getTime() + 30 * 60000);
-        }
-
-        res.json(availableSlots);
+        const doctorId = req.user._id.toString();
+        
+        // Get stored availability for this doctor
+        const availability = doctorAvailability.get(doctorId) || [];
+        
+        res.json(availability);
     } catch (err) {
         res.status(500).json({
             error: 'Failed to get doctor availability',
@@ -167,18 +120,99 @@ export const getDoctorAvailability = async (req, res) => {
 
 export const setDoctorAvailability = async (req, res) => {
     try {
-        const doctorId = req.user._id;
-        const availabilityData = req.body;
+        const doctorId = req.user._id.toString();
+        const { day, startTime, endTime, slotDuration } = req.body;
         
-        if (!availabilityData || !Array.isArray(availabilityData)) {
-            return res.status(400).json({ error: 'Invalid availability data format' });
+        // Validate required fields
+        if (!day || !startTime || !endTime || !slotDuration) {
+            return res.status(400).json({ 
+                error: 'Missing required fields: day, startTime, endTime, slotDuration' 
+            });
         }
         
-        // In a real implementation, save to database
-        // For now, just return success
+        // Validate day format (should be one of the weekdays)
+        const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        if (!validDays.includes(day.toLowerCase())) {
+            return res.status(400).json({ 
+                error: 'Invalid day. Must be one of: ' + validDays.join(', ') 
+            });
+        }
+        
+        // Validate time format (HH:MM)
+        const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+        if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+            return res.status(400).json({ 
+                error: 'Invalid time format. Use HH:MM format' 
+            });
+        }
+        
+        // Validate slot duration (should be a positive number)
+        if (slotDuration <= 0 || slotDuration > 480) { // Max 8 hours
+            return res.status(400).json({ 
+                error: 'Invalid slot duration. Must be between 1 and 480 minutes' 
+            });
+        }
+        
+        // Get existing availability for this doctor
+        const existingAvailability = doctorAvailability.get(doctorId) || [];
+        
+        // Remove any existing availability for this day
+        const updatedAvailability = existingAvailability.filter(a => a.day !== day);
+        
+        // Create new availability object
+        const newAvailabilityEntry = {
+            day,
+            startTime,
+            endTime,
+            slotDuration,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+        
+        // Add the new availability
+        updatedAvailability.push(newAvailabilityEntry);
+        
+        // Store updated availability
+        doctorAvailability.set(doctorId, updatedAvailability);
+        
         res.status(200).json({ 
             message: 'Availability updated successfully',
-            availability: availabilityData 
+            availability: newAvailabilityEntry 
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const deleteDoctorAvailability = async (req, res) => {
+    try {
+        const doctorId = req.user._id.toString();
+        const { day } = req.params;
+        
+        if (!day) {
+            return res.status(400).json({ 
+                error: 'Day parameter is required' 
+            });
+        }
+        
+        // Get existing availability for this doctor
+        const existingAvailability = doctorAvailability.get(doctorId) || [];
+        
+        // Remove availability for the specified day
+        const updatedAvailability = existingAvailability.filter(a => a.day !== day);
+        
+        // Check if anything was actually removed
+        if (existingAvailability.length === updatedAvailability.length) {
+            return res.status(404).json({ 
+                error: 'No availability found for the specified day' 
+            });
+        }
+        
+        // Store updated availability
+        doctorAvailability.set(doctorId, updatedAvailability);
+        
+        res.status(200).json({ 
+            message: 'Availability deleted successfully' 
         });
     } catch (err) {
         res.status(500).json({ error: err.message });

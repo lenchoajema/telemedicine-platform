@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContextCore';
 import apiClient from '../../api/apiClient';
@@ -6,6 +7,7 @@ import apiClient from '../../api/apiClient';
 export default function DoctorDashboardPage() {
   const { user } = useAuth();
   const { addNotification } = useNotifications();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalAppointments: 0,
     todayAppointments: 0,
@@ -101,13 +103,13 @@ export default function DoctorDashboardPage() {
       </div>
 
       <div className="dashboard-actions">
-        <button onClick={() => window.location.href = '/doctor/appointments'}>
+        <button onClick={() => navigate('/doctor/appointments')}>
           View Appointments
         </button>
-        <button onClick={() => window.location.href = '/doctor/availability'}>
+        <button onClick={() => navigate('/doctor/availability')}>
           Set Availability
         </button>
-        <button onClick={() => window.location.href = '/doctor/patients'}>
+        <button onClick={() => navigate('/doctor/patients')}>
           My Patients
         </button>
       </div>

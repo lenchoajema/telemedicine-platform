@@ -1,45 +1,51 @@
 import mongoose from 'mongoose';
-
-// Simple in-memory storage for medical records until we create a proper model
-let medicalRecords = [
-  {
-    _id: new mongoose.Types.ObjectId().toString(),
-    patientId: '123456789012345678901234', // Example patient ID
-    doctorId: '123456789012345678901235',  // Example doctor ID
-    date: new Date('2025-04-15'),
-    diagnosis: 'Common Cold',
-    treatment: 'Rest and fluids',
-    notes: 'Patient should recover in 7-10 days',
-    medications: [
-      { name: 'Paracetamol', dosage: '500mg', frequency: 'Every 6 hours as needed' }
-    ],
-    attachments: []
-  }
-];
+import MedicalRecord from './medical-record.model.js';
+import User from '../auth/user.model.js';
 
 // Get all medical records for the authenticated user
 export const getMedicalRecords = async (req, res) => {
   try {
     const userId = req.user._id;
-    
-    // Filter records based on user role
-    let records = [];
-    
-    if (req.user.role === 'patient') {
+    const userRole = req.user.role;
+    const { patientId } = req.query;
+
+    let query = {};
+
+    if (userRole === 'patient') {
       // Patients can only see their own records
-      records = medicalRecords.filter(record => record.patientId === userId.toString());
-    } else if (req.user.role === 'doctor') {
-      // Doctors can see records of patients they've treated
-      records = medicalRecords.filter(record => record.doctorId === userId.toString());
-    } else if (req.user.role === 'admin') {
-      // Admins can see all records
-      records = [...medicalRecords];
+      query.patient = userId;
+    } else if (userRole === 'doctor') {
+      if (patientId) {
+        // Doctor viewing specific patient's records
+        query.patient = patientId;
+        query.doctor = userId;
+      } else {
+        // Doctor viewing all their patients' records
+        query.doctor = userId;
+      }
+    } else if (userRole === 'admin') {
+      // Admins can view all records, optionally filtered by patient
+      if (patientId) {
+        query.patient = patientId;
+      }
     }
-    
-    return res.status(200).json(records);
+
+    const records = await MedicalRecord.find(query)
+      .populate('patient', 'profile.firstName profile.lastName email')
+      .populate('doctor', 'profile.firstName profile.lastName profile.specialization')
+      .sort({ date: -1 });
+
+    res.status(200).json({
+      success: true,
+      records
+    });
   } catch (error) {
-    console.error('Error getting medical records:', error);
-    return res.status(500).json({ error: 'Failed to retrieve medical records' });
+    console.error('Error fetching medical records:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch medical records',
+      error: error.message
+    });
   }
 };
 
@@ -48,93 +54,139 @@ export const getMedicalRecordById = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
-    
-    const record = medicalRecords.find(r => r._id === id);
-    
+    const userRole = req.user.role;
+
+    const record = await MedicalRecord.findById(id)
+      .populate('patient', 'profile.firstName profile.lastName email')
+      .populate('doctor', 'profile.firstName profile.lastName profile.specialization');
+
     if (!record) {
-      return res.status(404).json({ error: 'Medical record not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Medical record not found'
+      });
     }
-    
-    // Check permissions based on role
-    if (req.user.role === 'patient' && record.patientId !== userId.toString()) {
-      return res.status(403).json({ error: 'Not authorized to access this record' });
+
+    // Check permissions
+    if (userRole === 'patient' && record.patient._id.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to access this record'
+      });
     }
-    
-    if (req.user.role === 'doctor' && record.doctorId !== userId.toString()) {
-      return res.status(403).json({ error: 'Not authorized to access this record' });
+
+    if (userRole === 'doctor' && record.doctor._id.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to access this record'
+      });
     }
-    
-    return res.status(200).json(record);
+
+    res.status(200).json({
+      success: true,
+      record
+    });
   } catch (error) {
-    console.error('Error getting medical record:', error);
-    return res.status(500).json({ error: 'Failed to retrieve medical record' });
+    console.error('Error fetching medical record:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch medical record',
+      error: error.message
+    });
   }
 };
 
-// Create a new medical record
+// Create a new medical record (doctors only)
 export const createMedicalRecord = async (req, res) => {
   try {
+    const { patientId, diagnosis, treatment, notes, prescription, medications, vitals } = req.body;
     const doctorId = req.user._id;
-    const { patientId, diagnosis, treatment, notes, medications } = req.body;
-    
-    if (!patientId || !diagnosis) {
-      return res.status(400).json({ error: 'Patient ID and diagnosis are required' });
+
+    // Validate patient exists
+    const patient = await User.findById(patientId);
+    if (!patient || patient.role !== 'patient') {
+      return res.status(404).json({
+        success: false,
+        message: 'Patient not found'
+      });
     }
-    
-    const newRecord = {
-      _id: new mongoose.Types.ObjectId().toString(),
-      patientId,
-      doctorId: doctorId.toString(),
-      date: new Date(),
+
+    const medicalRecord = new MedicalRecord({
+      patient: patientId,
+      doctor: doctorId,
       diagnosis,
       treatment,
       notes,
-      medications: medications || [],
-      attachments: []
-    };
+      prescription,
+      medications,
+      vitals
+    });
+
+    const savedRecord = await medicalRecord.save();
     
-    medicalRecords.push(newRecord);
-    
-    return res.status(201).json(newRecord);
+    // Populate the saved record
+    const populatedRecord = await MedicalRecord.findById(savedRecord._id)
+      .populate('patient', 'profile.firstName profile.lastName email')
+      .populate('doctor', 'profile.firstName profile.lastName profile.specialization');
+
+    res.status(201).json({
+      success: true,
+      message: 'Medical record created successfully',
+      record: populatedRecord
+    });
   } catch (error) {
     console.error('Error creating medical record:', error);
-    return res.status(500).json({ error: 'Failed to create medical record' });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create medical record',
+      error: error.message
+    });
   }
 };
 
-// Update an existing medical record
+// Update an existing medical record (doctors only)
 export const updateMedicalRecord = async (req, res) => {
   try {
     const { id } = req.params;
-    const doctorId = req.user._id;
-    const { diagnosis, treatment, notes, medications } = req.body;
-    
-    const recordIndex = medicalRecords.findIndex(r => r._id === id);
-    
-    if (recordIndex === -1) {
-      return res.status(404).json({ error: 'Medical record not found' });
+    const userId = req.user._id;
+    const updateData = req.body;
+
+    // Find the record and check permissions
+    const record = await MedicalRecord.findById(id);
+    if (!record) {
+      return res.status(404).json({
+        success: false,
+        message: 'Medical record not found'
+      });
     }
-    
-    const record = medicalRecords[recordIndex];
-    
+
     // Only the doctor who created the record can update it
-    if (record.doctorId !== doctorId.toString()) {
-      return res.status(403).json({ error: 'Not authorized to update this record' });
+    if (record.doctor.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this record'
+      });
     }
-    
-    // Update the record
-    medicalRecords[recordIndex] = {
-      ...record,
-      diagnosis: diagnosis || record.diagnosis,
-      treatment: treatment || record.treatment,
-      notes: notes || record.notes,
-      medications: medications || record.medications,
-      updatedAt: new Date()
-    };
-    
-    return res.status(200).json(medicalRecords[recordIndex]);
+
+    const updatedRecord = await MedicalRecord.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    )
+      .populate('patient', 'profile.firstName profile.lastName email')
+      .populate('doctor', 'profile.firstName profile.lastName profile.specialization');
+
+    res.status(200).json({
+      success: true,
+      message: 'Medical record updated successfully',
+      record: updatedRecord
+    });
   } catch (error) {
     console.error('Error updating medical record:', error);
-    return res.status(500).json({ error: 'Failed to update medical record' });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update medical record',
+      error: error.message
+    });
   }
 };

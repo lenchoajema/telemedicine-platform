@@ -18,6 +18,8 @@ import UsersManagementPage from './pages/Admin/UsersManagementPage';
 import ReportsPage from './pages/Admin/ReportsPage';
 import DoctorProfilePage from './pages/Doctors/DoctorProfilePage';
 import DoctorAvailabilityPage from './pages/Doctors/DoctorAvailabilityPage';
+import DoctorAppointmentsPage from './pages/Doctors/DoctorAppointmentsPage';
+import DoctorPatientsPage from './pages/Doctors/DoctorPatientsPage';
 import './App.css';
 
 function App() {
@@ -103,6 +105,18 @@ function App() {
               <Route path="/doctor/availability" element={
                 <ProtectedRoute roles={['doctor']}>
                   <DoctorAvailabilityPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/doctor/appointments" element={
+                <ProtectedRoute roles={['doctor']}>
+                  <DoctorAppointmentsPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/doctor/patients" element={
+                <ProtectedRoute roles={['doctor']}>
+                  <DoctorPatientsPage />
                 </ProtectedRoute>
               } />
 

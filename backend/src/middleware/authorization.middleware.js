@@ -1,8 +1,15 @@
 // Generic middleware to check user's role
-export const checkRole = (role) => {
+export const checkRole = (roles) => {
   return (req, res, next) => {
-    if (!req.user || req.user.role !== role) {
-      return res.status(403).json({ error: `Unauthorized: ${role} access required` });
+    if (!req.user) {
+      return res.status(403).json({ error: 'Authentication required' });
+    }
+    
+    // Handle both single role (string) and multiple roles (array)
+    const allowedRoles = Array.isArray(roles) ? roles : [roles];
+    
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: `Unauthorized: ${allowedRoles.join(' or ')} access required` });
     }
     next();
   };
