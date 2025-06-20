@@ -11,6 +11,9 @@ import RegisterPage from './pages/Auth/RegisterPage';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import DoctorsPage from './pages/Doctors/DoctorsPage';
 import AppointmentsPage from './pages/Appointments/AppointmentsPage';
+import NewAppointmentPage from './pages/Appointments/NewAppointmentPage';
+import MedicalRecordsPage from './pages/MedicalRecords/MedicalRecordsPage';
+import DoctorProfileViewPage from './pages/Doctors/DoctorProfileViewPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
 import NotFoundPage from './pages/Error/NotFoundPage';
@@ -62,9 +65,27 @@ function App() {
                 </ProtectedRoute>
               } />
               
+              <Route path="/doctors/:id" element={
+                <ProtectedRoute>
+                  <DoctorProfileViewPage />
+                </ProtectedRoute>
+              } />
+              
               <Route path="/appointments" element={
                 <ProtectedRoute>
                   <AppointmentsPage />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/appointments/new" element={
+                <ProtectedRoute>
+                  <NewAppointmentPage />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/medical-records" element={
+                <ProtectedRoute>
+                  <MedicalRecordsPage />
                 </ProtectedRoute>
               } />
 
