@@ -149,11 +149,10 @@ export default function NewAppointmentPage() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          doctor: appointmentData.doctorId,
+          doctorId: appointmentData.doctorId,
           date: appointmentDateTime.toISOString(),
           reason: appointmentData.reason,
-          notes: appointmentData.notes,
-          type: appointmentData.type,
+          symptoms: appointmentData.notes, // Backend expects 'symptoms' field
           duration: 30
         })
       });

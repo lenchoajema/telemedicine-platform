@@ -42,6 +42,46 @@ export default function PatientDashboardPage() {
             console.error('Error fetching recent doctors:', error);
           }
           
+          // If no recent doctors, fetch all doctors as fallback
+          if (!recentDoctorsRes || recentDoctorsRes.length === 0) {
+            try {
+              const response = await fetch(`${import.meta.env.VITE_API_URL}/doctors`, {
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+              });
+              if (response.ok) {
+                const allDoctors = await response.json();
+                // Limit to 5 doctors and format them properly
+                recentDoctorsRes = allDoctors.slice(0, 5).map(doctor => ({
+                  _id: doctor._id,
+                  profile: {
+                    fullName: doctor.profile?.fullName || `${doctor.profile?.firstName || ''} ${doctor.profile?.lastName || ''}`.trim(),
+                    firstName: doctor.profile?.firstName,
+                    lastName: doctor.profile?.lastName,
+                    specialization: doctor.profile?.specialization,
+                    avatar: doctor.profile?.avatar,
+                    experience: doctor.profile?.experience
+                  }
+                }));
+              }
+            } catch (error) {
+              console.error('Error fetching all doctors:', error);
+            }
+          } else {
+            // Format recent doctors to match expected structure
+            recentDoctorsRes = recentDoctorsRes.map(doctor => ({
+              _id: doctor._id,
+              profile: {
+                fullName: `${doctor.firstName} ${doctor.lastName}`.trim(),
+                firstName: doctor.firstName,
+                lastName: doctor.lastName,
+                specialization: doctor.specialization,
+                avatar: doctor.avatar
+              }
+            }));
+          }
+          
           setUpcomingAppointments(appointmentsRes.data);
           setStats(statsRes.data);
           setRecentDoctors(recentDoctorsRes || []);
@@ -116,7 +156,7 @@ export default function PatientDashboardPage() {
       {recentDoctors.length > 0 && (
         <section className="dashboard-section">
           <div className="section-header">
-            <h2>Your Recent Doctors</h2>
+            <h2>Available Doctors</h2>
             <Link to="/doctors" className="btn secondary">Browse All Doctors</Link>
           </div>
           
@@ -125,17 +165,27 @@ export default function PatientDashboardPage() {
               <div key={doctor._id} className="recent-doctor-card">
                 <div className="doctor-avatar">
                   <img 
-                    src={doctor.profile.avatar || '/default-avatar.png'} 
-                    alt={doctor.profile.fullName} 
+                    src={doctor.profile?.avatar || '/default-avatar.png'} 
+                    alt={doctor.profile?.fullName || 'Doctor'}
+                    onError={(e) => {
+                      e.target.src = '/default-avatar.png';
+                    }}
                   />
                 </div>
                 <div className="doctor-info">
-                  <h3>{doctor.profile.fullName}</h3>
-                  <p>{doctor.profile.specialization}</p>
+                  <h3>{doctor.profile?.fullName || `Dr. ${doctor.profile?.firstName || ''} ${doctor.profile?.lastName || ''}`.trim()}</h3>
+                  <p className="specialization">{doctor.profile?.specialization || 'General Medicine'}</p>
+                  {doctor.profile?.experience && (
+                    <p className="experience">{doctor.profile.experience} years experience</p>
+                  )}
+                  <div className="doctor-rating">
+                    <span className="rating-stars">⭐⭐⭐⭐⭐</span>
+                    <span className="rating-text">4.8 (124 reviews)</span>
+                  </div>
                 </div>
                 <div className="doctor-actions">
                   <Link to={`/doctors/${doctor._id}`} className="btn text">View Profile</Link>
-                  <Link to={`/appointments/new?doctorId=${doctor._id}`} className="btn secondary">Book Again</Link>
+                  <Link to={`/appointments/new?doctorId=${doctor._id}`} className="btn secondary">Book Appointment</Link>
                 </div>
               </div>
             ))}

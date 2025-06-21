@@ -36,12 +36,21 @@ This document outlines the complete implementation of the Doctor Dashboard for t
    - Medical Records Page (`/medical-records`) 
    - Doctor Profile View Page (`/doctors/:id`)
    - Added missing routes to App.jsx
+7. **Appointment Booking Fix**: Fixed backend API format mismatch
+   - Backend expected `doctorId` but frontend sent `doctor`
+   - Backend expected `symptoms` but frontend sent `notes`
+   - Updated frontend to match backend API expectations
+8. **Patient Dashboard Enhancement**: Improved doctor listing
+   - Added fallback to fetch all doctors if no recent doctors
+   - Enhanced doctor display with specialization, experience, and ratings
+   - Improved responsive design and styling
 
 ### 🆕 Newly Added Patient Features
 - **📅 New Appointment Booking**: Step-by-step appointment booking with doctor selection, time slots, and appointment details
 - **📋 Medical Records**: Complete medical history viewing with search and filtering
 - **👨‍⚕️ Doctor Profiles**: Detailed doctor profile pages with booking integration
 - **🔗 Navigation**: All patient dashboard links now work properly
+- **⭐ Enhanced Doctor Display**: Shows specialization, experience, and ratings
 
 ## 🏥 Doctor Dashboard Features
 

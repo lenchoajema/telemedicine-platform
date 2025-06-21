@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-const MONGODB_URI = process.env.MONGO_URI || "mongodb://mongodb:27017/telemedicine_db";
+const MONGODB_URI = process.env.MONGO_URI || "mongodb://mongodb:27017/telemedicine";
 
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
