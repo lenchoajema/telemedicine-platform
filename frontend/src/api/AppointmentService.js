@@ -33,13 +33,19 @@ class AppointmentService {
         params.doctorId = doctorId;
       }
       
-      const response = await apiClient.get('/appointments/available-slots', { params });
+      // Use the working availability endpoint instead of the one requiring auth
+      const response = await apiClient.get('/doctors/availability', { params });
 
       // Ensure response.data is always an array
       const slots = Array.isArray(response.data) ? response.data : [];
       
-      // Convert string dates to Date objects for easier processing
-      return slots.map(slot => new Date(slot));
+      // Convert time strings to full Date objects for the selected date
+      return slots.map(timeSlot => {
+        const [hours, minutes] = timeSlot.split(':').map(Number);
+        const slotDate = new Date(date);
+        slotDate.setHours(hours, minutes, 0, 0);
+        return slotDate;
+      });
     } catch (error) {
       console.error("Error fetching available slots:", error);
       return [];

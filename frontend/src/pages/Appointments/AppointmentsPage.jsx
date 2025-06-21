@@ -61,12 +61,18 @@ const AppointmentsPage = () => {
     setFilteredAppointments(filtered);
   }, [appointments, filterOptions, selectedDate]);
 
-  const fetchAvailableSlots = useCallback(async (date) => {
+  const fetchAvailableSlots = useCallback(async (date, doctorId = null) => {
     try {
-      const response = await AppointmentService.getAvailableSlots(date);
-      setAvailableSlots(response.data);
+      if (doctorId) {
+        const slots = await AppointmentService.getAvailableSlots(date, doctorId);
+        setAvailableSlots(slots);
+      } else {
+        // If no doctorId provided, don't fetch slots
+        setAvailableSlots([]);
+      }
     } catch (err) {
       addNotification(`Failed to fetch available slots: ${err.message}`, 'error');
+      setAvailableSlots([]);
     }
   }, [addNotification]);
 
@@ -103,8 +109,9 @@ const AppointmentsPage = () => {
   }, [filterOptions, appointments, selectedDate, applyFilters]);
 
   useEffect(() => {
-    fetchAvailableSlots(selectedDate);
-  }, [selectedDate, fetchAvailableSlots]);
+    // Don't automatically fetch slots - let the modal handle this when a doctor is selected
+    setAvailableSlots([]);
+  }, [selectedDate]);
 
   const handleFilterChange = (newFilters) => {
     setFilterOptions(prev => ({ ...prev, ...newFilters }));
@@ -168,17 +175,7 @@ const AppointmentsPage = () => {
         {/* Display available slots */}
         <div className="available-slots">
           <h3>Available Slots on {selectedDate.toLocaleDateString()}</h3>
-          {Array.isArray(availableSlots) && availableSlots.length > 0 ? (
-            <ul className="slots-list">
-              {availableSlots.map((slot, index) => (
-                <li key={index} className="time-slot">
-                  {new Date(slot).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No available slots for this date</p>
-          )}
+          <p>Select a doctor in the appointment form to see available time slots.</p>
         </div>
       </div>
 

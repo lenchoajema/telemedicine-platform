@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatDate } from "../../utils/dateUtils";
+import AppointmentService from "../../api/AppointmentService";
 
 export default function NewAppointmentModal({ 
   onClose, 
@@ -8,7 +9,9 @@ export default function NewAppointmentModal({
   selectedDate 
 }) {
   const [doctors, setDoctors] = useState([]);
+  const [dynamicSlots, setDynamicSlots] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetchingSlots, setFetchingSlots] = useState(false);
   const [formData, setFormData] = useState({
     doctorId: "",
     date: selectedDate,
@@ -36,9 +39,36 @@ export default function NewAppointmentModal({
     fetchDoctors();
   }, []);
 
+  // Fetch available slots when doctor or date changes
+  useEffect(() => {
+    const fetchSlotsForDoctor = async () => {
+      if (formData.doctorId && selectedDate) {
+        setFetchingSlots(true);
+        try {
+          const slots = await AppointmentService.getAvailableSlots(selectedDate, formData.doctorId);
+          setDynamicSlots(slots);
+        } catch (error) {
+          console.error("Error fetching slots for doctor:", error);
+          setDynamicSlots([]);
+        } finally {
+          setFetchingSlots(false);
+        }
+      } else {
+        setDynamicSlots([]);
+      }
+    };
+
+    fetchSlotsForDoctor();
+  }, [formData.doctorId, selectedDate]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Reset slot selection when doctor changes
+    if (name === 'doctorId') {
+      setFormData(prev => ({ ...prev, slot: "" }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -75,8 +105,9 @@ export default function NewAppointmentModal({
     }
   };
 
-  // Ensure availableSlots is always an array
-  const slotsArray = Array.isArray(availableSlots) ? availableSlots : [];
+  // Use dynamic slots if available, otherwise fall back to passed availableSlots
+  const slotsToUse = formData.doctorId ? dynamicSlots : availableSlots;
+  const slotsArray = Array.isArray(slotsToUse) ? slotsToUse : [];
 
   return (
     <div className="modal-overlay">
@@ -98,7 +129,7 @@ export default function NewAppointmentModal({
               <option value="">-- Select a doctor --</option>
               {doctors.map(doctor => (
                 <option key={doctor._id} value={doctor._id}>
-                  Dr. {doctor.profile?.firstName} {doctor.profile?.lastName} - {doctor.specialization}
+                  Dr. {doctor.user?.profile?.fullName || `${doctor.user?.profile?.firstName || ''} ${doctor.user?.profile?.lastName || ''}`.trim()} - {doctor.specialization}
                 </option>
               ))}
             </select>
@@ -111,23 +142,29 @@ export default function NewAppointmentModal({
           
           <div className="form-group">
             <label>Available Slots:</label>
-            <select 
-              name="slot"
-              value={formData.slot}
-              onChange={handleChange}
-              required
-            >
-              <option value="">-- Select a time --</option>
-              {slotsArray.length > 0 ? (
-                slotsArray.map((slot, index) => (
-                  <option key={index} value={slot}>
-                    {new Date(slot).toLocaleTimeString([], {hour: "2-digit", minute:"2-digit"})}
+            {fetchingSlots ? (
+              <div className="loading-slots">Loading available slots...</div>
+            ) : (
+              <select 
+                name="slot"
+                value={formData.slot}
+                onChange={handleChange}
+                required
+              >
+                <option value="">-- Select a time --</option>
+                {slotsArray.length > 0 ? (
+                  slotsArray.map((slot, index) => (
+                    <option key={index} value={slot}>
+                      {new Date(slot).toLocaleTimeString([], {hour: "2-digit", minute:"2-digit"})}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>
+                    {formData.doctorId ? "No available slots for this doctor on selected date" : "Please select a doctor first"}
                   </option>
-                ))
-              ) : (
-                <option value="" disabled>No available slots for this date</option>
-              )}
-            </select>
+                )}
+              </select>
+            )}
           </div>
           
           <div className="form-group">

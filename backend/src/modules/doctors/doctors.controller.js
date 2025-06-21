@@ -291,3 +291,121 @@ export const getMyPatients = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// Get doctor availability by doctorId (for patients to query)
+export const getDoctorAvailabilityById = async (req, res) => {
+    try {
+        const { doctorId, date } = req.query;
+        
+        if (!doctorId) {
+            return res.status(400).json({ error: 'Doctor ID is required' });
+        }
+        
+        // Get stored availability for the requested doctor
+        const availability = doctorAvailability.get(doctorId) || [];
+        
+        if (date) {
+            // If date is provided, generate available slots for that specific date
+            const requestedDate = new Date(date);
+            const dayOfWeek = requestedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+            
+            // Find availability for the requested day
+            const dayAvailability = availability.find(a => a.day === dayOfWeek);
+            
+            if (!dayAvailability) {
+                // No availability set for this day, return default slots
+                return res.json(generateDefaultSlots());
+            }
+            
+            // Generate time slots based on doctor's availability
+            const slots = generateTimeSlots(dayAvailability.startTime, dayAvailability.endTime, dayAvailability.slotDuration);
+            
+            // Filter out already booked slots (you can implement this based on appointments)
+            const availableSlots = await filterBookedSlots(doctorId, date, slots);
+            
+            return res.json(availableSlots);
+        }
+        
+        // Return general availability if no specific date requested
+        res.json(availability);
+    } catch (err) {
+        console.error('Error getting doctor availability:', err);
+        res.status(500).json({
+            error: 'Failed to get doctor availability',
+            details: err.message
+        });
+    }
+};
+
+// Helper function to generate time slots
+const generateTimeSlots = (startTime, endTime, slotDuration) => {
+    const slots = [];
+    const start = parseTime(startTime);
+    const end = parseTime(endTime);
+    
+    let currentTime = start;
+    while (currentTime < end) {
+        const timeString = formatTime(currentTime);
+        slots.push(timeString);
+        currentTime += slotDuration;
+    }
+    
+    return slots;
+};
+
+// Helper function to parse time string to minutes
+const parseTime = (timeString) => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours * 60 + minutes;
+};
+
+// Helper function to format minutes to time string
+const formatTime = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
+
+// Helper function to generate default slots when no availability is set
+const generateDefaultSlots = () => {
+    const slots = [];
+    for (let hour = 9; hour < 17; hour++) {
+        slots.push(`${hour.toString().padStart(2, '0')}:00`);
+        slots.push(`${hour.toString().padStart(2, '0')}:30`);
+    }
+    return slots;
+};
+
+// Helper function to filter out booked slots
+const filterBookedSlots = async (doctorId, date, slots) => {
+    try {
+        // Get appointments for this doctor on the requested date
+        const startDate = new Date(date);
+        startDate.setHours(0, 0, 0, 0);
+        
+        const endDate = new Date(date);
+        endDate.setHours(23, 59, 59, 999);
+        
+        const appointments = await Appointment.find({
+            doctor: doctorId,
+            date: {
+                $gte: startDate,
+                $lte: endDate
+            },
+            status: { $in: ['scheduled', 'confirmed'] }
+        });
+        
+        // Extract booked time slots
+        const bookedSlots = appointments.map(apt => {
+            const time = new Date(apt.date);
+            return `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
+        });
+        
+        // Filter out booked slots
+        return slots.filter(slot => !bookedSlots.includes(slot));
+    } catch (error) {
+        console.error('Error filtering booked slots:', error);
+        // Return all slots if there's an error
+        return slots;
+    }
+};
