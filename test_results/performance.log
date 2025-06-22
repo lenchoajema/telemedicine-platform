@@ -1,5 +1,5 @@
 Endpoint Performance Results:
-Health Check: 0.000711s
-Doctors List: 0.000648s
-Login Endpoint: 0.000870s
+Health Check: 0.005572s
+Doctors List: 0.012391s
+Login Endpoint: 0.512733s
 Database Query Time: 

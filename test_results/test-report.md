@@ -1,35 +1,35 @@
 # Telemedicine Platform Test Report
-Date: Wed Jun 18 22:23:11 UTC 2025
-Duration: 0m 8s
+Date: Sun Jun 22 04:39:29 UTC 2025
+Duration: 0m 10s
 
 ## System Status
-- Backend: ❌ Offline
+- Backend: ✅ Online
 - Frontend: ✅ Online
 - Database: ✅ Connected
 
 ## API Endpoints
-- Auth: ❌ Failed
-- Doctors: ❌ Failed
-- Appointments: ❌ Failed
+- Auth: ✅ Responding
+- Doctors: ✅ Responding
+- Appointments: ✅ Responding
 
 ## Data Status
 - Users: 10
-- Doctors: 4
-- Appointments: 1
+- Doctors: 1
+- Appointments: 9
 
 ## User Flows
-- Patient Registration: ❌ Failed
-- Doctor Registration: ❌ Failed
+- Patient Registration: ✅ Working
+- Doctor Registration: ✅ Working
 - Login: ✅ Working
-- Doctor Search: ✅ Working
+- Doctor Search: ❌ Failed
 
 ## Security Tests
 - Invalid Token: ❌ Insecure
 - CORS Headers: ❌ Not configured
 
 ## Performance Metrics
-- Backend Response Time: 0.000662s
-- Frontend Load Time: 0.002562s
+- Backend Response Time: 0.003070s
+- Frontend Load Time: 0.003721s
 - Database Query Time: 
 
 ## Test Coverage
@@ -37,7 +37,7 @@ Duration: 0m 8s
 - Frontend Unit Tests: 
 
 ## Security Score
-- Auth Tests Passed: 3/7
+- Auth Tests Passed: 5/7
 - Rate Limiting: ❌ Disabled
 
 ## Recommendations

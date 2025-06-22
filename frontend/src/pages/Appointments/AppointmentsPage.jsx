@@ -36,21 +36,21 @@ const AppointmentsPage = () => {
     // Filter by date
     const now = new Date();
     if (filterOptions.date === 'upcoming') {
-      filtered = filtered.filter(appointment => new Date(appointment.startTime) > now);
+      filtered = filtered.filter(appointment => new Date(appointment.date) > now);
     } else if (filterOptions.date === 'past') {
-      filtered = filtered.filter(appointment => new Date(appointment.startTime) < now);
+      filtered = filtered.filter(appointment => new Date(appointment.date) < now);
     }
     
     // Sort appointments
     if (filterOptions.sortBy === 'date-asc') {
-      filtered.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+      filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
     } else if (filterOptions.sortBy === 'date-desc') {
-      filtered.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
     // Filter by selected date
     filtered = filtered.filter(appointment => {
-      const appointmentDate = new Date(appointment.startTime);
+      const appointmentDate = new Date(appointment.date);
       return (
         appointmentDate.getFullYear() === selectedDate.getFullYear() &&
         appointmentDate.getMonth() === selectedDate.getMonth() &&

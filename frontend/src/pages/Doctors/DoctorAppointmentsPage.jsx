@@ -27,14 +27,15 @@ export default function DoctorAppointmentsPage() {
       }
 
       const response = await apiClient.get(endpoint);
-      let appointmentsData = response.data.appointments || response.data || [];
+      let appointmentsData = response.data || [];
 
       // Filter appointments based on selected filter
       if (filter === 'today') {
         const today = new Date().toDateString();
         appointmentsData = appointmentsData.filter(apt => 
           new Date(apt.date).toDateString() === today
-        );        } else if (filter === 'completed') {
+        );
+      } else if (filter === 'completed') {
         appointmentsData = appointmentsData.filter(apt => 
           apt.status === 'completed'
         );

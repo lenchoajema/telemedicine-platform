@@ -82,8 +82,8 @@ export default function PatientDashboardPage() {
             }));
           }
           
-          setUpcomingAppointments(appointmentsRes.data);
-          setStats(statsRes.data);
+          setUpcomingAppointments(appointmentsRes);
+          setStats(statsRes);
           setRecentDoctors(recentDoctorsRes || []);
         } catch (innerError) {
           console.error('Error in Promise.all for dashboard data:', innerError);
