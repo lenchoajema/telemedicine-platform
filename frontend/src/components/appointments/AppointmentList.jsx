@@ -38,16 +38,28 @@ export default function AppointmentList({
         </div>
       ) : (
         <ul className="appointment-items">
-          {filteredAppointments.map((appointment) => (
-            <li key={appointment._id} className="appointment-card">
-              <div className="appointment-header">
-                <h3 className="doctor-name">
-                  Dr. {appointment.doctor.user?.profile?.fullName || `${appointment.doctor.user?.profile?.firstName || ''} ${appointment.doctor.user?.profile?.lastName || ''}`.trim() || appointment.doctor.specialization}
-                </h3>
-                <span className={`status-badge ${appointment.status}`}>
-                  {appointment.status}
-                </span>
-              </div>
+          {filteredAppointments.map((appointment) => {
+            // Skip appointments with missing required data
+            if (!appointment || !appointment._id) {
+              console.warn('Skipping appointment with missing data:', appointment);
+              return null;
+            }
+
+            return (
+              <li key={appointment._id} className="appointment-card">
+                <div className="appointment-header">
+                  <h3 className="doctor-name">
+                    Dr. {appointment.doctor?.profile?.fullName || 
+                         `${appointment.doctor?.profile?.firstName || ''} ${appointment.doctor?.profile?.lastName || ''}`.trim() || 
+                         appointment.doctor?.user?.profile?.fullName ||
+                         `${appointment.doctor?.user?.profile?.firstName || ''} ${appointment.doctor?.user?.profile?.lastName || ''}`.trim() ||
+                         appointment.doctor?.specialization || 
+                         'Unknown Doctor'}
+                  </h3>
+                  <span className={`status-badge ${appointment.status || 'unknown'}`}>
+                    {appointment.status || 'Unknown'}
+                  </span>
+                </div>
 
               <div className="appointment-details">
                 <div className="detail-item">
@@ -84,7 +96,8 @@ export default function AppointmentList({
                 </button>
               </div>
             </li>
-          ))}
+            );
+          }).filter(Boolean)}
         </ul>
       )}
     </div>
