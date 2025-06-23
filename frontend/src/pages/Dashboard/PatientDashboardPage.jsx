@@ -56,12 +56,12 @@ export default function PatientDashboardPage() {
                 recentDoctorsRes = allDoctors.slice(0, 5).map(doctor => ({
                   _id: doctor._id,
                   profile: {
-                    fullName: doctor.profile?.fullName || `${doctor.profile?.firstName || ''} ${doctor.profile?.lastName || ''}`.trim(),
-                    firstName: doctor.profile?.firstName,
-                    lastName: doctor.profile?.lastName,
-                    specialization: doctor.profile?.specialization,
-                    avatar: doctor.profile?.avatar,
-                    experience: doctor.profile?.experience
+                    fullName: doctor.user?.profile?.fullName || `${doctor.user?.profile?.firstName || ''} ${doctor.user?.profile?.lastName || ''}`.trim(),
+                    firstName: doctor.user?.profile?.firstName,
+                    lastName: doctor.user?.profile?.lastName,
+                    specialization: doctor.specialization,
+                    avatar: doctor.user?.profile?.photo,
+                    experience: doctor.experience
                   }
                 }));
               }
@@ -97,6 +97,39 @@ export default function PatientDashboardPage() {
 
     fetchPatientDashboardData();
   }, [addNotification]);
+
+  const handleCancelAppointment = async (appointmentId) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/appointments/${appointmentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.ok) {
+        addNotification('Appointment cancelled successfully', 'success');
+        // Refresh upcoming appointments
+        setUpcomingAppointments(prev => prev.filter(apt => apt._id !== appointmentId));
+      } else {
+        const error = await response.json();
+        addNotification(`Failed to cancel appointment: ${error.error}`, 'error');
+      }
+    } catch (error) {
+      addNotification(`Error cancelling appointment: ${error.message}`, 'error');
+    }
+  };
+
+  const handleJoinCall = (appointment) => {
+    if (appointment.meetingUrl) {
+      // Open meeting URL in new tab
+      window.open(appointment.meetingUrl, '_blank');
+    } else {
+      // For now, show a notification that the meeting will start soon
+      addNotification(`Meeting for your appointment with Dr. ${appointment.doctor?.user?.profile?.fullName || 'Doctor'} will start soon`, 'info');
+      // In a real application, this would generate or retrieve the meeting URL
+    }
+  };
 
   if (loading) return <LoadingSpinner fullPage />;
 
@@ -144,6 +177,8 @@ export default function PatientDashboardPage() {
         <AppointmentList 
           appointments={upcomingAppointments} 
           emptyMessage="No upcoming appointments"
+          onCancel={handleCancelAppointment}
+          onJoinCall={handleJoinCall}
         />
         
         <div className="dashboard-actions">

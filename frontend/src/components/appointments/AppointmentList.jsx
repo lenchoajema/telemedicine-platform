@@ -5,6 +5,7 @@ export default function AppointmentList({
   appointments = [], 
   emptyMessage = 'No appointments scheduled', 
   onCancel,
+  onJoinCall,
   selectedDate 
 }) {
   // Check if appointments is an array
@@ -49,11 +50,10 @@ export default function AppointmentList({
               <li key={appointment._id} className="appointment-card">
                 <div className="appointment-header">
                   <h3 className="doctor-name">
-                    Dr. {appointment.doctor?.profile?.fullName || 
-                         `${appointment.doctor?.profile?.firstName || ''} ${appointment.doctor?.profile?.lastName || ''}`.trim() || 
-                         appointment.doctor?.user?.profile?.fullName ||
+                    Dr. {appointment.doctor?.user?.profile?.fullName ||
                          `${appointment.doctor?.user?.profile?.firstName || ''} ${appointment.doctor?.user?.profile?.lastName || ''}`.trim() ||
-                         appointment.doctor?.specialization || 
+                         appointment.doctor?.profile?.fullName || 
+                         `${appointment.doctor?.profile?.firstName || ''} ${appointment.doctor?.profile?.lastName || ''}`.trim() || 
                          'Unknown Doctor'}
                   </h3>
                   <span className={`status-badge ${appointment.status || 'unknown'}`}>
@@ -85,13 +85,26 @@ export default function AppointmentList({
               </div>
 
               <div className="appointment-actions">
-                <button
-                  className="btn secondary small"
-                  onClick={() => onCancel?.(appointment._id)}
+                {appointment.status === 'scheduled' && (
+                  <button
+                    className="btn secondary small"
+                    onClick={() => onCancel?.(appointment._id)}
+                    disabled={!onCancel}
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button 
+                  className="btn primary small"
+                  onClick={() => {
+                    if (appointment.status === 'scheduled' && onJoinCall) {
+                      onJoinCall(appointment);
+                    } else {
+                      // View details functionality can be added here
+                      console.log('View details for appointment:', appointment._id);
+                    }
+                  }}
                 >
-                  Cancel
-                </button>
-                <button className="btn primary small">
                   {appointment.status === 'scheduled' ? 'Join Call' : 'View Details'}
                 </button>
               </div>
