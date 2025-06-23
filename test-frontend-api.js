@@ -1,46 +1,66 @@
 #!/usr/bin/env node
 
-// Test if the frontend can access the availability endpoint without authentication
-import fetch from 'node-fetch';
+import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000';
+const BASE_URL = 'http://localhost:5000/api';
 
-async function testFrontendAPI() {
-  console.log('🔍 Testing Frontend API Access...\n');
-
+async function testDoctorsEndpoint() {
   try {
-    // Test doctors endpoint (should work without auth)
-    const doctorsResponse = await fetch(`${API_BASE}/api/doctors`);
-    const doctors = await doctorsResponse.json();
-    
-    console.log(`✅ Doctors endpoint: ${doctors.length} doctors found`);
+    console.log('🧪 Testing /doctors endpoint for NewAppointmentPage...\n');
+
+    // 1. Login as patient to get token
+    console.log('1. Logging in as patient...');
+    const loginResponse = await axios.post(`${BASE_URL}/auth/login`, {
+      email: 'test.doctor@example.com', // We'll use any valid user
+      password: 'password123'
+    });
+
+    const token = loginResponse.data.token;
+    const headers = { 'Authorization': `Bearer ${token}` };
+
+    console.log('✅ Logged in successfully\n');
+
+    // 2. Test /doctors endpoint (used by NewAppointmentPage)
+    console.log('2. Testing /doctors endpoint...');
+    const doctorsResponse = await axios.get(`${BASE_URL}/doctors`, { headers });
+    const doctors = doctorsResponse.data;
+
+    console.log(`✅ Retrieved ${doctors.length} doctors`);
+    console.log('\n📋 Doctor data structure:');
     
     if (doctors.length > 0) {
-      const doctorId = doctors[0]._id;
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const dateStr = tomorrow.toISOString().split('T')[0];
+      const firstDoctor = doctors[0];
+      console.log('Sample doctor object:');
+      console.log(JSON.stringify(firstDoctor, null, 2));
       
-      // Test availability endpoint (should work without auth)
-      const availabilityResponse = await fetch(`${API_BASE}/api/doctors/availability?doctorId=${doctorId}&date=${dateStr}`);
+      console.log('\n🔍 Key fields check:');
+      console.log(`- _id: ${firstDoctor._id ? '✅' : '❌'}`);
+      console.log(`- profile: ${firstDoctor.profile ? '✅' : '❌'}`);
+      console.log(`- profile.fullName: ${firstDoctor.profile?.fullName ? '✅' : '❌'}`);
+      console.log(`- profile.firstName: ${firstDoctor.profile?.firstName ? '✅' : '❌'}`);
+      console.log(`- profile.lastName: ${firstDoctor.profile?.lastName ? '✅' : '❌'}`);
+      console.log(`- profile.specialization: ${firstDoctor.profile?.specialization ? '✅' : '❌'}`);
       
-      if (availabilityResponse.ok) {
-        const slots = await availabilityResponse.json();
-        console.log(`✅ Availability endpoint: ${slots.length} slots found`);
-        console.log(`   Sample slots: ${slots.slice(0, 5).join(', ')}`);
-      } else {
-        console.log(`❌ Availability endpoint failed: ${availabilityResponse.status}`);
+      // Check name construction
+      if (firstDoctor.profile?.firstName && firstDoctor.profile?.lastName) {
+        console.log(`\n💡 Constructed fullName: ${firstDoctor.profile.firstName} ${firstDoctor.profile.lastName}`);
       }
+    } else {
+      console.log('❌ No doctors found in the response');
     }
-    
-    console.log('\n🎉 Frontend should now be able to:');
-    console.log('   1. Display doctor names correctly (Dr. Lencho Ajema - General Medicine)');
-    console.log('   2. Load available time slots when a doctor is selected');
-    console.log('   3. Show proper error messages when no slots are available');
-    
+
+    // 3. Compare with what the frontend expects
+    console.log('\n� Frontend expectations:');
+    console.log('- NewAppointmentPage expects: doctor.profile.fullName');
+    console.log('- Should display in doctor cards with name and specialization');
+
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('❌ Test failed:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
   }
 }
 
-testFrontendAPI();
+testDoctorsEndpoint();

@@ -1,4 +1,5 @@
 import Appointment from './appointment.model.js';
+import Doctor from '../doctors/doctor.model.js';
 
 // Get all appointments (filtered by user role)
 export const getAppointments = async (req, res) => {
@@ -10,7 +11,19 @@ export const getAppointments = async (req, res) => {
     if (user.role === 'patient') {
       query.patient = user._id;
     } else if (user.role === 'doctor') {
-      query.doctor = user._id;
+      // Handle both User ID and Doctor document ID in appointments
+      // Some appointments might have User ID directly, others might have Doctor document ID
+      
+      // First, find the doctor document for this user
+      const doctorDoc = await Doctor.findOne({ user: user._id });
+      
+      // Create query to find appointments with either User ID or Doctor document ID
+      const doctorQueries = [{ doctor: user._id }]; // User ID case
+      if (doctorDoc) {
+        doctorQueries.push({ doctor: doctorDoc._id }); // Doctor document ID case
+      }
+      
+      query = { $or: doctorQueries };
     }
     
     const appointments = await Appointment.find(query)
@@ -102,8 +115,20 @@ export const updateAppointment = async (req, res) => {
       return res.status(403).json({ error: 'Not authorized to update this appointment' });
     }
     
-    if (req.user.role === 'doctor' && appointment.doctor.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: 'Not authorized to update this appointment' });
+    if (req.user.role === 'doctor') {
+      let isDoctorAuthorized = appointment.doctor.toString() === req.user._id.toString(); // User ID case
+      
+      if (!isDoctorAuthorized) {
+        // Check if this appointment uses Doctor document ID
+        const doctorDoc = await Doctor.findOne({ user: req.user._id });
+        if (doctorDoc) {
+          isDoctorAuthorized = appointment.doctor.toString() === doctorDoc._id.toString(); // Doctor document ID case
+        }
+      }
+      
+      if (!isDoctorAuthorized) {
+        return res.status(403).json({ error: 'Not authorized to update this appointment' });
+      }
     }
     
     // Update the appointment
@@ -138,8 +163,20 @@ export const deleteAppointment = async (req, res) => {
       return res.status(403).json({ error: 'Not authorized to cancel this appointment' });
     }
     
-    if (req.user.role === 'doctor' && appointment.doctor.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: 'Not authorized to cancel this appointment' });
+    if (req.user.role === 'doctor') {
+      let isDoctorAuthorized = appointment.doctor.toString() === req.user._id.toString(); // User ID case
+      
+      if (!isDoctorAuthorized) {
+        // Check if this appointment uses Doctor document ID
+        const doctorDoc = await Doctor.findOne({ user: req.user._id });
+        if (doctorDoc) {
+          isDoctorAuthorized = appointment.doctor.toString() === doctorDoc._id.toString(); // Doctor document ID case
+        }
+      }
+      
+      if (!isDoctorAuthorized) {
+        return res.status(403).json({ error: 'Not authorized to cancel this appointment' });
+      }
     }
     
     // Instead of deleting, just set status to cancelled
@@ -164,7 +201,15 @@ export const getAppointmentStats = async (req, res) => {
     if (user.role === 'patient') {
       query.patient = user._id;
     } else if (user.role === 'doctor') {
-      query.doctor = user._id;
+      // Handle both User ID and Doctor document ID in appointments
+      const doctorDoc = await Doctor.findOne({ user: user._id });
+      
+      const doctorQueries = [{ doctor: user._id }]; // User ID case
+      if (doctorDoc) {
+        doctorQueries.push({ doctor: doctorDoc._id }); // Doctor document ID case
+      }
+      
+      query = { $or: doctorQueries };
     }
 
     // Count upcoming appointments (scheduled appointments in the future)
@@ -225,7 +270,15 @@ export const getUpcomingAppointments = async (req, res) => {
     if (user.role === 'patient') {
       query.patient = user._id;
     } else if (user.role === 'doctor') {
-      query.doctor = user._id;
+      // Handle both User ID and Doctor document ID in appointments
+      const doctorDoc = await Doctor.findOne({ user: user._id });
+      
+      const doctorQueries = [{ doctor: user._id }]; // User ID case
+      if (doctorDoc) {
+        doctorQueries.push({ doctor: doctorDoc._id }); // Doctor document ID case
+      }
+      
+      query = { $or: doctorQueries };
     }
 
     // Find scheduled appointments in the future
@@ -337,7 +390,17 @@ export const rescheduleAppointment = async (req, res) => {
     
     // Check if user owns this appointment or is the doctor
     const isPatient = appointment.patient.toString() === userId.toString();
-    const isDoctor = appointment.doctor.toString() === userId.toString();
+    
+    // Check if user is the doctor (handle both User ID and Doctor document ID)
+    let isDoctor = appointment.doctor.toString() === userId.toString(); // User ID case
+    
+    if (!isDoctor && req.user.role === 'doctor') {
+      // Check if this appointment uses Doctor document ID
+      const doctorDoc = await Doctor.findOne({ user: userId });
+      if (doctorDoc) {
+        isDoctor = appointment.doctor.toString() === doctorDoc._id.toString(); // Doctor document ID case
+      }
+    }
     
     if (!isPatient && !isDoctor && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Not authorized to reschedule this appointment' });

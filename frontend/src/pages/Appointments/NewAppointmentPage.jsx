@@ -203,21 +203,21 @@ export default function NewAppointmentPage() {
               >
                 <div className="doctor-avatar">
                   <img 
-                    src={doctor.profile?.avatar || '/default-doctor.png'} 
-                    alt={doctor.profile?.fullName}
+                    src={doctor.user?.profile?.photo || '/default-doctor.png'} 
+                    alt={doctor.user?.profile?.fullName || `${doctor.user?.profile?.firstName} ${doctor.user?.profile?.lastName}`}
                     onError={(e) => {
                       e.target.src = '/default-doctor.png';
                     }}
                   />
                 </div>
                 <div className="doctor-info">
-                  <h3>{doctor.profile?.fullName}</h3>
-                  <p className="specialization">{doctor.profile?.specialization}</p>
-                  {doctor.profile?.experience && (
-                    <p className="experience">{doctor.profile.experience} years experience</p>
+                  <h3>{doctor.user?.profile?.fullName || `${doctor.user?.profile?.firstName} ${doctor.user?.profile?.lastName}`}</h3>
+                  <p className="specialization">{doctor.specialization}</p>
+                  {doctor.experience && (
+                    <p className="experience">{doctor.experience} years experience</p>
                   )}
-                  {doctor.profile?.bio && (
-                    <p className="bio">{doctor.profile.bio}</p>
+                  {doctor.bio && (
+                    <p className="bio">{doctor.bio}</p>
                   )}
                 </div>
                 <div className="select-button">
@@ -235,15 +235,15 @@ export default function NewAppointmentPage() {
             <h2>Selected Doctor</h2>
             <div className="doctor-summary">
               <img 
-                src={selectedDoctor.profile?.avatar || '/default-doctor.png'} 
-                alt={selectedDoctor.profile?.fullName}
+                src={selectedDoctor.user?.profile?.photo || '/default-doctor.png'} 
+                alt={selectedDoctor.user?.profile?.fullName || `${selectedDoctor.user?.profile?.firstName} ${selectedDoctor.user?.profile?.lastName}`}
                 onError={(e) => {
                   e.target.src = '/default-doctor.png';
                 }}
               />
               <div>
-                <h3>{selectedDoctor.profile?.fullName}</h3>
-                <p>{selectedDoctor.profile?.specialization}</p>
+                <h3>{selectedDoctor.user?.profile?.fullName || `${selectedDoctor.user?.profile?.firstName} ${selectedDoctor.user?.profile?.lastName}`}</h3>
+                <p>{selectedDoctor.specialization}</p>
               </div>
               <button 
                 className="btn secondary"
@@ -297,15 +297,15 @@ export default function NewAppointmentPage() {
               <h3>Doctor Information</h3>
               <div className="doctor-summary">
                 <img 
-                  src={selectedDoctor.profile?.avatar || '/default-doctor.png'} 
-                  alt={selectedDoctor.profile?.fullName}
+                  src={selectedDoctor.user?.profile?.photo || '/default-doctor.png'} 
+                  alt={selectedDoctor.user?.profile?.fullName || `${selectedDoctor.user?.profile?.firstName} ${selectedDoctor.user?.profile?.lastName}`}
                   onError={(e) => {
                     e.target.src = '/default-doctor.png';
                   }}
                 />
                 <div>
-                  <h4>{selectedDoctor.profile?.fullName}</h4>
-                  <p>{selectedDoctor.profile?.specialization}</p>
+                  <h4>{selectedDoctor.user?.profile?.fullName || `${selectedDoctor.user?.profile?.firstName} ${selectedDoctor.user?.profile?.lastName}`}</h4>
+                  <p>{selectedDoctor.specialization}</p>
                 </div>
               </div>
             </div>
