@@ -58,158 +58,77 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
   const navigation = getNavigation();
 
-  function classNames(...classes) {
-    return classes.filter(Boolean).join(' ');
-  }
-
   return (
     <>
-      {/* Mobile sidebar */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-gray-900 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-          
-          <div className="fixed inset-y-0 left-0 flex w-full max-w-xs">
-            <div className="relative flex w-full flex-col bg-white">
-              <div className="absolute top-0 right-0 p-2">
-                <button
-                  type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <span className="sr-only">Close sidebar</span>
-                  <XMarkIcon className="h-6 w-6 text-gray-600" aria-hidden="true" />
-                </button>
-              </div>
-              
-              <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-2">
-                <div className="flex h-16 shrink-0 items-center border-b border-gray-200">
-                  <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">TM</span>
-                  </div>
-                  <span className="ml-2 text-lg font-bold text-gray-900">
-                    TeleMedicine
-                  </span>
-                </div>
-                
-                <nav className="flex flex-1 flex-col">
-                  <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                    <li>
-                      <ul role="list" className="-mx-2 space-y-1">
-                        {navigation.map((item) => (
-                          <li key={item.name}>
-                            <Link
-                              to={item.href}
-                              onClick={() => setSidebarOpen(false)}
-                              className={classNames(
-                                location.pathname === item.href
-                                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                                  : 'text-gray-700 hover:text-blue-700 hover:bg-blue-50',
-                                'group flex gap-x-3 rounded-l-md p-3 text-sm leading-6 font-medium'
-                              )}
-                            >
-                              <item.icon
-                                className={classNames(
-                                  location.pathname === item.href 
-                                    ? 'text-blue-700' 
-                                    : 'text-gray-400 group-hover:text-blue-700',
-                                  'h-6 w-6 shrink-0'
-                                )}
-                                aria-hidden="true"
-                              />
-                              {item.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  </ul>
-                </nav>
+      {/* Mobile sidebar overlay */}
+      <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} />
+      
+      {/* Sidebar */}
+      <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-content">
+          {/* Mobile close button */}
+          <div className="sidebar-close-container">
+            <button
+              type="button"
+              className="sidebar-close-btn"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <span className="sr-only">Close sidebar</span>
+              <XMarkIcon className="close-icon" aria-hidden="true" />
+            </button>
+          </div>
 
-                {/* User info at bottom */}
-                <div className="border-t border-gray-200 pt-4 pb-4">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">
-                        {user?.profile?.firstName?.[0] || user?.email?.[0]?.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user?.profile?.fullName || user?.email}
-                      </p>
-                      <p className="text-xs text-gray-500 capitalize">
-                        {user?.role}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          {/* Header */}
+          <div className="sidebar-header">
+            <div className="sidebar-logo">
+              <div className="logo-icon">
+                <span className="logo-text">TM</span>
               </div>
+              <span className="logo-title">TeleMedicine</span>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
-          <div className="flex h-16 shrink-0 items-center border-b border-gray-200">
-            <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">TM</span>
-            </div>
-            <span className="ml-2 text-lg font-bold text-gray-900">
-              TeleMedicine
-            </span>
-          </div>
-          
-          <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-              <li>
-                <ul role="list" className="-mx-2 space-y-1">
-                  {navigation.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        to={item.href}
-                        className={classNames(
-                          location.pathname === item.href
-                            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                            : 'text-gray-700 hover:text-blue-700 hover:bg-blue-50',
-                          'group flex gap-x-3 rounded-l-md p-3 text-sm leading-6 font-medium transition-colors duration-200'
-                        )}
-                      >
-                        <item.icon
-                          className={classNames(
-                            location.pathname === item.href 
-                              ? 'text-blue-700' 
-                              : 'text-gray-400 group-hover:text-blue-700',
-                            'h-6 w-6 shrink-0'
-                          )}
-                          aria-hidden="true"
-                        />
-                        {item.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
+          {/* Navigation */}
+          <nav className="sidebar-nav">
+            <ul className="nav-list">
+              {navigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <li key={item.name} className="nav-item">
+                    <Link
+                      to={item.href}
+                      className={`nav-link ${isActive ? 'active' : ''}`}
+                    >
+                      <item.icon className="nav-icon" aria-hidden="true" />
+                      <span className="nav-text">{item.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 
-          {/* User info at bottom */}
-          <div className="border-t border-gray-200 pt-4 pb-4">
-            <div className="flex items-center">
-              <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {user?.profile?.firstName?.[0] || user?.email?.[0]?.toUpperCase()}
-                </span>
+          {/* User Info */}
+          <div className="sidebar-user">
+            <div className="user-info">
+              <div className="user-avatar">
+                {user?.profile?.photo ? (
+                  <img
+                    className="user-avatar-img"
+                    src={user.profile.photo}
+                    alt=""
+                  />
+                ) : (
+                  <span className="user-avatar-text">
+                    {user?.profile?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+                  </span>
+                )}
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">
-                  {user?.profile?.fullName || user?.email}
+              <div className="user-details">
+                <p className="user-name">
+                  {user?.profile?.firstName} {user?.profile?.lastName}
                 </p>
-                <p className="text-xs text-gray-500 capitalize">
-                  {user?.role}
-                </p>
+                <p className="user-role">{user?.role}</p>
               </div>
             </div>
           </div>
