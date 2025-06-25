@@ -24,6 +24,7 @@
     transform: translateX(0);
     top: 4rem; /* Below header */
     height: calc(100vh - 4rem);
+    z-index: 30; /* Lower z-index than mobile overlay */
   }
 }
 

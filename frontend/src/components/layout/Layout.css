@@ -1,0 +1,86 @@
+/* Layout Base Styles */
+.layout-container {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout-content {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+/* Main Content Styles */
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s ease-in-out;
+  padding-top: 1rem;
+  min-height: calc(100vh - 4rem); /* Account for header height */
+}
+
+/* Main content without sidebar */
+.main-content.without-sidebar {
+  margin-left: 0;
+}
+
+/* Main content with sidebar on large screens */
+.main-content.with-sidebar {
+  margin-left: 0; /* Mobile: no margin */
+}
+
+@media (min-width: 1024px) {
+  .main-content.with-sidebar {
+    margin-left: 16rem; /* Desktop: account for 256px sidebar width */
+  }
+}
+
+/* Content Container */
+.content-container {
+  max-width: 80rem; /* 1280px */
+  margin: 0 auto;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .content-container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .content-container {
+    padding: 0 2rem;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1023px) {
+  .main-content.with-sidebar {
+    margin-left: 0; /* No margin on mobile/tablet */
+  }
+}
+
+/* Footer adjustments */
+.layout-container > footer {
+  margin-top: auto;
+}
+
+/* Smooth transitions for content */
+.main-content {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Ensure content doesn't go under fixed sidebar */
+@media (min-width: 1024px) {
+  .layout-content {
+    position: relative;
+  }
+  
+  .main-content.with-sidebar {
+    width: calc(100% - 16rem);
+    margin-left: 16rem;
+  }
+}
