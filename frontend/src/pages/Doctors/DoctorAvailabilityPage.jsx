@@ -72,7 +72,7 @@ export default function DoctorAvailabilityPage() {
         try {
           // Try to fetch from API first
           const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-          const response = await fetch(`${apiUrl}/doctor/availability`, {
+          const response = await fetch(`${apiUrl}/doctors/my-availability`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -82,7 +82,14 @@ export default function DoctorAvailabilityPage() {
 
           if (response.ok) {
             const data = await response.json();
-            setAvailability(Array.isArray(data) ? data : mockAvailability);
+            // Process the availability data to include slots for display
+            const processedData = Array.isArray(data) ? data.map(avail => ({
+              ...avail,
+              slots: avail.startTime && avail.endTime && avail.slotDuration 
+                ? generateTimeSlots(avail.startTime, avail.endTime, avail.slotDuration)
+                : []
+            })) : mockAvailability;
+            setAvailability(processedData);
           } else {
             throw new Error(`API returned ${response.status}`);
           }
@@ -133,7 +140,7 @@ export default function DoctorAvailabilityPage() {
       try {
         // Try to save to API
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-        const response = await fetch(`${apiUrl}/doctor/availability`, {
+        const response = await fetch(`${apiUrl}/doctors/availability`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -148,9 +155,23 @@ export default function DoctorAvailabilityPage() {
         });
 
         if (response.ok) {
-          const savedData = await response.json();
-          // Use API response if available, otherwise use local data
-          setAvailability([...availability.filter(a => a.day !== selectedDay), savedData]);
+          const result = await response.json();
+          // Handle the new response format from the backend
+          const savedData = result.availability || result;
+          
+          // Generate slots for display
+          const slots = generateTimeSlots(savedData.startTime, savedData.endTime, savedData.slotDuration);
+          const dayAvailabilityWithSlots = {
+            day: savedData.day,
+            startTime: savedData.startTime,
+            endTime: savedData.endTime,
+            slotDuration: savedData.slotDuration,
+            slots: slots,
+            createdAt: savedData.createdAt,
+            updatedAt: savedData.updatedAt
+          };
+          
+          setAvailability([...availability.filter(a => a.day !== selectedDay), dayAvailabilityWithSlots]);
           addNotification('Availability updated successfully', 'success');
           return;
         } else {
@@ -158,8 +179,18 @@ export default function DoctorAvailabilityPage() {
         }
       } catch (apiError) {
         console.log('API unavailable, saving locally:', apiError.message);
-        // Fallback to local state update
-        setAvailability([...availability.filter(a => a.day !== selectedDay), newDayAvailability]);
+        // Fallback to local state update with slots
+        const slots = generateTimeSlots(timeSlots.start, timeSlots.end, timeSlots.slotDuration);
+        const localDayAvailability = {
+          day: selectedDay,
+          startTime: timeSlots.start,
+          endTime: timeSlots.end,
+          slotDuration: timeSlots.slotDuration,
+          slots: slots,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        setAvailability([...availability.filter(a => a.day !== selectedDay), localDayAvailability]);
         addNotification('Availability updated (demo mode)', 'success');
       }
 
@@ -174,7 +205,7 @@ export default function DoctorAvailabilityPage() {
       try {
         // Try to delete from API
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-        const response = await fetch(`${apiUrl}/doctor/availability/${day}`, {
+        const response = await fetch(`${apiUrl}/doctors/availability/${day}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
