@@ -39,8 +39,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
         ...baseNavigation,
         { name: 'My Doctors', href: '/doctors', icon: UserGroupIcon },
         { name: 'Medical History', href: '/medical-records', icon: DocumentTextIcon },
-        { name: 'Video Calls', href: '/video-calls', icon: VideoCameraIcon },
-        { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+        { name: 'Video Calls', href: '/patient/video-calls', icon: VideoCameraIcon },
+        { name: 'Settings', href: '/patient/settings', icon: Cog6ToothIcon },
       ];
     } else if (user?.role === 'admin') {
       return [

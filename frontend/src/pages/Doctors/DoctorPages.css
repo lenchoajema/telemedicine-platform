@@ -67,6 +67,7 @@
 
 .availability-indicator {
   color: #28a745;
+  font-weight: bold;
 }
 
 .day-config {
@@ -138,6 +139,18 @@
   border-radius: 4px;
   text-align: center;
   font-size: 0.9rem;
+}
+
+.time-slot.available {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.time-slot.booked {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
 }
 
 /* Doctor profile page */
@@ -349,6 +362,12 @@
 .btn-danger {
   background-color: #dc3545;
   color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.2s ease;
 }
 
 .btn-danger:hover {
@@ -681,14 +700,23 @@
   }
   
   .days-sidebar {
-    width: auto;
-    padding: 1rem;
+    width: 100%;
   }
   
   .days-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 0.5rem;
+  }
+  
+  .day-item {
+    flex: 1;
+    min-width: 100px;
+    margin-bottom: 0;
+  }
+  
+  .slots-container {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
   
   .day-config {

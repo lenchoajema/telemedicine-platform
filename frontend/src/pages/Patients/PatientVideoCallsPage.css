@@ -1,0 +1,328 @@
+.patient-video-calls-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  margin: 0 0 8px 0;
+  color: #1a365d;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.page-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+.error-message {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.1rem;
+  color: #64748b;
+}
+
+/* Active Call Section */
+.active-call-section {
+  margin-bottom: 32px;
+}
+
+.active-call-section h2 {
+  color: #1a365d;
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+.active-call-card {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.active-call-card .call-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+}
+
+.active-call-card .call-info p {
+  margin: 2px 0;
+  opacity: 0.9;
+}
+
+.call-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-rejoin, .btn-end-call {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-rejoin {
+  background-color: white;
+  color: #059669;
+}
+
+.btn-rejoin:hover {
+  background-color: #f3f4f6;
+}
+
+.btn-end-call {
+  background-color: #dc2626;
+  color: white;
+}
+
+.btn-end-call:hover {
+  background-color: #b91c1c;
+}
+
+/* Upcoming Calls Section */
+.upcoming-calls-section, .call-history-section {
+  margin-bottom: 32px;
+}
+
+.upcoming-calls-section h2, .call-history-section h2 {
+  color: #1a365d;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e1;
+}
+
+.calls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.call-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.call-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.call-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.call-header h3 {
+  margin: 0;
+  color: #1a365d;
+  font-size: 1.1rem;
+}
+
+.call-type {
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.call-details {
+  margin-bottom: 16px;
+}
+
+.call-details p {
+  margin: 6px 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.call-details strong {
+  color: #374151;
+}
+
+.call-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-join, .btn-reschedule {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.btn-join {
+  background-color: #10b981;
+  color: white;
+  flex: 1;
+}
+
+.btn-join:hover:not(.disabled) {
+  background-color: #059669;
+}
+
+.btn-join.disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-reschedule {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-reschedule:hover {
+  background-color: #e5e7eb;
+}
+
+/* Call History Section */
+.history-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.history-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th {
+  background-color: #f8fafc;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+}
+
+.history-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.history-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-badge.completed {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.cancelled {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.status-badge.no-show {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.btn-small {
+  padding: 4px 12px;
+  border: 1px solid #d1d5db;
+  background-color: white;
+  color: #374151;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-small:hover {
+  background-color: #f3f4f6;
+}
+
+.not-available {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 0.75rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .patient-video-calls-page {
+    padding: 16px;
+  }
+  
+  .calls-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .active-call-card {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .call-actions {
+    justify-content: center;
+  }
+  
+  .history-table {
+    overflow-x: auto;
+  }
+  
+  .history-table table {
+    min-width: 600px;
+  }
+}

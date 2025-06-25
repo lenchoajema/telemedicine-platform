@@ -23,6 +23,18 @@ import DoctorProfilePage from './pages/Doctors/DoctorProfilePage';
 import DoctorAvailabilityPage from './pages/Doctors/DoctorAvailabilityPage';
 import DoctorAppointmentsPage from './pages/Doctors/DoctorAppointmentsPage';
 import DoctorPatientsPage from './pages/Doctors/DoctorPatientsPage';
+import AboutPage from './pages/Public/AboutPage';
+import ServicesPage from './pages/Public/ServicesPage';
+import ContactPage from './pages/Public/ContactPage';
+import VideoCallsPage from './pages/Doctors/VideoCallsPage';
+import AnalyticsPage from './pages/Doctors/AnalyticsPage';
+import SettingsPage from './pages/Doctors/SettingsPage';
+import AdminDoctorsPage from './pages/Admin/AdminDoctorsPage';
+import AdminAppointmentsPage from './pages/Admin/AdminAppointmentsPage';
+import AdminAnalyticsPage from './pages/Admin/AdminAnalyticsPage';
+import AdminSettingsPage from './pages/Admin/AdminSettingsPage';
+import PatientVideoCallsPage from './pages/Patients/PatientVideoCallsPage';
+import PatientSettingsPage from './pages/Patients/PatientSettingsPage';
 import './App.css';
 
 function App() {
@@ -37,6 +49,24 @@ function App() {
               <Route path="/" element={
                 <PublicRoute>
                   <HomePage />
+                </PublicRoute>
+              } />
+              
+              <Route path="/about" element={
+                <PublicRoute>
+                  <AboutPage />
+                </PublicRoute>
+              } />
+              
+              <Route path="/services" element={
+                <PublicRoute>
+                  <ServicesPage />
+                </PublicRoute>
+              } />
+              
+              <Route path="/contact" element={
+                <PublicRoute>
+                  <ContactPage />
                 </PublicRoute>
               } />
               
@@ -116,6 +146,30 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="/admin/doctors" element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminDoctorsPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/appointments" element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminAppointmentsPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/analytics" element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminAnalyticsPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/settings" element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminSettingsPage />
+                </ProtectedRoute>
+              } />
+
               {/* Doctor Routes */}
               <Route path="/doctor/profile" element={
                 <ProtectedRoute roles={['doctor']}>
@@ -138,6 +192,37 @@ function App() {
               <Route path="/doctor/patients" element={
                 <ProtectedRoute roles={['doctor']}>
                   <DoctorPatientsPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/video-calls" element={
+                <ProtectedRoute roles={['doctor']}>
+                  <VideoCallsPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/analytics" element={
+                <ProtectedRoute roles={['doctor']}>
+                  <AnalyticsPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/settings" element={
+                <ProtectedRoute roles={['doctor', 'patient']}>
+                  <SettingsPage />
+                </ProtectedRoute>
+              } />
+
+              {/* Patient Routes */}
+              <Route path="/patient/video-calls" element={
+                <ProtectedRoute roles={['patient']}>
+                  <PatientVideoCallsPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/patient/settings" element={
+                <ProtectedRoute roles={['patient']}>
+                  <PatientSettingsPage />
                 </ProtectedRoute>
               } />
 
