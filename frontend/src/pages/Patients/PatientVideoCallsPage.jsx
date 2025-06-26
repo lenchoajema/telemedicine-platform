@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './PatientVideoCallsPage.css';
 
 const PatientVideoCallsPage = () => {
+  const navigate = useNavigate();
   const [activeCall, setActiveCall] = useState(null);
   const [upcomingCalls, setUpcomingCalls] = useState([]);
   const [callHistory, setCallHistory] = useState([]);
@@ -98,8 +100,9 @@ const PatientVideoCallsPage = () => {
     }
   };
 
-  const joinCall = (meetingLink) => {
-    window.open(meetingLink, '_blank');
+  const joinCall = (appointmentId) => {
+    // Navigate to the WebRTC video call room
+    navigate(`/video-call/${appointmentId}`);
   };
 
   const formatDateTime = (dateString) => {
@@ -146,7 +149,7 @@ const PatientVideoCallsPage = () => {
               <p>Started: {formatDateTime(activeCall.startTime)}</p>
             </div>
             <div className="call-actions">
-              <button className="btn-rejoin" onClick={() => joinCall(activeCall.meetingLink)}>
+              <button className="btn-rejoin" onClick={() => joinCall(activeCall.id)}>
                 Rejoin Call
               </button>
               <button className="btn-end-call">
@@ -180,7 +183,7 @@ const PatientVideoCallsPage = () => {
                   {isCallStartable(call.scheduledTime) ? (
                     <button 
                       className="btn-join"
-                      onClick={() => joinCall(call.meetingLink)}
+                      onClick={() => joinCall(call.id)}
                     >
                       Join Call
                     </button>

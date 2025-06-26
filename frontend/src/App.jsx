@@ -28,6 +28,7 @@ import ServicesPage from './pages/Public/ServicesPage';
 import ContactPage from './pages/Public/ContactPage';
 import VideoCallsPage from './pages/Doctors/VideoCallsPage';
 import AnalyticsPage from './pages/Doctors/AnalyticsPage';
+import VideoCallRoom from './components/VideoCall/VideoCallRoom';
 import SettingsPage from './pages/Doctors/SettingsPage';
 import AdminDoctorsPage from './pages/Admin/AdminDoctorsPage';
 import AdminAppointmentsPage from './pages/Admin/AdminAppointmentsPage';
@@ -116,6 +117,13 @@ function App() {
               <Route path="/medical-records" element={
                 <ProtectedRoute>
                   <MedicalRecordsPage />
+                </ProtectedRoute>
+              } />
+
+              {/* Video Call Route */}
+              <Route path="/video-call/:appointmentId" element={
+                <ProtectedRoute>
+                  <VideoCallRoom />
                 </ProtectedRoute>
               } />
 

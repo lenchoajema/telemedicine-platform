@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContextCore';
 import apiClient from '../../api/apiClient';
@@ -11,6 +12,7 @@ export default function VideoCallsPage() {
   const [upcomingCalls, setUpcomingCalls] = useState([]);
   const [callHistory, setCallHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchVideoCallData();
@@ -56,10 +58,8 @@ export default function VideoCallsPage() {
   };
 
   const startVideoCall = (appointmentId) => {
-    // In a real app, this would integrate with a video calling service like Twilio, Zoom API, etc.
-    const meetingUrl = `https://meet.telemedicine.com/room/${appointmentId}`;
-    window.open(meetingUrl, '_blank', 'width=1200,height=800');
-    addNotification('Video call started', 'success');
+    // Navigate to the WebRTC video call room
+    navigate(`/video-call/${appointmentId}`);
   };
 
   const endVideoCall = async (appointmentId) => {
