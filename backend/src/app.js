@@ -12,6 +12,7 @@ import verificationRoutes from './modules/admin/verification.routes.js';
 import statsRoutes from './modules/admin/stats.routes.js';
 import reportsRoutes from './modules/admin/reports.routes.js';
 import usersRoutes from './modules/admin/users.routes.js';
+import settingsRoutes from './modules/admin/settings.routes.js';
 import patientRoutes from './modules/patients/patient.routes.js';
 import { logRegisteredRoutes } from './modules/shared/api-monitor.js';
 
@@ -68,6 +69,7 @@ if (process.env.USE_API_ROUTES === 'true') {
   app.use('/api/admin/stats', statsRoutes);
   app.use('/api/admin/users', usersRoutes);
   app.use('/api/admin/reports', reportsRoutes);
+  app.use('/api/admin/settings', settingsRoutes);
   app.use('/api/patients', patientRoutes);
 }
 

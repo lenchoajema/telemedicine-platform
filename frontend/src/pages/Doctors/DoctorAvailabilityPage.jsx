@@ -32,45 +32,8 @@ export default function DoctorAvailabilityPage() {
       try {
         setLoading(true);
         
-        // Mock availability data for demonstration
-        const mockAvailability = [
-          {
-            day: 'monday',
-            slots: [
-              { time: '09:00', available: true },
-              { time: '09:30', available: true },
-              { time: '10:00', available: false },
-              { time: '10:30', available: true },
-              { time: '11:00', available: true },
-              { time: '11:30', available: true },
-              { time: '14:00', available: true },
-              { time: '14:30', available: true },
-              { time: '15:00', available: false },
-              { time: '15:30', available: true },
-              { time: '16:00', available: true },
-              { time: '16:30', available: true }
-            ]
-          },
-          {
-            day: 'tuesday',
-            slots: [
-              { time: '09:00', available: true },
-              { time: '09:30', available: true },
-              { time: '10:00', available: true },
-              { time: '10:30', available: false },
-              { time: '11:00', available: true },
-              { time: '14:00', available: true },
-              { time: '14:30', available: true },
-              { time: '15:00', available: true },
-              { time: '15:30', available: true },
-              { time: '16:00', available: false },
-              { time: '16:30', available: true }
-            ]
-          }
-        ];
-
         try {
-          // Try to fetch from API first
+          // Fetch real availability data from API
           const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
           const response = await fetch(`${apiUrl}/doctors/my-availability`, {
             method: 'GET',
@@ -88,21 +51,22 @@ export default function DoctorAvailabilityPage() {
               slots: avail.startTime && avail.endTime && avail.slotDuration 
                 ? generateTimeSlots(avail.startTime, avail.endTime, avail.slotDuration)
                 : []
-            })) : mockAvailability;
+            })) : [];
             setAvailability(processedData);
           } else {
-            throw new Error(`API returned ${response.status}`);
+            console.error(`API returned ${response.status}`);
+            addNotification('Failed to load availability data from server', 'warning');
+            setAvailability([]);
           }
         } catch (apiError) {
-          console.log('API unavailable, using mock data:', apiError.message);
-          // Use mock data as fallback
-          setAvailability(mockAvailability);
+          console.error('Error fetching availability:', apiError);
+          addNotification('Unable to connect to server. Please check your connection.', 'error');
+          setAvailability([]);
         }
 
       } catch (error) {
         console.error('Error fetching availability:', error);
-        addNotification('Failed to load availability data. Using demo data.', 'warning');
-        // Set empty availability as last resort
+        addNotification('Failed to load availability data', 'error');
         setAvailability([]);
       } finally {
         setLoading(false);
@@ -173,25 +137,13 @@ export default function DoctorAvailabilityPage() {
           
           setAvailability([...availability.filter(a => a.day !== selectedDay), dayAvailabilityWithSlots]);
           addNotification('Availability updated successfully', 'success');
-          return;
         } else {
-          throw new Error(`API returned ${response.status}`);
+          const errorData = await response.json();
+          addNotification(errorData.error || 'Failed to update availability', 'error');
         }
       } catch (apiError) {
-        console.log('API unavailable, saving locally:', apiError.message);
-        // Fallback to local state update with slots
-        const slots = generateTimeSlots(timeSlots.start, timeSlots.end, timeSlots.slotDuration);
-        const localDayAvailability = {
-          day: selectedDay,
-          startTime: timeSlots.start,
-          endTime: timeSlots.end,
-          slotDuration: timeSlots.slotDuration,
-          slots: slots,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        setAvailability([...availability.filter(a => a.day !== selectedDay), localDayAvailability]);
-        addNotification('Availability updated (demo mode)', 'success');
+        console.error('Error updating availability:', apiError);
+        addNotification('Unable to connect to server', 'error');
       }
 
     } catch (error) {
@@ -202,33 +154,25 @@ export default function DoctorAvailabilityPage() {
 
   const removeAvailability = async (day) => {
     try {
-      try {
-        // Try to delete from API
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-        const response = await fetch(`${apiUrl}/doctors/availability/${day}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-
-        if (response.ok) {
-          setAvailability(availability.filter(a => a.day !== day));
-          addNotification('Availability removed successfully', 'success');
-          return;
-        } else {
-          throw new Error(`API returned ${response.status}`);
+      // Delete from API
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${apiUrl}/doctors/availability/${day}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      } catch (apiError) {
-        console.log('API unavailable, removing locally:', apiError.message);
-        // Fallback to local state update
-        setAvailability(availability.filter(a => a.day !== day));
-        addNotification('Availability removed (demo mode)', 'success');
-      }
+      });
 
+      if (response.ok) {
+        setAvailability(availability.filter(a => a.day !== day));
+        addNotification('Availability removed successfully', 'success');
+      } else {
+        const errorData = await response.json();
+        addNotification(errorData.error || 'Failed to remove availability', 'error');
+      }
     } catch (error) {
       console.error('Error removing availability:', error);
-      addNotification('Failed to remove availability', 'error');
+      addNotification('Unable to connect to server', 'error');
     }
   };
 

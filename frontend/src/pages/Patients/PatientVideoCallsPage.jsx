@@ -15,57 +15,84 @@ const PatientVideoCallsPage = () => {
   const fetchVideoCallData = async () => {
     try {
       setLoading(true);
-      // Mock data - replace with actual API calls
-      const mockData = {
-        activeCall: null,
-        upcomingCalls: [
-          {
-            id: 1,
-            doctorName: 'Dr. Sarah Johnson',
-            specialty: 'Cardiology',
-            scheduledTime: '2024-01-20T14:00:00Z',
-            type: 'Follow-up',
-            meetingLink: 'https://meet.example.com/room1'
-          },
-          {
-            id: 2,
-            doctorName: 'Dr. Michael Chen',
-            specialty: 'Dermatology',
-            scheduledTime: '2024-01-22T10:30:00Z',
-            type: 'Consultation',
-            meetingLink: 'https://meet.example.com/room2'
-          }
-        ],
-        callHistory: [
-          {
-            id: 3,
-            doctorName: 'Dr. Emily Davis',
-            specialty: 'General Medicine',
-            date: '2024-01-15T11:00:00Z',
-            duration: '25 minutes',
-            type: 'Consultation',
-            status: 'completed',
-            recording: 'available'
-          },
-          {
-            id: 4,
-            doctorName: 'Dr. James Wilson',
-            specialty: 'Pediatrics',
-            date: '2024-01-10T15:30:00Z',
-            duration: '30 minutes',
-            type: 'Follow-up',
-            status: 'completed',
-            recording: 'not-available'
-          }
-        ]
-      };
+      
+      // Fetch real appointment data from API
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${apiUrl}/appointments`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
 
-      setActiveCall(mockData.activeCall);
-      setUpcomingCalls(mockData.upcomingCalls);
-      setCallHistory(mockData.callHistory);
+      if (response.ok) {
+        const appointments = await response.json();
+        
+        // Process appointments to categorize them
+        const now = new Date();
+        
+        // Filter for scheduled appointments (upcoming calls)
+        const upcoming = appointments
+          .filter(apt => apt.status === 'scheduled' && new Date(apt.date) > now)
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .map(apt => ({
+            id: apt._id,
+            doctorName: apt.doctor ? `Dr. ${apt.doctor.profile.firstName} ${apt.doctor.profile.lastName}` : 'Doctor Assigned',
+            specialty: apt.doctor?.profile?.specialization || 'General Medicine',
+            scheduledTime: apt.date,
+            type: apt.reason || 'Consultation',
+            meetingLink: apt.meetingUrl || `https://meet.telemedicine.com/room/${apt._id}`,
+            duration: apt.duration || 30
+          }));
+
+        // Filter for completed appointments (call history)
+        const history = appointments
+          .filter(apt => apt.status === 'completed')
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .map(apt => ({
+            id: apt._id,
+            doctorName: apt.doctor ? `Dr. ${apt.doctor.profile.firstName} ${apt.doctor.profile.lastName}` : 'Doctor',
+            specialty: apt.doctor?.profile?.specialization || 'General Medicine',
+            date: apt.date,
+            duration: `${apt.duration || 30} minutes`,
+            type: apt.reason || 'Consultation',
+            status: 'completed',
+            recording: 'not-available', // Could be enhanced to check for actual recordings
+            notes: apt.notes
+          }));
+
+        // Check for any active call (appointment happening now)
+        const activeAppointment = appointments.find(apt => {
+          const aptDate = new Date(apt.date);
+          const aptEndTime = new Date(aptDate.getTime() + (apt.duration || 30) * 60000);
+          return apt.status === 'scheduled' && aptDate <= now && now <= aptEndTime;
+        });
+
+        const activeCall = activeAppointment ? {
+          id: activeAppointment._id,
+          doctorName: activeAppointment.doctor 
+            ? `Dr. ${activeAppointment.doctor.profile.firstName} ${activeAppointment.doctor.profile.lastName}` 
+            : 'Doctor',
+          specialty: activeAppointment.doctor?.profile?.specialization || 'General Medicine',
+          startTime: activeAppointment.date,
+          meetingLink: activeAppointment.meetingUrl || `https://meet.telemedicine.com/room/${activeAppointment._id}`,
+          type: activeAppointment.reason || 'Consultation'
+        } : null;
+
+        setActiveCall(activeCall);
+        setUpcomingCalls(upcoming);
+        setCallHistory(history);
+      } else {
+        throw new Error(`Failed to fetch appointments: ${response.status}`);
+      }
     } catch (err) {
       setError('Failed to load video call data');
       console.error('Error fetching video call data:', err);
+      // Set empty arrays instead of mock data
+      setActiveCall(null);
+      setUpcomingCalls([]);
+      setCallHistory([]);
     } finally {
       setLoading(false);
     }

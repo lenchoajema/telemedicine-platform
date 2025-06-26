@@ -31,13 +31,25 @@ const DoctorsPage = () => {
         
         const data = await response.json();
         
-        // Ensure data is an array and add mock ratings if not present
+        // Process real doctor data
         const doctorsArray = Array.isArray(data) ? data.map(doctor => ({
           ...doctor,
-          rating: doctor.rating || (Math.random() * 2 + 3.5).toFixed(1), // Random rating between 3.5-5.5
-          reviewCount: doctor.reviewCount || Math.floor(Math.random() * 100 + 10),
+          // Use real rating data or default to 0 if not available
+          rating: doctor.rating || 0,
+          reviewCount: doctor.reviewCount || 0,
+          // Extract specialization from different possible sources
+          specialization: doctor.specialization || doctor.profile?.specialization || 'General Medicine',
+          // Get doctor name from user profile or direct fields
+          name: doctor.user ? 
+            `Dr. ${doctor.user.profile.firstName} ${doctor.user.profile.lastName}` : 
+            `Dr. ${doctor.firstName || 'Doctor'} ${doctor.lastName || ''}`,
+          firstName: doctor.user?.profile?.firstName || doctor.firstName,
+          lastName: doctor.user?.profile?.lastName || doctor.lastName,
+          email: doctor.user?.email || doctor.email,
+          // Add additional fields for UI
           location: doctor.location || 'Remote',
-          isAvailable: doctor.isAvailable !== undefined ? doctor.isAvailable : Math.random() > 0.3
+          isAvailable: doctor.isAvailable !== undefined ? doctor.isAvailable : true,
+          verificationStatus: doctor.verificationStatus || 'pending'
         })) : [];
         
         setDoctors(doctorsArray);

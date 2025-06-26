@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#f3f4f6"/>
+  
+  <!-- Person silhouette -->
+  <g transform="translate(100, 100)">
+    <!-- Head -->
+    <circle cx="0" cy="-30" r="25" fill="#9ca3af"/>
+    
+    <!-- Body -->
+    <path d="M -35 10 Q -35 -10 0 -10 Q 35 -10 35 10 L 30 60 L -30 60 Z" fill="#9ca3af"/>
+    
+    <!-- Stethoscope -->
+    <circle cx="-15" cy="5" r="8" fill="none" stroke="#2563eb" stroke-width="2"/>
+    <path d="M -15 -3 Q -15 -15 0 -15 Q 15 -15 15 -3" fill="none" stroke="#2563eb" stroke-width="2"/>
+    
+    <!-- Medical cross -->
+    <g transform="translate(25, 25)">
+      <circle r="12" fill="#dc2626"/>
+      <rect x="-1.5" y="-8" width="3" height="16" fill="white"/>
+      <rect x="-8" y="-1.5" width="16" height="3" fill="white"/>
+    </g>
+  </g>
+  
+  <!-- Label -->
+  <text x="100" y="190" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="12" font-weight="bold">
+    DOCTOR
+  </text>
+</svg>

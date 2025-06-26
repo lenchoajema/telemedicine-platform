@@ -45,60 +45,28 @@ export default function AdminAnalyticsPage() {
     try {
       setLoading(true);
       
-      // Mock data for demonstration - replace with actual API calls
-      const mockData = {
-        users: [
-          { id: 1, role: 'patient', createdAt: '2024-01-15T10:00:00Z' },
-          { id: 2, role: 'doctor', createdAt: '2024-01-10T10:00:00Z' },
-          { id: 3, role: 'patient', createdAt: '2024-01-20T10:00:00Z' },
-          { id: 4, role: 'patient', createdAt: '2024-01-05T10:00:00Z' }
-        ],
-        doctors: [
-          { id: 1, specialty: 'Cardiology', createdAt: '2024-01-10T10:00:00Z' },
-          { id: 2, specialty: 'Dermatology', createdAt: '2024-01-12T10:00:00Z' },
-          { id: 3, specialty: 'Cardiology', createdAt: '2024-01-15T10:00:00Z' }
-        ],
-        appointments: [
-          { id: 1, doctorId: 1, status: 'completed', createdAt: '2024-01-18T10:00:00Z' },
-          { id: 2, doctorId: 2, status: 'completed', createdAt: '2024-01-19T10:00:00Z' },
-          { id: 3, doctorId: 1, status: 'scheduled', createdAt: '2024-01-20T10:00:00Z' },
-          { id: 4, doctorId: 3, status: 'completed', createdAt: '2024-01-21T10:00:00Z' }
-        ]
-      };
+      // Fetch real data from API endpoints
+      const [usersResponse, doctorsResponse, appointmentsResponse, statsResponse] = await Promise.all([
+        apiClient.get('/admin/users'),
+        apiClient.get('/doctors'),
+        apiClient.get('/appointments'),
+        apiClient.get('/admin/stats')
+      ]);
 
-      // Use mock data or try to fetch from API
-      let users, doctors, appointments;
-      
-      try {
-        // Attempt to fetch real data
-        const [usersResponse, doctorsResponse, appointmentsResponse] = await Promise.all([
-          apiClient.get('/admin/users'),
-          apiClient.get('/doctors'),
-          apiClient.get('/appointments')
-        ]);
+      // Extract data from responses
+      const users = Array.isArray(usersResponse.data?.users) ? usersResponse.data.users : [];
+      const doctors = Array.isArray(doctorsResponse.data) ? doctorsResponse.data : [];
+      const appointments = Array.isArray(appointmentsResponse.data) ? appointmentsResponse.data : [];
+      const stats = statsResponse.data || {};
 
-        users = Array.isArray(usersResponse.data) ? usersResponse.data : mockData.users;
-        doctors = Array.isArray(doctorsResponse.data) ? doctorsResponse.data : mockData.doctors;
-        appointments = Array.isArray(appointmentsResponse.data) ? appointmentsResponse.data : mockData.appointments;
-      } catch (apiError) {
-        // Fall back to mock data if API fails
-        console.log('API unavailable, using mock data');
-        users = mockData.users;
-        doctors = mockData.doctors;
-        appointments = mockData.appointments;
-      }
-
-      // Ensure arrays are valid
-      users = Array.isArray(users) ? users : [];
-      doctors = Array.isArray(doctors) ? doctors : [];
-      appointments = Array.isArray(appointments) ? appointments : [];
-
-      // Calculate analytics
-      const totalUsers = users.length;
-      const totalDoctors = doctors.length;
-      const totalPatients = users.filter(u => u.role === 'patient').length;
-      const totalAppointments = appointments.length;
-      const completedAppointments = appointments.filter(a => a.status === 'completed').length;
+      // Calculate analytics from real data
+      const totalUsers = stats.totalUsers || users.length;
+      const totalDoctors = stats.doctorCount || doctors.length;
+      const totalPatients = stats.patientCount || users.filter(u => u.role === 'patient').length;
+      const totalAppointments = stats.appointmentCount || appointments.length;
+      const completedAppointments = stats.completedCount || appointments.filter(a => a.status === 'completed').length;
+      const scheduledAppointments = stats.scheduledCount || appointments.filter(a => a.status === 'scheduled').length;
+      const cancelledAppointments = stats.cancelledCount || appointments.filter(a => a.status === 'cancelled').length;
       const revenue = completedAppointments * 50; // Assuming $50 per appointment
 
       // Calculate growth metrics for the time range
