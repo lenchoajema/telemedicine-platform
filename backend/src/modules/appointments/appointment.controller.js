@@ -33,7 +33,7 @@ export const getAppointments = async (req, res) => {
     
     res.status(200).json(appointments);
   } catch (error) {
-    console.error('Error fetching appointments:', error);
+    console.log('Error fetching appointments:', error);
     res.status(500).json({ error: 'Failed to fetch appointments' });
   }
 };
@@ -52,7 +52,7 @@ export const getAppointmentById = async (req, res) => {
     
     res.status(200).json(appointment);
   } catch (error) {
-    console.error('Error fetching appointment:', error);
+    console.log('Error fetching appointment:', error);
     res.status(500).json({ error: 'Failed to fetch appointment' });
   }
 };
@@ -82,7 +82,7 @@ export const createAppointment = async (req, res) => {
     
     res.status(201).json(populatedAppointment);
   } catch (error) {
-    console.error('Error creating appointment:', error);
+    console.log('Error creating appointment:', error);
     
     // Check for duplicate key error (doctor already booked at that time)
     if (error.code === 11000 && error.keyPattern && error.keyPattern.doctor && error.keyPattern.date) {
@@ -142,7 +142,7 @@ export const updateAppointment = async (req, res) => {
     
     res.status(200).json(updatedAppointment);
   } catch (error) {
-    console.error('Error updating appointment:', error);
+    console.log('Error updating appointment:', error);
     res.status(500).json({ error: 'Failed to update appointment' });
   }
 };
@@ -186,7 +186,7 @@ export const deleteAppointment = async (req, res) => {
     
     res.status(200).json({ message: 'Appointment cancelled successfully' });
   } catch (error) {
-    console.error('Error cancelling appointment:', error);
+    console.log('Error cancelling appointment:', error);
     res.status(500).json({ error: 'Failed to cancel appointment' });
   }
 };
@@ -256,7 +256,7 @@ export const getAppointmentStats = async (req, res) => {
       todayCount
     });
   } catch (error) {
-    console.error('Error getting appointment stats:', error);
+    console.log('Error getting appointment stats:', error);
     res.status(500).json({ error: 'Failed to get appointment statistics' });
   }
 };
@@ -294,7 +294,7 @@ export const getUpcomingAppointments = async (req, res) => {
     
     res.status(200).json(upcomingAppointments);
   } catch (error) {
-    console.error('Error fetching upcoming appointments:', error);
+    console.log('Error fetching upcoming appointments:', error);
     res.status(500).json({ error: 'Failed to fetch upcoming appointments' });
   }
 };
@@ -366,7 +366,7 @@ export const getAvailableSlots = async (req, res) => {
     
     res.status(200).json(availableSlots);
   } catch (error) {
-    console.error('Error getting available slots:', error);
+    console.log('Error getting available slots:', error);
     res.status(500).json({ error: 'Failed to get available slots' });
   }
 };
@@ -444,7 +444,7 @@ export const rescheduleAppointment = async (req, res) => {
     
     res.status(200).json(updatedAppointment);
   } catch (error) {
-    console.error('Error rescheduling appointment:', error);
+    console.log('Error rescheduling appointment:', error);
     res.status(500).json({ error: 'Failed to reschedule appointment' });
   }
 };

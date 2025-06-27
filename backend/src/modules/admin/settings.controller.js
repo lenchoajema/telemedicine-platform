@@ -63,7 +63,7 @@ export const getAdminSettings = async (req, res) => {
       data: settings
     });
   } catch (error) {
-    console.error('Error fetching admin settings:', error);
+    console.log('Error fetching admin settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch admin settings',
@@ -105,7 +105,7 @@ export const updateSettingsSection = async (req, res) => {
       data: settings[section]
     });
   } catch (error) {
-    console.error('Error updating admin settings:', error);
+    console.log('Error updating admin settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update admin settings',
@@ -176,7 +176,7 @@ export const resetSettings = async (req, res) => {
       data: defaultSettings
     });
   } catch (error) {
-    console.error('Error resetting admin settings:', error);
+    console.log('Error resetting admin settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to reset admin settings',

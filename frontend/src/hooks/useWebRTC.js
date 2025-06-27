@@ -39,7 +39,7 @@ const useWebRTC = (roomId, userToken, appointmentId) => {
     });
 
     socketInstance.on('connect_error', (err) => {
-      console.error('Socket connection error:', err);
+      console.log('Socket connection error:', err);
       setError('Failed to connect to video call server');
     });
 
@@ -120,7 +120,7 @@ const useWebRTC = (roomId, userToken, appointmentId) => {
     });
 
     socketInstance.on('error', (error) => {
-      console.error('Socket error:', error);
+      console.log('Socket error:', error);
       setError(error.message);
     });
 
@@ -156,7 +156,7 @@ const useWebRTC = (roomId, userToken, appointmentId) => {
       
       return stream;
     } catch (error) {
-      console.error('Failed to get user media:', error);
+      console.log('Failed to get user media:', error);
       setError('Failed to access camera/microphone. Please check permissions.');
       throw error;
     }
@@ -206,7 +206,7 @@ const useWebRTC = (roomId, userToken, appointmentId) => {
     });
 
     peer.on('error', (err) => {
-      console.error('Peer connection error:', err);
+      console.log('Peer connection error:', err);
       setError(`Connection error with participant`);
     });
 

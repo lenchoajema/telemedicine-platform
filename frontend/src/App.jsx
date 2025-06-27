@@ -18,6 +18,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
 import NotFoundPage from './pages/Error/NotFoundPage';
 import UsersManagementPage from './pages/Admin/UsersManagementPage';
+import AdminUsersManagement from './pages/Admin/AdminUsersManagement';
 import ReportsPage from './pages/Admin/ReportsPage';
 import DoctorProfilePage from './pages/Doctors/DoctorProfilePage';
 import DoctorAvailabilityPage from './pages/Doctors/DoctorAvailabilityPage';
@@ -143,7 +144,7 @@ function App() {
               <Route path="/admin/users" element={
                 <ProtectedRoute roles={['admin']}>
                   <ErrorBoundary>
-                    <UsersManagementPage />
+                    <AdminUsersManagement />
                   </ErrorBoundary>
                 </ProtectedRoute>
               } />

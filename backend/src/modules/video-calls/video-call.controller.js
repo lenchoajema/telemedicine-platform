@@ -78,7 +78,7 @@ export const createVideoCallRoom = async (req, res) => {
     }
 
     // Create session record for audit
-    const sessionData = {
+    const sessionData = { // eslint-disable-line no-unused-vars
       roomId,
       appointmentId,
       createdBy: userId,
@@ -96,6 +96,7 @@ export const createVideoCallRoom = async (req, res) => {
         }
       ]
     };
+    // TODO: Save sessionData to audit log database
 
     res.json({
       success: true,
@@ -133,7 +134,7 @@ export const createVideoCallRoom = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error creating video call room:', error);
+    console.log('Error creating video call room:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create video call room',
@@ -200,7 +201,7 @@ export const endVideoCallSession = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error ending video call session:', error);
+    console.log('Error ending video call session:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to end video call session',
@@ -263,7 +264,7 @@ export const getVideoCallSession = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error getting video call session:', error);
+    console.log('Error getting video call session:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get video call session details',
@@ -313,7 +314,7 @@ export const testVideoCallConnection = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error testing video call connection:', error);
+    console.log('Error testing video call connection:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to test connection',

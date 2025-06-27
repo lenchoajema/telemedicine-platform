@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-import connectDB from './modules/shared/db.js';
+// import connectDB from './modules/shared/db.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import appointmentRoutes from './modules/appointments/appointment.routes.js';
 import doctorRoutes from './modules/doctors/doctor.routes.js';
@@ -13,6 +13,7 @@ import statsRoutes from './modules/admin/stats.routes.js';
 import reportsRoutes from './modules/admin/reports.routes.js';
 import usersRoutes from './modules/admin/users.routes.js';
 import settingsRoutes from './modules/admin/settings.routes.js';
+import dashboardRoutes from './modules/admin/dashboard.routes.js';
 import videoCallRoutes from './modules/video-calls/video-call.routes.js';
 import patientRoutes from './modules/patients/patient.routes.js';
 import { logRegisteredRoutes } from './modules/shared/api-monitor.js';
@@ -71,9 +72,13 @@ if (process.env.USE_API_ROUTES === 'true') {
   app.use('/api/admin/users', usersRoutes);
   app.use('/api/admin/reports', reportsRoutes);
   app.use('/api/admin/settings', settingsRoutes);
+  app.use('/api/admin/dashboard', dashboardRoutes);
   app.use('/api/video-calls', videoCallRoutes);
   app.use('/api/patients', patientRoutes);
 }
+
+// Log all registered routes for debugging
+logRegisteredRoutes(app);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', environment: process.env.NODE_ENV });
@@ -96,8 +101,8 @@ app.use((req, res) => {
   }
 });
 
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
+app.use((err, req, res, _next) => {
+  console.log('Server error:', err);
   res.status(500).json({ 
     error: 'Server error', 
     message: process.env.NODE_ENV === 'development' ? err.message : undefined 

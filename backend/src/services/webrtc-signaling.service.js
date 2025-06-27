@@ -69,7 +69,7 @@ class WebRTCSignalingServer {
       
       next();
     } catch (error) {
-      console.error('Socket authentication error:', error);
+      console.log('Socket authentication error:', error);
       next(new Error('Authentication error: Invalid token'));
     }
   }
@@ -358,7 +358,7 @@ class WebRTCSignalingServer {
     }
   }
 
-  validateRoomPermission(userId, userRole, appointmentId) {
+  validateRoomPermission(userId, userRole, _appointmentId) {
     // In a real implementation, check database for appointment permissions
     // For now, allow doctors and patients to join any room
     return ['doctor', 'patient', 'admin'].includes(userRole);

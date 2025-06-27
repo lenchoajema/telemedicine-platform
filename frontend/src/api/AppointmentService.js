@@ -7,7 +7,7 @@ class AppointmentService {
       const response = await apiClient.get('/appointments/upcoming');
       return response.data;
     } catch (error) {
-      console.error("Error fetching upcoming appointments:", error);
+      console.log("Error fetching upcoming appointments:", error);
       return [];
     }
   }
@@ -17,7 +17,7 @@ class AppointmentService {
       const response = await apiClient.get('/appointments/stats');
       return response.data;
     } catch (error) {
-      console.error("Error fetching appointment stats:", error);
+      console.log("Error fetching appointment stats:", error);
       return { upcomingCount: 0, completedCount: 0, todayCount: 0 };
     }
   }
@@ -47,7 +47,7 @@ class AppointmentService {
         return slotDate;
       });
     } catch (error) {
-      console.error("Error fetching available slots:", error);
+      console.log("Error fetching available slots:", error);
       return [];
     }
   }
@@ -59,7 +59,7 @@ class AppointmentService {
       });
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error("Error fetching appointments by date:", error);
+      console.log("Error fetching appointments by date:", error);
       return [];
     }
   }
@@ -69,7 +69,7 @@ class AppointmentService {
       const response = await apiClient.post('/appointments', appointmentData);
       return response.data;
     } catch (error) {
-      console.error("Error creating appointment:", error);
+      console.log("Error creating appointment:", error);
       throw error;
     }
   }
@@ -79,7 +79,7 @@ class AppointmentService {
       const response = await apiClient.put(`/appointments/${appointmentId}/cancel`, {});
       return response.data;
     } catch (error) {
-      console.error("Error cancelling appointment:", error);
+      console.log("Error cancelling appointment:", error);
       throw error;
     }
   }
@@ -92,7 +92,7 @@ class AppointmentService {
       );
       return response.data;
     } catch (error) {
-      console.error("Error rescheduling appointment:", error);
+      console.log("Error rescheduling appointment:", error);
       throw error;
     }
   }

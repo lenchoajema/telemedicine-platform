@@ -50,7 +50,7 @@ export const getDoctorStats = async (req, res) => {
             verificationStatus: req.user.verificationStatus || 'pending'
         });
     } catch (err) {
-        console.error('Error fetching doctor stats:', err);
+        console.log('Error fetching doctor stats:', err);
         res.status(500).json({
             error: 'Failed to fetch doctor statistics',
             details: err.message
@@ -67,7 +67,7 @@ export const getAllDoctors = async (req, res) => {
 
         res.json(doctors);
     } catch (err) {
-        console.error('Error fetching doctors:', err);
+        console.log('Error fetching doctors:', err);
         res.status(500).json({
             error: 'Failed to fetch doctors',
             details: err.message
@@ -120,7 +120,7 @@ export const getDoctorAvailability = async (req, res) => {
         
         res.json(transformedAvailability);
     } catch (err) {
-        console.error('Error fetching doctor availability:', err);
+        console.log('Error fetching doctor availability:', err);
         res.status(500).json({
             error: 'Failed to get doctor availability',
             details: err.message
@@ -200,7 +200,7 @@ export const setDoctorAvailability = async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('Error setting doctor availability:', err);
+        console.log('Error setting doctor availability:', err);
         if (err.code === 11000) {
             return res.status(409).json({ 
                 error: 'Availability for this day already exists' 
@@ -241,7 +241,7 @@ export const deleteDoctorAvailability = async (req, res) => {
             message: 'Availability deleted successfully' 
         });
     } catch (err) {
-        console.error('Error deleting doctor availability:', err);
+        console.log('Error deleting doctor availability:', err);
         res.status(500).json({ 
             error: 'Failed to delete availability',
             details: err.message 
@@ -374,7 +374,7 @@ export const getDoctorAvailabilityById = async (req, res) => {
         // Return general availability if no specific date requested
         res.json(transformedAvailability);
     } catch (err) {
-        console.error('Error getting doctor availability:', err);
+        console.log('Error getting doctor availability:', err);
         res.status(500).json({
             error: 'Failed to get doctor availability',
             details: err.message
@@ -449,7 +449,7 @@ const filterBookedSlots = async (doctorId, date, slots) => {
         // Filter out booked slots
         return slots.filter(slot => !bookedSlots.includes(slot));
     } catch (error) {
-        console.error('Error filtering booked slots:', error);
+        console.log('Error filtering booked slots:', error);
         // Return all slots if there's an error
         return slots;
     }

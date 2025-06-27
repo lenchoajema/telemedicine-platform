@@ -6,7 +6,7 @@ class DoctorService {
       const response = await apiClient.get('/doctors', { params: searchParams });
       return response.data;
     } catch (error) {
-      console.error('Error fetching doctors:', error);
+      console.log('Error fetching doctors:', error);
       throw error;
     }
   }
@@ -16,7 +16,7 @@ class DoctorService {
       const response = await apiClient.get(`/doctors/${id}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching doctor ${id}:`, error);
+      console.log(`Error fetching doctor ${id}:`, error);
       throw error;
     }
   }
@@ -26,7 +26,7 @@ class DoctorService {
       const response = await apiClient.get('/doctors/profile');
       return response.data;
     } catch (error) {
-      console.error('Error fetching doctor profile:', error);
+      console.log('Error fetching doctor profile:', error);
       throw error;
     }
   }
@@ -36,7 +36,7 @@ class DoctorService {
       const response = await apiClient.get('/doctors/stats');
       return response.data;
     } catch (error) {
-      console.error('Error fetching doctor stats:', error);
+      console.log('Error fetching doctor stats:', error);
       throw error;
     }
   }
@@ -46,7 +46,7 @@ class DoctorService {
       const response = await apiClient.get('/doctors/availability');
       return response.data;
     } catch (error) {
-      console.error('Error fetching doctor availability:', error);
+      console.log('Error fetching doctor availability:', error);
       throw error;
     }
   }
@@ -56,7 +56,7 @@ class DoctorService {
       const response = await apiClient.post('/doctors/availability', availabilityData);
       return response.data;
     } catch (error) {
-      console.error('Error setting doctor availability:', error);
+      console.log('Error setting doctor availability:', error);
       throw error;
     }
   }
@@ -66,7 +66,7 @@ class DoctorService {
       const response = await apiClient.post('/doctors/verification', verificationData);
       return response.data;
     } catch (error) {
-      console.error('Error updating doctor verification:', error);
+      console.log('Error updating doctor verification:', error);
       throw error;
     }
   }
@@ -76,7 +76,7 @@ class DoctorService {
       const response = await apiClient.get('/doctors/my-patients');
       return response.data;
     } catch (error) {
-      console.error('Error fetching doctor patients:', error);
+      console.log('Error fetching doctor patients:', error);
       throw error;
     }
   }
@@ -86,7 +86,7 @@ class DoctorService {
       const response = await apiClient.get('/doctors/specializations');
       return response.data;
     } catch (error) {
-      console.error('Error fetching specializations:', error);
+      console.log('Error fetching specializations:', error);
       throw error;
     }
   }

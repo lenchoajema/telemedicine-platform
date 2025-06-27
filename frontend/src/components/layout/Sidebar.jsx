@@ -44,9 +44,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
       ];
     } else if (user?.role === 'admin') {
       return [
-        { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
-        { name: 'Users', href: '/admin/users', icon: UserGroupIcon },
-        { name: 'Doctors', href: '/admin/doctors', icon: UserGroupIcon },
+        { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+        { name: 'User Management', href: '/admin/users', icon: UserGroupIcon },
+        { name: 'Doctors', href: '/admin/doctors', icon: UserIcon },
         { name: 'Appointments', href: '/admin/appointments', icon: CalendarIcon },
         { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon },
         { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon },

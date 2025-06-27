@@ -14,7 +14,7 @@ dotenv.config();
   const server = createServer(app);
   
   // Initialize WebRTC signaling server
-  const webrtcServer = new WebRTCSignalingServer(server);
+  const webrtcServer = new WebRTCSignalingServer(server); // eslint-disable-line no-unused-vars
   console.log('✅ WebRTC Signaling Server initialized');
   
   server.listen(PORT, () => {

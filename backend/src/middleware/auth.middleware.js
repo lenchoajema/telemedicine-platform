@@ -37,11 +37,11 @@ export const authenticate = async (req, res, next) => {
       if (error.name === 'TokenExpiredError') {
         return res.status(401).json({ error: 'Token expired' });
       }
-      console.error('Token verification error:', error); // Debug log for token verification error
+      console.log('Token verification error:', error); // Debug log for token verification error
       return res.status(401).json({ error: 'Invalid token' });
     }
   } catch (error) {
-    console.error('Auth middleware error:', error); // Debug log for middleware error
+    console.log('Auth middleware error:', error); // Debug log for middleware error
     res.status(500).json({ error: 'Server error' });
   }
 };
