@@ -124,14 +124,15 @@ const AdminUsersManagement = () => {
     if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       try {
         const response = await apiClient.delete(`/admin/users/${userId}`);
-        if (response.data.success) {
+        // Backend returns { message: 'User deleted successfully' }
+        if (response.data.message) {
           await fetchUsers();
           await fetchDashboardStats();
           setError(null);
         }
       } catch (error) {
         console.log('Error deleting user:', error);
-        setError(error.response?.data?.message || 'Failed to delete user');
+        setError(error.response?.data?.error || 'Failed to delete user');
       }
     }
   };
@@ -148,7 +149,8 @@ const AdminUsersManagement = () => {
         newPassword: passwordResetData.newPassword
       });
       
-      if (response.data.success) {
+      // Backend returns { message: '...', temporaryPassword?: '...' }
+      if (response.data.message) {
         setShowPasswordResetModal(false);
         setPasswordResetData({ userId: '', newPassword: '', confirmPassword: '' });
         setError(null);
@@ -156,7 +158,7 @@ const AdminUsersManagement = () => {
       }
     } catch (error) {
       console.log('Error resetting password:', error);
-      setError(error.response?.data?.message || 'Failed to reset password');
+      setError(error.response?.data?.error || 'Failed to reset password');
     }
   };
 

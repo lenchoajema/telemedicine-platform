@@ -1,6 +1,5 @@
 import User from '../auth/user.model.js';
 import Doctor from '../doctors/doctor.model.js';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 
@@ -153,12 +152,12 @@ export const createUser = async (req, res) => {
     
     // Generate password if not provided
     const userPassword = password || crypto.randomBytes(8).toString('hex');
-    const hashedPassword = await bcrypt.hash(userPassword, 12);
+    // Don't hash password here - let the User model pre-save hook handle it
     
     // Create user
     const newUser = new User({
       email,
-      password: hashedPassword,
+      password: userPassword, // Use plain password - model will hash it
       role,
       firstName,
       lastName,
@@ -259,10 +258,10 @@ export const resetUserPassword = async (req, res) => {
     
     // Generate password if not provided
     const password = newPassword || crypto.randomBytes(10).toString('hex');
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // Don't hash password here - let the User model pre-save hook handle it
     
     // Update user password
-    user.password = hashedPassword;
+    user.password = password; // Use plain password - model will hash it
     user.passwordResetRequired = true; // Force password change on next login
     await user.save();
     
