@@ -2,6 +2,7 @@ import User from '../auth/user.model.js';
 import Doctor from '../doctors/doctor.model.js';
 import Appointment from '../appointments/appointment.model.js';
 import Settings from './settings.model.js';
+import { setTimeout } from 'timers';
 
 // Get admin dashboard overview
 export const getDashboardOverview = async (req, res) => {
@@ -10,7 +11,6 @@ export const getDashboardOverview = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
     const thisWeek = new Date(today.getTime() - (today.getDay() * 24 * 60 * 60 * 1000));
     
     // User statistics
