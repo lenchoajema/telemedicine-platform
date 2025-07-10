@@ -90,7 +90,7 @@ backend/src/modules/
 - Upload medical documents
 - Share records with doctors
 - Export data for portability
-
+ 
 ---
 
 ## 👨‍⚕️ **DOCTOR WORKFLOW** (Verified ✅)
@@ -232,7 +232,7 @@ backend/src/modules/
 ✅ Real-time audio/video streaming
 ✅ Text chat integration
 ✅ File sharing capabilities
-✅ Call recording and playback
+✅ Call recording and playback0
 ```
 
 ### **Database Architecture** ✅
