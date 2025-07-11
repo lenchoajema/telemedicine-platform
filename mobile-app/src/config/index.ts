@@ -1,12 +1,15 @@
 // Environment configuration for the mobile app
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+// GitHub Codespace URL for testing on real devices
+const CODESPACE_URL = 'https://stunning-journey-wv5pxxvw49xh565g.github.dev';
+
 export const config = {
-  // API Configuration
-  API_BASE_URL: isDevelopment ? 'http://localhost:5000/api' : 'https://your-production-api.com/api',
+  // API Configuration - Using Codespace URL for mobile testing
+  API_BASE_URL: `${CODESPACE_URL}/api`,
   
-  // Socket.IO Configuration
-  SOCKET_URL: isDevelopment ? 'http://localhost:5000' : 'https://your-production-api.com',
+  // Socket.IO Configuration - Using Codespace URL
+  SOCKET_URL: CODESPACE_URL,
   
   // App Configuration
   APP_NAME: 'Telemedicine',

@@ -11,12 +11,24 @@ module.exports = async function (env, argv) {
     "util": require.resolve("util"),
   };
   
-  // Fix for MIME type issues
+  // Fix for MIME type issues and file handling
   config.module.rules.push({
     test: /\.js$/,
     resolve: {
       fullySpecified: false,
     },
+  });
+  
+  // Fix for vector icons and asset handling
+  config.module.rules.push({
+    test: /\.(png|jpe?g|gif|svg|ttf|woff|woff2|eot)$/,
+    type: 'asset/resource',
+  });
+  
+  // Handle null buffer issues
+  config.module.rules.push({
+    test: /\.node$/,
+    use: 'node-loader',
   });
   
   return config;
