@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   Alert,
-  Dimensions,
-  BackHandler,
+  Platform,
 } from 'react-native';
 import {
   Surface,
@@ -13,17 +12,227 @@ import {
   Text,
   Title,
   ActivityIndicator,
-  Portal,
-  Modal,
   Card,
-  TextInput,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { RTCView, RTCPeerConnection, RTCSessionDescription, RTCIceCandidate, mediaDevices } from 'react-native-webrtc';
-import io from 'socket.io-client';
 import { useAuth } from '../../context/AuthContext';
-import { ApiClient } from '../../services/ApiClient';
 import { theme, spacing } from '../../utils/theme';
+
+interface VideoCallScreenProps {
+  navigation: any;
+  route: {
+    params: {
+      appointmentId: string;
+      meetingLink?: string;
+    };
+  };
+}
+
+const VideoCallScreen: React.FC<VideoCallScreenProps> = ({ navigation, route }) => {
+  const { user } = useAuth();
+  const { appointmentId, meetingLink } = route.params;
+  
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [callDuration, setCallDuration] = useState(0);
+
+  useEffect(() => {
+    // Simulate connection for web demo
+    const timer = setTimeout(() => {
+      setIsConnecting(false);
+      setIsConnected(true);
+      
+      // Start call timer
+      const durationTimer = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+      
+      return () => clearInterval(durationTimer);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  const toggleVideo = () => {
+    setIsVideoEnabled(!isVideoEnabled);
+  };
+
+  const handleEndCall = () => {
+    Alert.alert(
+      'End Call',
+      'Are you sure you want to end the call?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'End Call',
+          style: 'destructive',
+          onPress: () => navigation.goBack(),
+        },
+      ]
+    );
+  };
+
+  const formatCallDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.videoContainer}>
+        {/* Video Placeholder */}
+        <Surface style={styles.videoPlaceholder}>
+          <View style={styles.placeholderContent}>
+            {isConnecting ? (
+              <>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <Title style={styles.placeholderText}>Connecting...</Title>
+              </>
+            ) : isConnected ? (
+              <>
+                <IconButton icon="video" size={80} iconColor={theme.colors.primary} />
+                <Title style={styles.placeholderText}>Video Call Active</Title>
+                <Text style={styles.callInfo}>
+                  Duration: {formatCallDuration(callDuration)}
+                </Text>
+                <Text style={styles.webNote}>
+                  {Platform.OS === 'web' 
+                    ? 'WebRTC video calls are available on mobile devices'
+                    : 'Video call in progress'
+                  }
+                </Text>
+              </>
+            ) : (
+              <>
+                <IconButton icon="video-off" size={80} iconColor={theme.colors.error} />
+                <Title style={styles.placeholderText}>Call Ended</Title>
+              </>
+            )}
+          </View>
+        </Surface>
+
+        {/* Controls */}
+        {isConnected && (
+          <Card style={styles.controlsContainer}>
+            <Card.Content>
+              <View style={styles.controls}>
+                <IconButton
+                  icon={isMuted ? 'microphone-off' : 'microphone'}
+                  mode="contained"
+                  size={30}
+                  onPress={toggleMute}
+                  style={[styles.controlButton, isMuted && styles.mutedButton]}
+                />
+                
+                <IconButton
+                  icon={isVideoEnabled ? 'video' : 'video-off'}
+                  mode="contained"
+                  size={30}
+                  onPress={toggleVideo}
+                  style={[styles.controlButton, !isVideoEnabled && styles.mutedButton]}
+                />
+                
+                <IconButton
+                  icon="phone-hangup"
+                  mode="contained"
+                  size={30}
+                  onPress={handleEndCall}
+                  style={[styles.controlButton, styles.endCallButton]}
+                />
+              </View>
+              
+              <View style={styles.statusContainer}>
+                <Text style={styles.statusText}>
+                  Appointment ID: {appointmentId}
+                </Text>
+                <Text style={styles.statusText}>
+                  Status: {isConnected ? 'Connected' : 'Disconnected'}
+                </Text>
+              </View>
+            </Card.Content>
+          </Card>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  videoContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    padding: spacing.medium,
+  },
+  videoPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.large,
+    borderRadius: 16,
+    elevation: 4,
+  },
+  placeholderContent: {
+    alignItems: 'center',
+    padding: spacing.xlarge,
+  },
+  placeholderText: {
+    marginTop: spacing.medium,
+    textAlign: 'center',
+  },
+  callInfo: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+    marginTop: spacing.small,
+  },
+  webNote: {
+    fontSize: 14,
+    color: theme.colors.onSurfaceVariant,
+    textAlign: 'center',
+    marginTop: spacing.medium,
+    fontStyle: 'italic',
+  },
+  controlsContainer: {
+    borderRadius: 16,
+    elevation: 4,
+  },
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginBottom: spacing.medium,
+  },
+  controlButton: {
+    backgroundColor: theme.colors.surfaceVariant,
+  },
+  mutedButton: {
+    backgroundColor: theme.colors.error,
+  },
+  endCallButton: {
+    backgroundColor: theme.colors.error,
+  },
+  statusContainer: {
+    alignItems: 'center',
+  },
+  statusText: {
+    fontSize: 12,
+    color: theme.colors.onSurfaceVariant,
+    marginBottom: spacing.small,
+  },
+});
+
+export default VideoCallScreen;
 
 interface VideoCallScreenProps {
   navigation: any;

@@ -10,7 +10,7 @@ import LoginScreen from '../screens/Auth/LoginScreen';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import AppointmentsScreen from '../screens/Appointments/AppointmentsScreen';
-import VideoCallScreen from '../screens/VideoCall/VideoCallScreen';
+import VideoCallScreen from '../screens/VideoCall/VideoCallScreenWeb';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import DoctorsScreen from '../screens/Doctors/DoctorsScreen';
 import MedicalRecordsScreen from '../screens/MedicalRecords/MedicalRecordsScreen';

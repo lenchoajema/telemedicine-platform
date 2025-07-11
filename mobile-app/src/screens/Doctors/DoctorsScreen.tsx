@@ -13,7 +13,7 @@ import {
   Button,
   Avatar,
   Chip,
-  SearchBar,
+  Searchbar,
   ActivityIndicator,
   FAB,
   Surface,
@@ -259,7 +259,7 @@ const DoctorsScreen: React.FC<DoctorsScreenProps> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Title style={styles.title}>Find a Doctor</Title>
-        <SearchBar
+        <Searchbar
           placeholder="Search doctors..."
           onChangeText={setSearchQuery}
           value={searchQuery}

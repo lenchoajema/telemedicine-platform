@@ -11,7 +11,7 @@ interface ApiResponse<T = any> {
   error?: string;
 }
 
-class ApiClient {
+class ApiClientClass {
   private client: AxiosInstance;
 
   constructor() {
@@ -113,4 +113,6 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient();
+export const apiClient = new ApiClientClass();
+export const ApiClient = apiClient; // Add named export for compatibility
+export default apiClient;
