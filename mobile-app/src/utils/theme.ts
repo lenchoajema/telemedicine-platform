@@ -1,4 +1,24 @@
 import { DefaultTheme } from 'react-native-paper';
+import { Platform } from 'react-native';
+
+// Web-safe shadow helper
+const createShadow = (elevation: number, opacity = 0.25) => {
+  if (Platform.OS === 'web') {
+    return {
+      boxShadow: `0 ${elevation}px ${elevation * 2}px rgba(0,0,0,${opacity})`,
+    };
+  }
+  return {
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: elevation / 2,
+    },
+    shadowOpacity: opacity,
+    shadowRadius: elevation,
+    elevation,
+  };
+};
 
 export const theme = {
   ...DefaultTheme,
@@ -51,34 +71,7 @@ export const borderRadius = {
 };
 
 export const shadows = {
-  sm: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
-  },
-  md: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  lg: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-  },
+  sm: createShadow(3, 0.22),
+  md: createShadow(5, 0.25),
+  lg: createShadow(8, 0.3),
 };
