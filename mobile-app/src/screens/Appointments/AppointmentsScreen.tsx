@@ -31,24 +31,40 @@ interface AppointmentsScreenProps {
 
 interface Appointment {
   id: string;
+  _id?: string;
   date: string;
   time: string;
   status: 'scheduled' | 'completed' | 'cancelled' | 'pending';
   type: 'consultation' | 'follow-up' | 'emergency';
   patient?: {
-    id: string;
-    firstName: string;
-    lastName: string;
+    id?: string;
+    _id?: string;
+    profile?: {
+      firstName: string;
+      lastName: string;
+    };
+    firstName?: string;
+    lastName?: string;
     email: string;
   };
   doctor?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    specialization: string;
+    id?: string;
+    _id?: string;
+    profile?: {
+      firstName: string;
+      lastName: string;
+    };
+    firstName?: string;
+    lastName?: string;
+    specialization?: string;
+    licenseNumber?: string;
+    experience?: string;
+    bio?: string;
+    rating?: number;
   };
   notes?: string;
   meetingLink?: string;
+  reason?: string;
 }
 
 const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({ navigation }) => {
@@ -194,20 +210,36 @@ const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({ navigation }) =
     const canStartCall = appointment.status === 'scheduled' && 
                          new Date(appointment.date) <= new Date();
 
+    // Handle different data structures for names
+    const getPersonName = (person: any) => {
+      if (!person) return 'Unknown';
+      
+      const firstName = person.profile?.firstName || person.firstName || '';
+      const lastName = person.profile?.lastName || person.lastName || '';
+      
+      return `${firstName} ${lastName}`.trim();
+    };
+
+    const getPersonInitial = (person: any) => {
+      if (!person) return 'U';
+      
+      const firstName = person.profile?.firstName || person.firstName || '';
+      return firstName.charAt(0).toUpperCase() || 'U';
+    };
+
     return (
-      <Card key={appointment.id} style={styles.appointmentCard}>
+      <Card key={appointment.id || appointment._id} style={styles.appointmentCard}>
         <Card.Content>
           <View style={styles.appointmentHeader}>
             <View style={styles.personInfo}>
               <Avatar.Text
                 size={40}
-                label={otherPerson?.firstName?.[0] || 'U'}
+                label={getPersonInitial(otherPerson)}
                 style={styles.avatar}
               />
               <View style={styles.personDetails}>
                 <Title style={styles.personName}>
-                  {isPatient ? 'Dr. ' : ''}
-                  {otherPerson?.firstName} {otherPerson?.lastName}
+                  {isPatient ? 'Dr. ' : ''}{getPersonName(otherPerson)}
                 </Title>
                 {isPatient && appointment.doctor?.specialization && (
                   <Paragraph style={styles.specialization}>

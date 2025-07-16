@@ -30,10 +30,31 @@ export const getAppointments = async (req, res) => {
     
     const appointments = await Appointment.find(query)
       .populate('patient', 'profile.firstName profile.lastName email')
-      .populate('doctor', 'profile.firstName profile.lastName profile.specialization email')
+      .populate('doctor', 'profile.firstName profile.lastName email')
       .sort({ date: 1 });
+
+    // Enhanced appointment data with doctor specialization
+    const enhancedAppointments = await Promise.all(appointments.map(async (appointment) => {
+      const appointmentObj = appointment.toObject();
+      
+      // Try to find doctor specialization from Doctor collection
+      if (appointmentObj.doctor) {
+        const doctorDoc = await Doctor.findOne({ user: appointmentObj.doctor._id })
+          .select('specialization licenseNumber experience bio rating');
+        
+        if (doctorDoc) {
+          appointmentObj.doctor.specialization = doctorDoc.specialization;
+          appointmentObj.doctor.licenseNumber = doctorDoc.licenseNumber;
+          appointmentObj.doctor.experience = doctorDoc.experience;
+          appointmentObj.doctor.bio = doctorDoc.bio;
+          appointmentObj.doctor.rating = doctorDoc.rating;
+        }
+      }
+      
+      return appointmentObj;
+    }));
     
-    res.status(200).json({ success: true, data: appointments });
+    res.status(200).json({ success: true, data: enhancedAppointments });
   } catch (error) {
     console.log('Error fetching appointments:', error);
     res.status(500).json({ error: 'Failed to fetch appointments' });
@@ -46,13 +67,30 @@ export const getAppointmentById = async (req, res) => {
     const { id } = req.params;
     const appointment = await Appointment.findById(id)
       .populate('patient', 'profile.firstName profile.lastName email')
-      .populate('doctor', 'profile.firstName profile.lastName profile.specialization email');
+      .populate('doctor', 'profile.firstName profile.lastName email');
     
     if (!appointment) {
       return res.status(404).json({ error: 'Appointment not found' });
     }
+
+    // Enhanced appointment data with doctor specialization
+    const appointmentObj = appointment.toObject();
     
-    res.status(200).json(appointment);
+    // Try to find doctor specialization from Doctor collection
+    if (appointmentObj.doctor) {
+      const doctorDoc = await Doctor.findOne({ user: appointmentObj.doctor._id })
+        .select('specialization licenseNumber experience bio rating');
+      
+      if (doctorDoc) {
+        appointmentObj.doctor.specialization = doctorDoc.specialization;
+        appointmentObj.doctor.licenseNumber = doctorDoc.licenseNumber;
+        appointmentObj.doctor.experience = doctorDoc.experience;
+        appointmentObj.doctor.bio = doctorDoc.bio;
+        appointmentObj.doctor.rating = doctorDoc.rating;
+      }
+    }
+    
+    res.status(200).json({ success: true, data: appointmentObj });
   } catch (error) {
     console.log('Error fetching appointment:', error);
     res.status(500).json({ error: 'Failed to fetch appointment' });
@@ -129,12 +167,29 @@ export const createAppointment = async (req, res) => {
           // Populate and return the appointment
           const populatedAppointment = await Appointment.findById(appointment._id)
             .populate('patient', 'profile.firstName profile.lastName email')
-            .populate('doctor', 'profile.firstName profile.lastName profile.specialization email')
+            .populate('doctor', 'profile.firstName profile.lastName email')
             .session(session);
+
+          // Enhanced appointment data with doctor specialization
+          const appointmentObj = populatedAppointment.toObject();
+          
+          // Try to find doctor specialization from Doctor collection
+          if (appointmentObj.doctor) {
+            const doctorDoc = await Doctor.findOne({ user: appointmentObj.doctor._id })
+              .select('specialization licenseNumber experience bio rating');
+            
+            if (doctorDoc) {
+              appointmentObj.doctor.specialization = doctorDoc.specialization;
+              appointmentObj.doctor.licenseNumber = doctorDoc.licenseNumber;
+              appointmentObj.doctor.experience = doctorDoc.experience;
+              appointmentObj.doctor.bio = doctorDoc.bio;
+              appointmentObj.doctor.rating = doctorDoc.rating;
+            }
+          }
 
           res.status(201).json({
             success: true,
-            data: populatedAppointment
+            data: appointmentObj
           });
         });
       } catch (error) {
@@ -160,11 +215,28 @@ export const createAppointment = async (req, res) => {
 
       const populatedAppointment = await Appointment.findById(appointment._id)
         .populate('patient', 'profile.firstName profile.lastName email')
-        .populate('doctor', 'profile.firstName profile.lastName profile.specialization email');
+        .populate('doctor', 'profile.firstName profile.lastName email');
+
+      // Enhanced appointment data with doctor specialization
+      const appointmentObj = populatedAppointment.toObject();
+      
+      // Try to find doctor specialization from Doctor collection
+      if (appointmentObj.doctor) {
+        const doctorDoc = await Doctor.findOne({ user: appointmentObj.doctor._id })
+          .select('specialization licenseNumber experience bio rating');
+        
+        if (doctorDoc) {
+          appointmentObj.doctor.specialization = doctorDoc.specialization;
+          appointmentObj.doctor.licenseNumber = doctorDoc.licenseNumber;
+          appointmentObj.doctor.experience = doctorDoc.experience;
+          appointmentObj.doctor.bio = doctorDoc.bio;
+          appointmentObj.doctor.rating = doctorDoc.rating;
+        }
+      }
 
       res.status(201).json({
         success: true,
-        data: populatedAppointment
+        data: appointmentObj
       });
     }
 

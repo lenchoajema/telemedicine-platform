@@ -19,7 +19,12 @@ export default function AppointmentCard({
       <div className="appointment-header">
         <div className="appointment-title">
           {isPatient ? (
-            <h3>Dr. {appointment.doctor?.profile?.firstName} {appointment.doctor?.profile?.lastName}</h3>
+            <h3>
+              Dr. {appointment.doctor?.profile?.firstName || appointment.doctor?.firstName} {appointment.doctor?.profile?.lastName || appointment.doctor?.lastName}
+              {appointment.doctor?.specialization && (
+                <span className="doctor-specialization"> - {appointment.doctor.specialization}</span>
+              )}
+            </h3>
           ) : (
             <h3>{appointment.patient?.profile?.firstName} {appointment.patient?.profile?.lastName}</h3>
           )}
@@ -47,6 +52,20 @@ export default function AppointmentCard({
           <div className="detail-row">
             <span className="detail-label">Reason:</span>
             <span className="detail-value">{appointment.reason}</span>
+          </div>
+        )}
+
+        {isPatient && appointment.doctor?.specialization && (
+          <div className="detail-row">
+            <span className="detail-label">Specialization:</span>
+            <span className="detail-value">{appointment.doctor.specialization}</span>
+          </div>
+        )}
+
+        {isPatient && appointment.doctor?.licenseNumber && (
+          <div className="detail-row">
+            <span className="detail-label">License:</span>
+            <span className="detail-value">{appointment.doctor.licenseNumber}</span>
           </div>
         )}
       </div>
