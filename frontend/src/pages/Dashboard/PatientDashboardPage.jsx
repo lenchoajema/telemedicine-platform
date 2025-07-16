@@ -16,7 +16,11 @@ export default function PatientDashboardPage() {
   const [recentDoctors, setRecentDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Add debugging
+  console.log('PatientDashboardPage rendered, user:', user);
+
   useEffect(() => {
+    console.log('PatientDashboardPage useEffect triggered');
     const fetchPatientDashboardData = async () => {
       try {
         setLoading(true);

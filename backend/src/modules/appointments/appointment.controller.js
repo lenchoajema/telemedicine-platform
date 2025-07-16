@@ -31,7 +31,7 @@ export const getAppointments = async (req, res) => {
       .populate('doctor', 'profile.firstName profile.lastName profile.specialization email')
       .sort({ date: 1 });
     
-    res.status(200).json(appointments);
+    res.status(200).json({ success: true, data: appointments });
   } catch (error) {
     console.log('Error fetching appointments:', error);
     res.status(500).json({ error: 'Failed to fetch appointments' });
@@ -250,10 +250,13 @@ export const getAppointmentStats = async (req, res) => {
     });
 
     res.status(200).json({
-      upcomingCount,
-      completedCount,
-      patientCount,
-      todayCount
+      success: true,
+      data: {
+        upcomingCount,
+        completedCount,
+        patientCount,
+        todayCount
+      }
     });
   } catch (error) {
     console.log('Error getting appointment stats:', error);

@@ -28,15 +28,24 @@ interface DoctorsScreenProps {
 }
 
 interface Doctor {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+  _id: string;
+  id?: string;
+  user: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+      fullName?: string;
+    };
+  };
   specialization: string;
-  experience: string;
+  licenseNumber?: string;
+  verificationStatus: string;
   rating: number;
-  totalReviews: number;
-  availability: string[];
+  reviewCount?: number;
+  experience?: string;
+  availability?: string[];
   profileImage?: string;
   bio?: string;
   location?: string;
@@ -55,16 +64,28 @@ const DoctorsScreen: React.FC<DoctorsScreenProps> = ({ navigation }) => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await ApiClient.get('/api/doctors');
-      setDoctors(response.data);
-      setFilteredDoctors(response.data);
+      const response = await ApiClient.get('/doctors/');
       
-      // Extract unique specializations
-      const specs = [...new Set(response.data.map((doc: Doctor) => doc.specialization))];
-      setSpecializations(specs);
+      if (response.success && response.data) {
+        // response.data contains the doctors array
+        const doctorsData = Array.isArray(response.data) ? response.data : [];
+        setDoctors(doctorsData);
+        setFilteredDoctors(doctorsData);
+        
+        // Extract unique specializations
+        const specs = Array.from(new Set(doctorsData.map((doc: any) => doc.specialization).filter(Boolean)));
+        setSpecializations(specs);
+      } else {
+        console.error('Failed to fetch doctors:', response.error);
+        Alert.alert('Error', response.error || 'Failed to load doctors');
+        setDoctors([]);
+        setFilteredDoctors([]);
+      }
     } catch (error) {
       console.error('Error fetching doctors:', error);
       Alert.alert('Error', 'Failed to load doctors');
+      setDoctors([]);
+      setFilteredDoctors([]);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -78,8 +99,8 @@ const DoctorsScreen: React.FC<DoctorsScreenProps> = ({ navigation }) => {
     if (searchQuery.trim()) {
       filtered = filtered.filter(
         (doctor) =>
-          doctor.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          doctor.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          doctor.user.profile.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          doctor.user.profile.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           doctor.specialization.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -139,24 +160,28 @@ const DoctorsScreen: React.FC<DoctorsScreenProps> = ({ navigation }) => {
   };
 
   const renderDoctorCard = (doctor: Doctor) => {
+    const firstName = doctor.user.profile.firstName;
+    const lastName = doctor.user.profile.lastName;
+    const doctorId = doctor._id || doctor.id;
+    
     return (
-      <Card key={doctor.id} style={styles.doctorCard}>
+      <Card key={doctorId} style={styles.doctorCard}>
         <Card.Content>
           <View style={styles.doctorHeader}>
             <Avatar.Text
               size={60}
-              label={`${doctor.firstName[0]}${doctor.lastName[0]}`}
+              label={`${firstName[0]}${lastName[0]}`}
               style={styles.avatar}
             />
             <View style={styles.doctorInfo}>
               <Title style={styles.doctorName}>
-                Dr. {doctor.firstName} {doctor.lastName}
+                Dr. {firstName} {lastName}
               </Title>
               <Paragraph style={styles.specialization}>
                 {doctor.specialization}
               </Paragraph>
               <Paragraph style={styles.experience}>
-                {doctor.experience} years experience
+                {doctor.experience || 'Experience not specified'}
               </Paragraph>
             </View>
           </View>
@@ -166,7 +191,7 @@ const DoctorsScreen: React.FC<DoctorsScreenProps> = ({ navigation }) => {
               {renderRatingStars(doctor.rating)}
             </View>
             <Paragraph style={styles.ratingText}>
-              {doctor.rating}/5 ({doctor.totalReviews} reviews)
+              {doctor.rating}/5 ({doctor.reviewCount || 0} reviews)
             </Paragraph>
           </View>
 

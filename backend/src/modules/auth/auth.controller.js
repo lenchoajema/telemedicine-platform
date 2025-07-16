@@ -46,7 +46,7 @@ export const login = async (req, res) => {
     
     const token = generateToken(user);
     console.log('Login successful, token generated');
-    res.json({ user: safeUser(user), token });
+    res.json({ success: true, data: { user: safeUser(user), token } });
   } catch (err) {
     console.error('Login error:', err);
     console.error('Error stack:', err.stack);

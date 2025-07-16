@@ -21,10 +21,25 @@ export default function AdminAppointmentsPage() {
     try {
       setLoading(true);
       const response = await apiClient.get('/appointments');
-      setAppointments(response.data || []);
+      
+      // Handle both direct array and {success: true, data: array} formats
+      let appointmentsData = [];
+      if (response.data) {
+        if (Array.isArray(response.data)) {
+          appointmentsData = response.data;
+        } else if (response.data.success && Array.isArray(response.data.data)) {
+          appointmentsData = response.data.data;
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          appointmentsData = response.data.data;
+        }
+      }
+      
+      console.log('Fetched appointments:', appointmentsData);
+      setAppointments(appointmentsData);
     } catch (error) {
       console.error('Error fetching appointments:', error);
       addNotification('Failed to load appointments', 'error');
+      setAppointments([]); // Ensure it's always an array
     } finally {
       setLoading(false);
     }
@@ -40,7 +55,7 @@ export default function AdminAppointmentsPage() {
     }
   };
 
-  const filteredAppointments = appointments.filter(appointment => {
+  const filteredAppointments = Array.isArray(appointments) ? appointments.filter(appointment => {
     const matchesSearch = !searchTerm || 
       appointment.patient?.profile?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.patient?.profile?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -53,7 +68,7 @@ export default function AdminAppointmentsPage() {
       new Date(appointment.date).toDateString() === new Date(dateFilter).toDateString();
 
     return matchesSearch && matchesStatus && matchesDate;
-  });
+  }) : [];
 
   const formatDateTime = (dateString) => {
     return new Date(dateString).toLocaleString();

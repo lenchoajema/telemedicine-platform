@@ -60,10 +60,12 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       const userData = {
         email,
         password,
-        firstName,
-        lastName,
-        phoneNumber,
-        dateOfBirth,
+        profile: {
+          firstName,
+          lastName,
+          phone: phoneNumber,
+          dateOfBirth: dateOfBirth || undefined,
+        },
         role: userType,
       };
 

@@ -79,12 +79,21 @@ const MedicalRecordsScreen: React.FC<MedicalRecordsScreenProps> = ({ navigation 
 
   const fetchMedicalRecords = async () => {
     try {
-      const response = await ApiClient.get('/api/medical-records');
-      setMedicalRecords(response.data);
-      filterRecords(response.data, filter);
+      const response = await ApiClient.get('/medical-records');
+      if (response.success && response.data) {
+        const recordsData = Array.isArray(response.data) ? response.data : [];
+        setMedicalRecords(recordsData);
+        filterRecords(recordsData, filter);
+      } else {
+        console.error('Failed to fetch medical records:', response.error);
+        setMedicalRecords([]);
+        filterRecords([], filter);
+      }
     } catch (error) {
       console.error('Error fetching medical records:', error);
       Alert.alert('Error', 'Failed to load medical records');
+      setMedicalRecords([]);
+      filterRecords([], filter);
     } finally {
       setIsLoading(false);
       setRefreshing(false);

@@ -13,6 +13,15 @@ interface User {
   };
 }
 
+interface AuthResponse {
+  success: boolean;
+  data?: {
+    user?: User;
+    token?: string;
+  };
+  message?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -79,18 +88,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const response = await AuthService.login(email, password);
+      const response = await AuthService.login(email, password) as AuthResponse;
       
       if (response.success && response.data) {
         const { user: userData, token: authToken } = response.data;
         
-        await AsyncStorage.setItem('authToken', authToken);
-        await AsyncStorage.setItem('user', JSON.stringify(userData));
-        
-        setToken(authToken);
-        setUser(userData);
-        
-        return true;
+        // Check if token and user data are valid before storing
+        if (authToken && userData) {
+          await AsyncStorage.setItem('authToken', authToken);
+          await AsyncStorage.setItem('user', JSON.stringify(userData));
+          
+          setToken(authToken);
+          setUser(userData);
+          
+          return true;
+        } else {
+          console.error('Login failed: Missing token or user data');
+          return false;
+        }
       }
       
       return false;
@@ -105,18 +120,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const response = await AuthService.register(userData);
+      const response = await AuthService.register(userData) as AuthResponse;
       
       if (response.success && response.data) {
         const { user: newUser, token: authToken } = response.data;
         
-        await AsyncStorage.setItem('authToken', authToken);
-        await AsyncStorage.setItem('user', JSON.stringify(newUser));
-        
-        setToken(authToken);
-        setUser(newUser);
-        
-        return true;
+        // Check if token and user data are valid before storing
+        if (authToken && newUser) {
+          await AsyncStorage.setItem('authToken', authToken);
+          await AsyncStorage.setItem('user', JSON.stringify(newUser));
+          
+          setToken(authToken);
+          setUser(newUser);
+          
+          return true;
+        } else {
+          console.error('Registration failed: Missing token or user data');
+          return false;
+        }
       }
       
       return false;
@@ -143,8 +164,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!token) return;
     
     try {
-      const response = await AuthService.getCurrentUser(token);
-      if (response.success && response.data) {
+      const response = await AuthService.getCurrentUser(token) as AuthResponse;
+      if (response.success && response.data?.user) {
         const userData = response.data.user;
         await AsyncStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);

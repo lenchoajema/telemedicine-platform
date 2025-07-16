@@ -20,11 +20,26 @@ export default function AdminDoctorsPage() {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
+      console.log('Fetching doctors for admin...');
       const response = await apiClient.get('/doctors');
-      setDoctors(response.data || []);
+      console.log('Admin doctors API response:', response);
+      
+      // Handle different response formats
+      let doctorsArray = [];
+      if (Array.isArray(response)) {
+        doctorsArray = response;
+      } else if (response && response.success && Array.isArray(response.data)) {
+        doctorsArray = response.data;
+      } else if (response && Array.isArray(response.data)) {
+        doctorsArray = response.data;
+      }
+      
+      console.log('Processed doctors array for admin:', doctorsArray);
+      setDoctors(doctorsArray);
     } catch (error) {
       console.error('Error fetching doctors:', error);
       addNotification('Failed to load doctors', 'error');
+      setDoctors([]); // Ensure it's always an array
     } finally {
       setLoading(false);
     }
@@ -40,7 +55,7 @@ export default function AdminDoctorsPage() {
     }
   };
 
-  const filteredDoctors = doctors.filter(doctor => {
+  const filteredDoctors = Array.isArray(doctors) ? doctors.filter(doctor => {
     const matchesSearch = !searchTerm || 
       `${doctor.user?.profile?.firstName} ${doctor.user?.profile?.lastName}`
         .toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,7 +66,7 @@ export default function AdminDoctorsPage() {
     const matchesStatus = filter === 'all' || doctor.verificationStatus === filter;
 
     return matchesSearch && matchesSpecialty && matchesStatus;
-  });
+  }) : [];
 
   const specialties = [...new Set(doctors.map(d => d.specialization).filter(Boolean))];
 

@@ -61,12 +61,21 @@ const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({ navigation }) =
 
   const fetchAppointments = async () => {
     try {
-      const response = await ApiClient.get('/api/appointments');
-      setAppointments(response.data);
-      filterAppointments(response.data, filter);
+      const response = await ApiClient.get('/appointments/');
+      if (response.success && response.data) {
+        const appointmentsData = Array.isArray(response.data) ? response.data : [];
+        setAppointments(appointmentsData);
+        filterAppointments(appointmentsData, filter);
+      } else {
+        console.error('Failed to fetch appointments:', response.error);
+        setAppointments([]);
+        filterAppointments([], filter);
+      }
     } catch (error) {
       console.error('Error fetching appointments:', error);
       Alert.alert('Error', 'Failed to load appointments');
+      setAppointments([]);
+      filterAppointments([], filter);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -167,7 +176,7 @@ const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({ navigation }) =
           text: 'Yes',
           onPress: async () => {
             try {
-              await ApiClient.put(`/api/appointments/${appointmentId}/cancel`);
+              await ApiClient.put(`/appointments/${appointmentId}/cancel`);
               fetchAppointments();
               Alert.alert('Success', 'Appointment cancelled successfully');
             } catch (error) {

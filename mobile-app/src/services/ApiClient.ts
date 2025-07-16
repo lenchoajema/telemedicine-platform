@@ -55,6 +55,12 @@ class ApiClientClass {
   async get<T>(url: string): Promise<ApiResponse<T>> {
     try {
       const response: AxiosResponse<T> = await this.client.get(url);
+      
+      // Check if backend already returns our expected format
+      if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+        return response.data as ApiResponse<T>;
+      }
+      
       return {
         success: true,
         data: response.data,
@@ -70,6 +76,12 @@ class ApiClientClass {
   async post<T>(url: string, data?: any): Promise<ApiResponse<T>> {
     try {
       const response: AxiosResponse<T> = await this.client.post(url, data);
+      
+      // Check if backend already returns our expected format
+      if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+        return response.data as ApiResponse<T>;
+      }
+      
       return {
         success: true,
         data: response.data,
@@ -85,6 +97,12 @@ class ApiClientClass {
   async put<T>(url: string, data?: any): Promise<ApiResponse<T>> {
     try {
       const response: AxiosResponse<T> = await this.client.put(url, data);
+      
+      // Check if backend already returns our expected format
+      if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+        return response.data as ApiResponse<T>;
+      }
+      
       return {
         success: true,
         data: response.data,
@@ -100,6 +118,12 @@ class ApiClientClass {
   async delete<T>(url: string): Promise<ApiResponse<T>> {
     try {
       const response: AxiosResponse<T> = await this.client.delete(url);
+      
+      // Check if backend already returns our expected format
+      if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+        return response.data as ApiResponse<T>;
+      }
+      
       return {
         success: true,
         data: response.data,

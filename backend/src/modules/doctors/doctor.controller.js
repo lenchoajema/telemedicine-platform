@@ -132,7 +132,7 @@ export const getAllDoctors = async (req, res) => {
       });
     }
     
-    res.status(200).json(filteredDoctors);
+    res.status(200).json({ success: true, data: filteredDoctors });
   } catch (error) {
     console.error('Error fetching doctors:', error);
     res.status(500).json({ error: 'Server error' });

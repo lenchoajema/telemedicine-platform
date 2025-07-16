@@ -26,7 +26,9 @@ const AppointmentsPage = () => {
 
   // Use useCallback to memoize functions used in useEffect dependencies
   const applyFilters = useCallback(() => {
-    let filtered = [...appointments];
+    // Ensure appointments is always an array
+    const appointmentsArray = Array.isArray(appointments) ? appointments : [];
+    let filtered = [...appointmentsArray];
     
     // Filter by status
     if (filterOptions.status !== 'all') {
@@ -80,6 +82,7 @@ const AppointmentsPage = () => {
     const fetchAppointments = async () => {
       try {
         setLoading(true);
+        console.log('Fetching appointments for patient...');
         const response = await fetch(`${import.meta.env.VITE_API_URL}/appointments`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -91,13 +94,28 @@ const AppointmentsPage = () => {
         }
         
         const data = await response.json();
-        setAppointments(data);
-        setFilteredAppointments(data);
+        console.log('Patient appointments API response:', data);
+        
+        // Handle different response formats
+        let appointmentsArray = [];
+        if (Array.isArray(data)) {
+          appointmentsArray = data;
+        } else if (data && data.success && Array.isArray(data.data)) {
+          appointmentsArray = data.data;
+        } else if (data && Array.isArray(data.data)) {
+          appointmentsArray = data.data;
+        }
+        
+        console.log('Processed appointments array for patient:', appointmentsArray);
+        setAppointments(appointmentsArray);
+        setFilteredAppointments(appointmentsArray);
         setLoading(false);
       } catch (err) {
         setError(err.message);
         setLoading(false);
         addNotification(err.message, 'error');
+        setAppointments([]); // Ensure it's always an array
+        setFilteredAppointments([]); // Ensure it's always an array
       }
     };
 
@@ -193,14 +211,14 @@ const AppointmentsPage = () => {
       )}
 
       <div className="appointments-grid">
-        {filteredAppointments.map(appointment => (
+        {Array.isArray(filteredAppointments) && filteredAppointments.map(appointment => (
           <AppointmentCard
             key={appointment._id}
             appointment={appointment}
             onCancel={() => handleCancelAppointment(appointment._id)}
             isPatient={user.role === 'patient'}
           />
-        ))}
+        )) || <div className="no-appointments">No appointments available</div>}
       </div>
 
       {showNewModal && (

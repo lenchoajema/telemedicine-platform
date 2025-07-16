@@ -10,8 +10,11 @@ import LoginScreen from '../screens/Auth/LoginScreen';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import AppointmentsScreen from '../screens/Appointments/AppointmentsScreen';
+import BookAppointmentScreen from '../screens/Appointments/BookAppointmentScreen';
 import VideoCallScreen from '../screens/VideoCall/VideoCallScreenWeb';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
+import EditProfileScreen from '../screens/Profile/EditProfileScreen';
+import SettingsScreen from '../screens/Profile/SettingsScreen';
 import DoctorsScreen from '../screens/Doctors/DoctorsScreen';
 import MedicalRecordsScreen from '../screens/MedicalRecords/MedicalRecordsScreen';
 
@@ -154,6 +157,15 @@ const AppStack = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen 
+        name="BookAppointment" 
+        component={BookAppointmentScreen}
+        options={{ 
+          title: 'Book Appointment',
+          headerStyle: { backgroundColor: '#2a70e0' },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Stack.Screen 
         name="VideoCall" 
         component={VideoCallScreen}
         options={{ 
@@ -161,6 +173,24 @@ const AppStack = () => {
           headerStyle: { backgroundColor: '#2a70e0' },
           headerTintColor: '#fff',
           gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="EditProfile" 
+        component={EditProfileScreen}
+        options={{ 
+          title: 'Edit Profile',
+          headerStyle: { backgroundColor: '#2a70e0' },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Stack.Screen 
+        name="Settings" 
+        component={SettingsScreen}
+        options={{ 
+          title: 'Settings',
+          headerStyle: { backgroundColor: '#2a70e0' },
+          headerTintColor: '#fff',
         }}
       />
     </Stack.Navigator>

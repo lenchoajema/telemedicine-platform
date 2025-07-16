@@ -30,9 +30,10 @@ interface DashboardData {
   upcomingAppointments: any[];
   recentActivities: any[];
   quickStats: {
-    totalAppointments: number;
-    completedAppointments: number;
-    pendingAppointments: number;
+    upcomingCount: number;
+    completedCount: number;
+    todayCount: number;
+    patientCount?: number;
   };
 }
 
@@ -44,11 +45,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await ApiClient.get('/api/dashboard');
-      setDashboardData(response.data);
+      // Fetch appointment stats
+      const statsResponse = await ApiClient.get('/appointments/stats');
+      
+      // Fetch upcoming appointments (we can build this data structure)
+      const upcomingResponse = await ApiClient.get('/appointments/');
+      
+      if (statsResponse.success && upcomingResponse.success) {
+        const dashboardData = {
+          upcomingAppointments: Array.isArray(upcomingResponse.data) 
+            ? upcomingResponse.data.filter((apt: any) => apt.status === 'scheduled' && new Date(apt.date) >= new Date()).slice(0, 5)
+            : [],
+          recentActivities: [], // Can be populated later if needed
+          quickStats: statsResponse.data || { upcomingCount: 0, completedCount: 0, todayCount: 0, patientCount: 0 }
+        };
+        setDashboardData(dashboardData);
+      } else {
+        console.error('Failed to fetch dashboard data:', statsResponse.error || upcomingResponse.error);
+        setDashboardData({
+          upcomingAppointments: [],
+          recentActivities: [],
+          quickStats: { upcomingCount: 0, completedCount: 0, todayCount: 0, patientCount: 0 }
+        });
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       Alert.alert('Error', 'Failed to load dashboard data');
+      setDashboardData({
+        upcomingAppointments: [],
+        recentActivities: [],
+        quickStats: { upcomingCount: 0, completedCount: 0, todayCount: 0, patientCount: 0 }
+      });
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -183,16 +210,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return (
       <View style={styles.statsContainer}>
         <Surface style={styles.statCard}>
-          <Title style={styles.statNumber}>{stats.totalAppointments}</Title>
-          <Paragraph style={styles.statLabel}>Total</Paragraph>
+          <Title style={styles.statNumber}>{stats.todayCount}</Title>
+          <Paragraph style={styles.statLabel}>Today</Paragraph>
         </Surface>
         <Surface style={styles.statCard}>
-          <Title style={styles.statNumber}>{stats.completedAppointments}</Title>
+          <Title style={styles.statNumber}>{stats.completedCount}</Title>
           <Paragraph style={styles.statLabel}>Completed</Paragraph>
         </Surface>
         <Surface style={styles.statCard}>
-          <Title style={styles.statNumber}>{stats.pendingAppointments}</Title>
-          <Paragraph style={styles.statLabel}>Pending</Paragraph>
+          <Title style={styles.statNumber}>{stats.upcomingCount}</Title>
+          <Paragraph style={styles.statLabel}>Upcoming</Paragraph>
         </Surface>
       </View>
     );
@@ -210,12 +237,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <View style={styles.welcomeContainer}>
             <Avatar.Text
               size={60}
-              label={user?.firstName?.[0] || 'U'}
+              label={user?.profile?.firstName?.[0] || 'U'}
               style={styles.avatar}
             />
             <View style={styles.welcomeText}>
               <Title style={styles.welcomeTitle}>
-                Welcome back, {user?.firstName}!
+                Welcome back, {user?.profile?.firstName}!
               </Title>
               <Paragraph style={styles.welcomeSubtitle}>
                 {user?.role === 'patient' ? 'How can we help you today?' : 'Ready to help your patients?'}

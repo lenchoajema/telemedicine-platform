@@ -2,7 +2,7 @@
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // GitHub Codespace URL for testing on real devices
-const CODESPACE_URL = 'https://stunning-journey-wv5pxxvw49xh565g.github.dev';
+const CODESPACE_URL = 'https://stunning-journey-wv5pxxvw49xh565g-5000.app.github.dev';
 
 export const config = {
   // API Configuration - Using Codespace URL for mobile testing

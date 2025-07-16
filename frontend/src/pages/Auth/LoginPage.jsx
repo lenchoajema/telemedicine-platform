@@ -18,10 +18,17 @@ const handleSubmit = async (e) => {
   console.log('handleSubmit triggered');
   setLoading(true);
   try {
-    await login(email, password);
+    const user = await login(email, password);
+    console.log('Login completed, user received:', user);
     addNotification('Login successful!', 'success');
-    navigate('/dashboard');
+    
+    // Add a small delay to ensure state is updated before navigation
+    setTimeout(() => {
+      console.log('Navigating to dashboard...');
+      navigate('/dashboard');
+    }, 100);
   } catch (error) {
+    console.error('Login failed:', error);
     addNotification(error.message || 'Login failed', 'error');
   } finally {
     setLoading(false);

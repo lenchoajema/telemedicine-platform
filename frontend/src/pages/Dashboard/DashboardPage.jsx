@@ -8,6 +8,8 @@ import './DashboardPage.css';
 export default function DashboardPage() {
   const { user, loading } = useAuth();
 
+  console.log('DashboardPage - loading:', loading, 'user:', user, 'user.role:', user?.role);
+
   if (loading) return <LoadingSpinner fullPage />;
   
   if (!user) return <div>Please log in to view your dashboard.</div>;
@@ -15,11 +17,14 @@ export default function DashboardPage() {
   // Route users to the appropriate dashboard based on their role
   switch (user.role) {
     case 'admin':
+      console.log('Routing to AdminDashboardPage');
       return <AdminDashboardPage />;
     case 'doctor':
+      console.log('Routing to DoctorDashboardPage');
       return <DoctorDashboardPage />;
     case 'patient':
     default:
+      console.log('Routing to PatientDashboardPage');
       return <PatientDashboardPage />;
   }
 }

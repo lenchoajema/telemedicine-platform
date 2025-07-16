@@ -37,7 +37,7 @@ export const getMedicalRecords = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      records
+      data: records
     });
   } catch (error) {
     console.error('Error fetching medical records:', error);

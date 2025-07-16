@@ -38,6 +38,7 @@ export default function NewAppointmentPage() {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
+      console.log('Fetching doctors...');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/doctors`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -49,7 +50,20 @@ export default function NewAppointmentPage() {
       }
 
       const data = await response.json();
-      setDoctors(data || []);
+      console.log('Doctors API response:', data);
+      
+      // Handle different response formats
+      let doctorsArray = [];
+      if (Array.isArray(data)) {
+        doctorsArray = data;
+      } else if (data && data.success && Array.isArray(data.data)) {
+        doctorsArray = data.data;
+      } else if (data && Array.isArray(data.data)) {
+        doctorsArray = data.data;
+      }
+      
+      console.log('Processed doctors array:', doctorsArray);
+      setDoctors(doctorsArray);
     } catch (error) {
       console.error('Error fetching doctors:', error);
       addNotification(`Error: ${error.message}`, 'error');
@@ -195,7 +209,7 @@ export default function NewAppointmentPage() {
         <div className="doctor-selection">
           <h2>Select a Doctor</h2>
           <div className="doctors-grid">
-            {doctors.map(doctor => (
+            {Array.isArray(doctors) && doctors.map(doctor => (
               <div 
                 key={doctor._id}
                 className="doctor-card selectable"
@@ -224,7 +238,7 @@ export default function NewAppointmentPage() {
                   <button className="btn primary">Select Doctor</button>
                 </div>
               </div>
-            ))}
+            )) || <div className="no-doctors">No doctors available</div>}
           </div>
         </div>
       )}

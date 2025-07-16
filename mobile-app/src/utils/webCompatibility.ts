@@ -2,7 +2,7 @@
 import { Platform } from 'react-native';
 
 // Fix for shadow props deprecation warnings
-export const createWebSafeStyle = (style) => {
+export const createWebSafeStyle = (style: any) => {
   if (Platform.OS !== 'web') return style;
   
   const webSafeStyle = { ...style };
@@ -40,7 +40,7 @@ export const getAnimationConfig = (useNativeDriver = true) => {
 };
 
 // Fix for pointerEvents
-export const getPointerEvents = (pointerEvents) => {
+export const getPointerEvents = (pointerEvents: 'auto' | 'none' | 'box-none' | 'box-only') => {
   if (Platform.OS === 'web') {
     return { style: { pointerEvents } };
   }
