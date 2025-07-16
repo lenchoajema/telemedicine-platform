@@ -16,7 +16,9 @@ import ProfileScreen from '../screens/Profile/ProfileScreen';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
 import SettingsScreen from '../screens/Profile/SettingsScreen';
 import DoctorsScreen from '../screens/Doctors/DoctorsScreen';
+import DoctorProfileScreen from '../screens/Doctors/DoctorProfileScreen';
 import MedicalRecordsScreen from '../screens/MedicalRecords/MedicalRecordsScreen';
+import AddMedicalRecordScreen from '../screens/MedicalRecords/AddMedicalRecordScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -173,6 +175,24 @@ const AppStack = () => {
           headerStyle: { backgroundColor: '#2a70e0' },
           headerTintColor: '#fff',
           gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="DoctorProfile" 
+        component={DoctorProfileScreen}
+        options={{ 
+          title: 'Doctor Profile',
+          headerStyle: { backgroundColor: '#2a70e0' },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Stack.Screen 
+        name="AddMedicalRecord" 
+        component={AddMedicalRecordScreen}
+        options={{ 
+          title: 'Add Medical Record',
+          headerStyle: { backgroundColor: '#2a70e0' },
+          headerTintColor: '#fff',
         }}
       />
       <Stack.Screen 
