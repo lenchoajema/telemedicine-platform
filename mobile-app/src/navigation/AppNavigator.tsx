@@ -19,6 +19,9 @@ import DoctorsScreen from '../screens/Doctors/DoctorsScreen';
 import DoctorProfileScreen from '../screens/Doctors/DoctorProfileScreen';
 import MedicalRecordsScreen from '../screens/MedicalRecords/MedicalRecordsScreen';
 import AddMedicalRecordScreen from '../screens/MedicalRecords/AddMedicalRecordScreen';
+import AppointmentDetailsScreen from '../screens/Appointments/AppointmentDetailsScreen';
+import HelpScreen from '../screens/Support/HelpScreen';
+import AboutScreen from '../screens/Support/AboutScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -209,6 +212,33 @@ const AppStack = () => {
         component={SettingsScreen}
         options={{ 
           title: 'Settings',
+          headerStyle: { backgroundColor: '#2a70e0' },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Stack.Screen 
+        name="AppointmentDetails" 
+        component={AppointmentDetailsScreen}
+        options={{ 
+          title: 'Appointment Details',
+          headerStyle: { backgroundColor: '#2a70e0' },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Stack.Screen 
+        name="Help" 
+        component={HelpScreen}
+        options={{ 
+          title: 'Help & Support',
+          headerStyle: { backgroundColor: '#2a70e0' },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Stack.Screen 
+        name="About" 
+        component={AboutScreen}
+        options={{ 
+          title: 'About',
           headerStyle: { backgroundColor: '#2a70e0' },
           headerTintColor: '#fff',
         }}
