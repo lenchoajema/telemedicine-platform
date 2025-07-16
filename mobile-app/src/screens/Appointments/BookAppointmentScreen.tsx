@@ -43,8 +43,11 @@ interface Props {
 }
 
 interface TimeSlot {
-  time: string;
-  available: boolean;
+  _id: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  isDefault?: boolean;
 }
 
 const BookAppointmentScreen: React.FC<Props> = ({ route, navigation }) => {
@@ -66,9 +69,9 @@ const BookAppointmentScreen: React.FC<Props> = ({ route, navigation }) => {
   const fetchAvailableSlots = async () => {
     setSlotsLoading(true);
     try {
-      const response = await ApiClient.get(`/doctors/availability?doctorId=${doctor._id}&date=${selectedDate}`);
+      const response = await ApiClient.get(`/timeslots/available?doctorId=${doctor._id}&date=${selectedDate}`);
       
-      if (response.success && response.data) {
+      if (response.success && Array.isArray(response.data)) {
         setAvailableSlots(response.data);
       } else {
         // Generate default time slots if endpoint doesn't exist
@@ -86,13 +89,19 @@ const BookAppointmentScreen: React.FC<Props> = ({ route, navigation }) => {
     const slots: TimeSlot[] = [];
     for (let hour = 9; hour <= 17; hour++) {
       slots.push({
-        time: `${hour.toString().padStart(2, '0')}:00`,
-        available: Math.random() > 0.3 // Random availability for demo
+        _id: `default-${hour}-00`,
+        startTime: `${hour.toString().padStart(2, '0')}:00`,
+        endTime: `${hour.toString().padStart(2, '0')}:30`,
+        isAvailable: Math.random() > 0.3, // Random availability for demo
+        isDefault: true
       });
       if (hour < 17) {
         slots.push({
-          time: `${hour.toString().padStart(2, '0')}:30`,
-          available: Math.random() > 0.3
+          _id: `default-${hour}-30`,
+          startTime: `${hour.toString().padStart(2, '0')}:30`,
+          endTime: `${(hour + 1).toString().padStart(2, '0')}:00`,
+          isAvailable: Math.random() > 0.3,
+          isDefault: true
         });
       }
     }
@@ -107,19 +116,31 @@ const BookAppointmentScreen: React.FC<Props> = ({ route, navigation }) => {
 
     setLoading(true);
     try {
-      const appointmentData = {
+      // Find the selected slot object
+      const selectedSlotObj = availableSlots.find(slot => slot.startTime === selectedSlot);
+      
+      const appointmentData: any = {
         doctorId: doctor._id,
-        patientId: user?.id,
-        date: selectedDate,
-        time: selectedSlot,
         reason: reason || 'General consultation',
-        status: 'scheduled',
-        type: 'consultation'
+        symptoms: [],
+        caseDetails: reason || 'General consultation'
       };
+
+      // If we have a slot ID (from TimeSlot system), use it
+      if (selectedSlotObj && selectedSlotObj._id && !selectedSlotObj.isDefault) {
+        appointmentData.slotId = selectedSlotObj._id;
+      } else {
+        // Fallback to legacy system
+        appointmentData.date = new Date(`${selectedDate}T${selectedSlot}`).toISOString();
+        appointmentData.time = selectedSlot;
+        appointmentData.duration = 30;
+      }
+
+      console.log('Booking appointment with data:', appointmentData);
 
       const response = await ApiClient.post('/appointments', appointmentData);
 
-      if (response.success) {
+      if (response.success || response.data) {
         Alert.alert(
           'Success',
           'Appointment booked successfully!',
@@ -201,23 +222,24 @@ const BookAppointmentScreen: React.FC<Props> = ({ route, navigation }) => {
             <View style={styles.slotsContainer}>
               {availableSlots.map((slot) => (
                 <TouchableOpacity
-                  key={slot.time}
+                  key={slot._id}
                   style={[
                     styles.slot,
-                    !slot.available && styles.slotDisabled,
-                    selectedSlot === slot.time && styles.slotSelected
+                    !slot.isAvailable && styles.slotDisabled,
+                    selectedSlot === slot.startTime && styles.slotSelected
                   ]}
-                  onPress={() => slot.available && setSelectedSlot(slot.time)}
-                  disabled={!slot.available}
+                  onPress={() => slot.isAvailable && setSelectedSlot(slot.startTime)}
+                  disabled={!slot.isAvailable}
                 >
                   <Text
                     style={[
                       styles.slotText,
-                      !slot.available && styles.slotTextDisabled,
-                      selectedSlot === slot.time && styles.slotTextSelected
+                      !slot.isAvailable && styles.slotTextDisabled,
+                      selectedSlot === slot.startTime && styles.slotTextSelected
                     ]}
                   >
-                    {slot.time}
+                    {slot.startTime}
+                    {slot.endTime && ` - ${slot.endTime}`}
                   </Text>
                 </TouchableOpacity>
               ))}

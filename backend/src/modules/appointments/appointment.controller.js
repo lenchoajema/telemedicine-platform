@@ -1,5 +1,7 @@
 import Appointment from './appointment.model.js';
 import Doctor from '../doctors/doctor.model.js';
+import TimeSlot from '../../models/TimeSlot.js';
+import mongoose from 'mongoose';
 
 // Get all appointments (filtered by user role)
 export const getAppointments = async (req, res) => {
@@ -57,39 +59,130 @@ export const getAppointmentById = async (req, res) => {
   }
 };
 
-// Create a new appointment
+// Create a new appointment with time slot verification
 export const createAppointment = async (req, res) => {
   try {
-    const { doctorId, date, duration, reason, symptoms } = req.body;
+    const { doctorId, slotId, date, time, reason, symptoms, caseDetails } = req.body;
     const patientId = req.user._id;
     
-    // Create new appointment
-    const appointment = new Appointment({
-      patient: patientId,
-      doctor: doctorId,
-      date,
-      duration,
-      reason,
-      symptoms
-    });
-    
-    await appointment.save();
-    
-    // Populate patient and doctor info before sending response
-    const populatedAppointment = await Appointment.findById(appointment._id)
-      .populate('patient', 'profile.firstName profile.lastName email')
-      .populate('doctor', 'profile.firstName profile.lastName profile.specialization email');
-    
-    res.status(201).json(populatedAppointment);
+    // Validate required fields
+    if (!doctorId || !reason) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Doctor ID and reason are required' 
+      });
+    }
+
+    // If slotId is provided, use the TimeSlot system
+    if (slotId) {
+      // Clean expired reservations first
+      await TimeSlot.cleanExpiredReservations();
+
+      // Find the time slot
+      const timeSlot = await TimeSlot.findById(slotId);
+      if (!timeSlot) {
+        return res.status(404).json({
+          success: false,
+          error: 'Time slot not found'
+        });
+      }
+
+      // Check if the slot is available or reserved by this patient
+      if (!timeSlot.isAvailable && timeSlot.patientId?.toString() !== patientId.toString()) {
+        return res.status(400).json({
+          success: false,
+          error: 'Time slot is no longer available'
+        });
+      }
+
+      // Verify the slot belongs to the requested doctor
+      if (timeSlot.doctorId.toString() !== doctorId.toString()) {
+        return res.status(400).json({
+          success: false,
+          error: 'Time slot does not belong to the selected doctor'
+        });
+      }
+
+      // Create the appointment using transaction to ensure consistency
+      const session = await mongoose.startSession();
+      
+      try {
+        await session.withTransaction(async () => {
+          // Create the appointment
+          const appointment = new Appointment({
+            patient: patientId,
+            doctor: doctorId,
+            date: timeSlot.date,
+            time: timeSlot.startTime,
+            duration: 30, // Default 30 minutes
+            reason,
+            symptoms: symptoms || [],
+            caseDetails: caseDetails || '',
+            status: 'scheduled'
+          });
+
+          await appointment.save({ session });
+
+          // Book the time slot
+          await timeSlot.book(appointment._id, patientId);
+
+          // Populate and return the appointment
+          const populatedAppointment = await Appointment.findById(appointment._id)
+            .populate('patient', 'profile.firstName profile.lastName email')
+            .populate('doctor', 'profile.firstName profile.lastName profile.specialization email')
+            .session(session);
+
+          res.status(201).json({
+            success: true,
+            data: populatedAppointment
+          });
+        });
+      } catch (error) {
+        throw error;
+      } finally {
+        await session.endSession();
+      }
+
+    } else {
+      // Fallback to old system (without time slot management)
+      const appointment = new Appointment({
+        patient: patientId,
+        doctor: doctorId,
+        date: new Date(date),
+        time: time,
+        duration: 30,
+        reason,
+        symptoms: symptoms || [],
+        caseDetails: caseDetails || ''
+      });
+
+      await appointment.save();
+
+      const populatedAppointment = await Appointment.findById(appointment._id)
+        .populate('patient', 'profile.firstName profile.lastName email')
+        .populate('doctor', 'profile.firstName profile.lastName profile.specialization email');
+
+      res.status(201).json({
+        success: true,
+        data: populatedAppointment
+      });
+    }
+
   } catch (error) {
     console.log('Error creating appointment:', error);
     
-    // Check for duplicate key error (doctor already booked at that time)
-    if (error.code === 11000 && error.keyPattern && error.keyPattern.doctor && error.keyPattern.date) {
-      return res.status(400).json({ error: 'Doctor is already booked for this time slot' });
+    // Check for duplicate key error
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'This time slot is already booked' 
+      });
     }
     
-    res.status(500).json({ error: 'Failed to create appointment' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to create appointment' 
+    });
   }
 };
 

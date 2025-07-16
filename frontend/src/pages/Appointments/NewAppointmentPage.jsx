@@ -92,8 +92,9 @@ export default function NewAppointmentPage() {
 
   const fetchAvailableSlots = async (doctorId, date) => {
     try {
+      console.log('Fetching time slots for doctor:', doctorId, 'date:', date);
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/doctors/availability?doctorId=${doctorId}&date=${date}`,
+        `${import.meta.env.VITE_API_URL}/timeslots/available?doctorId=${doctorId}&date=${date}`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -102,10 +103,16 @@ export default function NewAppointmentPage() {
       );
 
       if (response.ok) {
-        const slots = await response.json();
-        setAvailableSlots(slots || []);
+        const data = await response.json();
+        console.log('Time slots response:', data);
+        
+        if (data.success && Array.isArray(data.data)) {
+          setAvailableSlots(data.data);
+        } else {
+          setAvailableSlots([]);
+        }
       } else {
-        // Generate default slots if availability endpoint doesn't work
+        console.log('Time slots API failed, generating default slots');
         generateDefaultSlots();
       }
     } catch (error) {
@@ -120,8 +127,21 @@ export default function NewAppointmentPage() {
     const endHour = 17;
     
     for (let hour = startHour; hour < endHour; hour++) {
-      slots.push(`${hour.toString().padStart(2, '0')}:00`);
-      slots.push(`${hour.toString().padStart(2, '0')}:30`);
+      // Create time slot objects that match the TimeSlot model structure
+      slots.push({
+        _id: `default-${hour}-00`,
+        startTime: `${hour.toString().padStart(2, '0')}:00`,
+        endTime: `${hour.toString().padStart(2, '0')}:30`,
+        isAvailable: true,
+        isDefault: true
+      });
+      slots.push({
+        _id: `default-${hour}-30`,
+        startTime: `${hour.toString().padStart(2, '0')}:30`,
+        endTime: `${(hour + 1).toString().padStart(2, '0')}:00`,
+        isAvailable: true,
+        isDefault: true
+      });
     }
     
     setAvailableSlots(slots);
@@ -141,7 +161,11 @@ export default function NewAppointmentPage() {
   };
 
   const handleTimeSlotSelect = (timeSlot) => {
-    setAppointmentData({ ...appointmentData, timeSlot });
+    setAppointmentData({ 
+      ...appointmentData, 
+      timeSlot: timeSlot.startTime || timeSlot,
+      slotId: timeSlot._id 
+    });
     setStep(3);
   };
 
@@ -154,7 +178,26 @@ export default function NewAppointmentPage() {
     try {
       setBookingLoading(true);
       
-      const appointmentDateTime = new Date(`${appointmentData.date}T${appointmentData.timeSlot}`);
+      // Prepare the request body
+      const requestBody = {
+        doctorId: appointmentData.doctorId,
+        reason: appointmentData.reason,
+        symptoms: appointmentData.notes ? [appointmentData.notes] : [],
+        caseDetails: appointmentData.notes
+      };
+
+      // If we have a slot ID (from TimeSlot system), use it
+      if (appointmentData.slotId && !appointmentData.slotId.includes('default-')) {
+        requestBody.slotId = appointmentData.slotId;
+      } else {
+        // Fallback to legacy system
+        const appointmentDateTime = new Date(`${appointmentData.date}T${appointmentData.timeSlot}`);
+        requestBody.date = appointmentDateTime.toISOString();
+        requestBody.time = appointmentData.timeSlot;
+        requestBody.duration = 30;
+      }
+
+      console.log('Booking appointment with data:', requestBody);
       
       const response = await fetch(`${import.meta.env.VITE_API_URL}/appointments`, {
         method: 'POST',
@@ -162,18 +205,14 @@ export default function NewAppointmentPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-          doctorId: appointmentData.doctorId,
-          date: appointmentDateTime.toISOString(),
-          reason: appointmentData.reason,
-          symptoms: appointmentData.notes, // Backend expects 'symptoms' field
-          duration: 30
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      const responseData = await response.json();
+      console.log('Booking response:', responseData);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to book appointment');
+        throw new Error(responseData.error || 'Failed to book appointment');
       }
 
       addNotification('Appointment booked successfully!', 'success');
@@ -286,15 +325,25 @@ export default function NewAppointmentPage() {
               <div className="time-slots">
                 <label>Available Time Slots:</label>
                 <div className="slots-grid">
-                  {availableSlots.map((slot, index) => (
-                    <button
-                      key={index}
-                      className={`time-slot ${appointmentData.timeSlot === slot ? 'selected' : ''}`}
-                      onClick={() => handleTimeSlotSelect(slot)}
-                    >
-                      {slot}
-                    </button>
-                  ))}
+                  {availableSlots.map((slot, index) => {
+                    const timeDisplay = slot.startTime || slot;
+                    const isSelected = appointmentData.timeSlot === timeDisplay;
+                    const isAvailable = slot.isAvailable !== false;
+                    
+                    return (
+                      <button
+                        key={slot._id || index}
+                        className={`time-slot ${isSelected ? 'selected' : ''} ${!isAvailable ? 'unavailable' : ''}`}
+                        onClick={() => handleTimeSlotSelect(slot)}
+                        disabled={!isAvailable}
+                      >
+                        {timeDisplay}
+                        {slot.endTime && (
+                          <span className="slot-duration"> - {slot.endTime}</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

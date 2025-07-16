@@ -16,6 +16,8 @@ import settingsRoutes from './modules/admin/settings.routes.js';
 import dashboardRoutes from './modules/admin/dashboard.routes.js';
 import videoCallRoutes from './modules/video-calls/video-call.routes.js';
 import patientRoutes from './modules/patients/patient.routes.js';
+import timeSlotRoutes from './routes/timeSlot.routes.js';
+import testTimeSlotRoutes from './routes/test-timeslot.routes.js';
 import { logRegisteredRoutes } from './modules/shared/api-monitor.js';
 
 dotenv.config();
@@ -78,6 +80,13 @@ if (process.env.USE_API_ROUTES === 'true') {
   app.use('/api/admin/dashboard', dashboardRoutes);
   app.use('/api/video-calls', videoCallRoutes);
   app.use('/api/patients', patientRoutes);
+  app.use('/api/timeslots', timeSlotRoutes);
+  app.use('/api/test-timeslots', testTimeSlotRoutes);
+
+// Debug: Add a simple direct route to test
+app.get('/api/debug-timeslots', (req, res) => {
+  res.json({ message: 'Debug TimeSlot route working', timestamp: new Date() });
+});
 }
 
 // Log all registered routes for debugging
