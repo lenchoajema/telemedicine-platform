@@ -18,6 +18,13 @@ import {
   getMyPatients,
   getDoctorAvailabilityById
 } from './doctors.controller.js';
+import {
+  createTimeSlots,
+  getDoctorTimeSlots,
+  createSingleTimeSlot,
+  deleteTimeSlot,
+  updateTimeSlotAvailability
+} from '../../controllers/timeSlot.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
 import { checkRole } from '../../middleware/authorization.middleware.js';
 
@@ -38,6 +45,13 @@ router.get('/my-availability', checkRole(['doctor']), getDoctorAvailability); //
 router.post('/availability', checkRole(['doctor']), setDoctorAvailability);
 router.delete('/availability/:day', checkRole(['doctor']), deleteDoctorAvailability);
 router.get('/my-patients', checkRole(['doctor']), getMyPatients);
+
+// Time slot management routes
+router.get('/time-slots', checkRole(['doctor']), getDoctorTimeSlots);
+router.post('/time-slots', checkRole(['doctor']), createTimeSlots);
+router.post('/time-slots/single', checkRole(['doctor']), createSingleTimeSlot);
+router.delete('/time-slots/:id', checkRole(['doctor']), deleteTimeSlot);
+router.put('/time-slots/:id', checkRole(['doctor']), updateTimeSlotAvailability);
 
 // Get doctor by ID - must be after all specific routes
 router.get('/:id', getDoctorById);

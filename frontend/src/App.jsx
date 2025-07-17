@@ -23,6 +23,7 @@ import ReportsPage from './pages/Admin/ReportsPage';
 import DoctorProfilePage from './pages/Doctors/DoctorProfilePage';
 import DoctorAvailabilityPage from './pages/Doctors/DoctorAvailabilityPage';
 import DoctorAppointmentsPage from './pages/Doctors/DoctorAppointmentsPage';
+import DoctorCalendarPage from './pages/Doctors/DoctorCalendarPage';
 import DoctorPatientsPage from './pages/Doctors/DoctorPatientsPage';
 import AboutPage from './pages/Public/AboutPage';
 import ServicesPage from './pages/Public/ServicesPage';
@@ -195,6 +196,12 @@ function App() {
               <Route path="/doctor/appointments" element={
                 <ProtectedRoute roles={['doctor']}>
                   <DoctorAppointmentsPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/doctor/calendar" element={
+                <ProtectedRoute roles={['doctor']}>
+                  <DoctorCalendarPage />
                 </ProtectedRoute>
               } />
 

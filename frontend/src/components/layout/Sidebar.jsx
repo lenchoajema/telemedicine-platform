@@ -28,6 +28,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
     if (user?.role === 'doctor') {
       return [
         ...baseNavigation,
+        { name: 'Calendar', href: '/doctor/calendar', icon: CalendarIcon },
         { name: 'Patients', href: '/patients', icon: UserGroupIcon },
         { name: 'Medical Records', href: '/medical-records', icon: DocumentTextIcon },
         { name: 'Video Calls', href: '/video-calls', icon: VideoCameraIcon },

@@ -154,6 +154,7 @@ export const createAppointment = async (req, res) => {
             date: timeSlot.date,
             time: timeSlot.startTime,
             duration: 30, // Default 30 minutes
+            timeSlot: slotId, // Link to TimeSlot
             reason,
             symptoms: symptoms || [],
             caseDetails: caseDetails || '',
@@ -225,6 +226,7 @@ export const createAppointment = async (req, res) => {
         date: new Date(date),
         time: time,
         duration: 30,
+        timeSlot: null, // No TimeSlot reference for manual bookings
         reason,
         symptoms: symptoms || [],
         caseDetails: caseDetails || ''
