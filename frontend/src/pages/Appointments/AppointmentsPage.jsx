@@ -6,6 +6,7 @@ import 'react-calendar/dist/Calendar.css';
 import AppointmentCard from '../../components/appointments/AppointmentCard';
 import AppointmentFilter from '../../components/appointments/AppointmentFilter';
 import NewAppointmentModal from '../../components/appointments/NewAppointmentModal';
+import AppointmentDetails from '../../components/appointments/AppointmentDetails';
 import AppointmentService from '../../api/AppointmentService';
 
 const AppointmentsPage = () => {
@@ -16,6 +17,8 @@ const AppointmentsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [filterOptions, setFilterOptions] = useState({
     status: 'all',
     date: 'upcoming',
@@ -165,6 +168,18 @@ const AppointmentsPage = () => {
     setShowNewModal(false);
   };
 
+  const handleViewDetails = (appointment) => {
+    setSelectedAppointment(appointment);
+    setShowDetailsModal(true);
+  };
+
+  const handleUpdateAppointment = (updatedAppointment) => {
+    setAppointments(prev => 
+      prev.map(app => app._id === updatedAppointment._id ? updatedAppointment : app)
+    );
+    setShowDetailsModal(false);
+  };
+
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
@@ -216,6 +231,7 @@ const AppointmentsPage = () => {
             key={appointment._id}
             appointment={appointment}
             onCancel={() => handleCancelAppointment(appointment._id)}
+            onViewDetails={handleViewDetails}
             isPatient={user.role === 'patient'}
           />
         )) || <div className="no-appointments">No appointments available</div>}
@@ -227,6 +243,14 @@ const AppointmentsPage = () => {
           onCreate={handleCreateAppointment}
           availableSlots={availableSlots}
           selectedDate={selectedDate}
+        />
+      )}
+
+      {showDetailsModal && selectedAppointment && (
+        <AppointmentDetails
+          appointment={selectedAppointment}
+          onClose={() => setShowDetailsModal(false)}
+          onUpdate={handleUpdateAppointment}
         />
       )}
     </div>

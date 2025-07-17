@@ -1,6 +1,7 @@
 import Appointment from './appointment.model.js';
 import Doctor from '../doctors/doctor.model.js';
 import TimeSlot from '../../models/TimeSlot.js';
+import AuditService from '../../services/AuditService.js';
 import mongoose from 'mongoose';
 
 // Get all appointments (filtered by user role)
@@ -161,6 +162,24 @@ export const createAppointment = async (req, res) => {
 
           await appointment.save({ session });
 
+          // Log appointment creation
+          await AuditService.log(
+            patientId,
+            'patient',
+            'appointment_created',
+            'appointment',
+            appointment._id,
+            {
+              doctorId,
+              date: timeSlot.date,
+              time: timeSlot.startTime,
+              reason,
+              symptoms
+            },
+            null,
+            req
+          );
+
           // Book the time slot
           await timeSlot.book(appointment._id, patientId);
 
@@ -255,6 +274,82 @@ export const createAppointment = async (req, res) => {
       success: false,
       error: 'Failed to create appointment' 
     });
+  }
+};
+
+// Complete an appointment (Doctor only)
+export const completeAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user } = req;
+    const { followUpRequired, followUpDate, followUpNotes, completionNotes } = req.body;
+
+    const appointment = await Appointment.findById(id)
+      .populate('patient', 'profile.firstName profile.lastName email')
+      .populate('doctor', 'profile.firstName profile.lastName email');
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    // Check if the user is the doctor for this appointment
+    if (user.role !== 'admin' && appointment.doctor._id.toString() !== user._id.toString()) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Store previous state for audit
+    const previousState = appointment.toObject();
+
+    // Update appointment
+    appointment.status = 'completed';
+    appointment.followUpRequired = followUpRequired || false;
+    appointment.followUpDate = followUpDate ? new Date(followUpDate) : null;
+    appointment.followUpNotes = followUpNotes || '';
+    appointment.completionNotes = completionNotes || '';
+    appointment.updatedAt = new Date();
+
+    await appointment.save();
+
+    // Log appointment completion
+    await AuditService.log(
+      user._id,
+      user.role,
+      'appointment_completed',
+      'appointment',
+      appointment._id,
+      {
+        followUpRequired: followUpRequired || false,
+        followUpDate,
+        followUpNotes,
+        completionNotes
+      },
+      {
+        before: { status: previousState.status },
+        after: { status: 'completed' }
+      },
+      req
+    );
+
+    // Enhanced appointment data with doctor specialization
+    const appointmentObj = appointment.toObject();
+    
+    if (appointmentObj.doctor) {
+      const doctorDoc = await Doctor.findOne({ user: appointmentObj.doctor._id })
+        .select('specialization licenseNumber experience bio rating');
+      
+      if (doctorDoc) {
+        appointmentObj.doctor.specialization = doctorDoc.specialization;
+        appointmentObj.doctor.licenseNumber = doctorDoc.licenseNumber;
+        appointmentObj.doctor.experience = doctorDoc.experience;
+        appointmentObj.doctor.bio = doctorDoc.bio;
+        appointmentObj.doctor.rating = doctorDoc.rating;
+      }
+    }
+
+    res.json({ success: true, data: appointmentObj });
+  } catch (error) {
+    console.error('Error completing appointment:', error);
+    res.status(500).json({ error: 'Failed to complete appointment' });
   }
 };
 

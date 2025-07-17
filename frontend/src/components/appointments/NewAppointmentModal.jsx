@@ -28,7 +28,8 @@ export default function NewAppointmentModal({
         const response = await fetch(`${import.meta.env.VITE_API_URL}/doctors`);
         if (!response.ok) throw new Error("Failed to fetch doctors");
         const data = await response.json();
-        setDoctors(Array.isArray(data) ? data : []);
+        const doctorsArray = data.data || data;
+        setDoctors(Array.isArray(doctorsArray) ? doctorsArray : []);
       } catch (error) {
         console.error("Error fetching doctors:", error);
       } finally {

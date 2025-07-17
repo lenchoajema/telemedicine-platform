@@ -4,6 +4,7 @@ import {
   getAppointmentById,
   createAppointment,
   updateAppointment,
+  completeAppointment,
   rescheduleAppointment,
   deleteAppointment,
   getAppointmentStats,
@@ -46,6 +47,9 @@ router.post('/', createAppointment);
 
 // Update an appointment
 router.put('/:id', validateObjectId, updateAppointment);
+
+// Complete an appointment (Doctor only)
+router.put('/:id/complete', validateObjectId, completeAppointment);
 
 // Cancel an appointment
 router.delete('/:id', validateObjectId, deleteAppointment);

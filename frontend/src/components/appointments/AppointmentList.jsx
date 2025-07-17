@@ -50,11 +50,9 @@ export default function AppointmentList({
               <li key={appointment._id} className="appointment-card">
                 <div className="appointment-header">
                   <h3 className="doctor-name">
-                    Dr. {appointment.doctor?.user?.profile?.fullName ||
-                         `${appointment.doctor?.user?.profile?.firstName || ''} ${appointment.doctor?.user?.profile?.lastName || ''}`.trim() ||
-                         appointment.doctor?.profile?.fullName || 
-                         `${appointment.doctor?.profile?.firstName || ''} ${appointment.doctor?.profile?.lastName || ''}`.trim() || 
-                         'Unknown Doctor'}
+                    Dr. {appointment.doctor?.profile?.firstName || appointment.doctor?.firstName}{' '}
+                    {appointment.doctor?.profile?.lastName || appointment.doctor?.lastName}
+                    {!appointment.doctor?.profile?.firstName && !appointment.doctor?.firstName && 'Unknown Doctor'}
                   </h3>
                   <span className={`status-badge ${appointment.status || 'unknown'}`}>
                     {appointment.status || 'Unknown'}

@@ -37,6 +37,23 @@ const appointmentSchema = new mongoose.Schema({
   meetingUrl: {
     type: String
   },
+  followUpRequired: {
+    type: Boolean,
+    default: false
+  },
+  followUpDate: {
+    type: Date
+  },
+  followUpNotes: {
+    type: String
+  },
+  medicalRecord: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'MedicalRecord'
+  },
+  completionNotes: {
+    type: String
+  },
   createdAt: {
     type: Date,
     default: Date.now

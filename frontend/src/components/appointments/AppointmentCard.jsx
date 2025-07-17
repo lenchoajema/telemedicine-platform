@@ -3,6 +3,7 @@ import { formatDate, formatTime } from '../../utils/dateUtils';
 export default function AppointmentCard({ 
   appointment, 
   onCancel, 
+  onViewDetails,
   isPatient = true 
 }) {
   const getStatusClass = (status) => {
@@ -55,6 +56,29 @@ export default function AppointmentCard({
           </div>
         )}
 
+        {appointment.reason && (
+          <div className="detail-row">
+            <span className="detail-label">Reason:</span>
+            <span className="detail-value">{appointment.reason}</span>
+          </div>
+        )}
+
+        {appointment.symptoms && appointment.symptoms.length > 0 && (
+          <div className="detail-row">
+            <span className="detail-label">Symptoms:</span>
+            <span className="detail-value">{appointment.symptoms.join(', ')}</span>
+          </div>
+        )}
+
+        {appointment.followUpRequired && (
+          <div className="detail-row">
+            <span className="detail-label">Follow-up:</span>
+            <span className="detail-value">
+              Required {appointment.followUpDate && `on ${formatDate(appointment.followUpDate)}`}
+            </span>
+          </div>
+        )}
+
         {isPatient && appointment.doctor?.specialization && (
           <div className="detail-row">
             <span className="detail-label">Specialization:</span>
@@ -71,6 +95,15 @@ export default function AppointmentCard({
       </div>
       
       <div className="appointment-actions">
+        {onViewDetails && (
+          <button 
+            onClick={() => onViewDetails(appointment)} 
+            className="btn btn-secondary"
+          >
+            View Details
+          </button>
+        )}
+
         {appointment.status === 'scheduled' && (
           <>
             {onCancel && (
@@ -96,9 +129,19 @@ export default function AppointmentCard({
         )}
         
         {appointment.status === 'completed' && (
-          <button className="btn btn-secondary">
-            View Summary
-          </button>
+          <>
+            <button 
+              onClick={() => onViewDetails && onViewDetails(appointment)}
+              className="btn btn-secondary"
+            >
+              View Summary
+            </button>
+            {appointment.medicalRecord && (
+              <button className="btn btn-info">
+                View Medical Record
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

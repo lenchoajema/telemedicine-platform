@@ -55,7 +55,8 @@ export default function PatientDashboardPage() {
                 }
               });
               if (response.ok) {
-                const allDoctors = await response.json();
+                const allDoctorsResponse = await response.json();
+                const allDoctors = allDoctorsResponse.data || allDoctorsResponse;
                 // Limit to 5 doctors and format them properly
                 recentDoctorsRes = allDoctors.slice(0, 5).map(doctor => ({
                   _id: doctor._id,

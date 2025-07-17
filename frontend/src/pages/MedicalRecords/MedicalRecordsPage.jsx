@@ -127,7 +127,8 @@ export default function MedicalRecordsPage() {
                     {formatDate(record.date)}
                   </div>
                   <div className="record-doctor">
-                    Dr. {record.doctor?.profile?.fullName || 'Unknown Doctor'}
+                    Dr. {record.doctor?.profile?.firstName || record.doctor?.firstName} {record.doctor?.profile?.lastName || record.doctor?.lastName}
+                    {!record.doctor?.profile?.firstName && !record.doctor?.firstName && 'Unknown Doctor'}
                   </div>
                 </div>
                 
@@ -181,11 +182,12 @@ export default function MedicalRecordsPage() {
                   </div>
                   <div className="info-item">
                     <label>Doctor:</label>
-                    <span>Dr. {selectedRecord.doctor?.profile?.fullName || 'Unknown Doctor'}</span>
+                    <span>Dr. {selectedRecord.doctor?.profile?.firstName || selectedRecord.doctor?.firstName} {selectedRecord.doctor?.profile?.lastName || selectedRecord.doctor?.lastName}
+                    {!selectedRecord.doctor?.profile?.firstName && !selectedRecord.doctor?.firstName && 'Unknown Doctor'}</span>
                   </div>
                   <div className="info-item">
                     <label>Specialization:</label>
-                    <span>{selectedRecord.doctor?.profile?.specialization || 'N/A'}</span>
+                    <span>{selectedRecord.doctor?.specialization || selectedRecord.doctor?.profile?.specialization || 'N/A'}</span>
                   </div>
                 </div>
 

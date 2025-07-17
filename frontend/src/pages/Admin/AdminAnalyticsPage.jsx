@@ -227,7 +227,9 @@ export default function AdminAnalyticsPage() {
 
       // Recent appointments
       validAppointments.slice(-5).forEach(appointment => {
-        const doctorName = appointment.doctor?.profile?.firstName || appointment.doctor?.firstName || 'Unknown Doctor';
+        const firstName = appointment.doctor?.profile?.firstName || appointment.doctor?.firstName;
+        const lastName = appointment.doctor?.profile?.lastName || appointment.doctor?.lastName;
+        const doctorName = firstName && lastName ? `Dr. ${firstName} ${lastName}` : 'Unknown Doctor';
         activities.push({
           type: 'appointment_created',
           message: `New appointment scheduled with ${doctorName}`,
