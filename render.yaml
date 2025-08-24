@@ -1,20 +1,17 @@
-# Render service manifest for the telemedicine backend
-# Adjust names, region, and branch as needed. This manifest tells Render
-# how to deploy the backend using the existing Dockerfile in `backend/`.
+# Render service manifest for the telemedicine backend (Node, no Docker)
 
 services:
   - type: web
     name: telemedicine-backend
-    env: docker
+    runtime: node
     plan: free
     branch: netlify-deploy
-    # Path to Dockerfile for the backend service
-    dockerfilePath: backend/Dockerfile
-    # Optional: health check path and port
+    rootDir: backend
     healthCheckPath: /api/health
+    # Render provides PORT automatically; app must listen on process.env.PORT
+    buildCommand: npm ci
+    startCommand: npm start
     envVars:
-      - key: PORT
-        value: "5000"
       - key: NODE_ENV
-        value: "production"
-      # Secrets like MONGO_URI, JWT_SECRET and SMTP_* should be added in Render UI as Protected Env Vars
+        value: production
+      # Add secrets like MONGO_URI, JWT_SECRET, SMTP_* in Render as protected env vars
