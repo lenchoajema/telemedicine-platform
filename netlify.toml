@@ -1,0 +1,13 @@
+[build]
+  # Assumption: your frontend lives in `frontend/` and outputs to `build`
+  # Change `frontend` and `build` below to match your repo layout.
+  command = "npm ci --prefix frontend && npm run build --prefix frontend"
+  publish = "frontend/build"
+  functions = "netlify/functions"
+
+[context.production.environment]
+  # Example env var names used by the app; set actual values in Netlify site settings
+  # SUPABASE_URL = ""
+  # SUPABASE_ANON_KEY = ""
+  # UPSTASH_REDIS_REST_URL = ""
+  # UPSTASH_REDIS_REST_TOKEN = ""
