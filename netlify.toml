@@ -11,3 +11,7 @@
   # SUPABASE_ANON_KEY = ""
   # UPSTASH_REDIS_REST_URL = ""
   # UPSTASH_REDIS_REST_TOKEN = ""
+
+[[_redirects]]
+  # If you prefer netlify.toml redirects instead of a _redirects file, you can add rules here.
+  # This is just an example; a separate `_redirects` file is also provided.
