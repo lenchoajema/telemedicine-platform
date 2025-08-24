@@ -1,210 +1,279 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContextCore';
-import apiClient from '../../api/apiClient';
-import './AdminPages.css';
+import React, { useEffect, useMemo, useState } from "react";
+import { useNotifications } from "../../contexts/NotificationContextCore";
+import { Eye } from "lucide-react";
 
-export default function AdminDoctorsPage() {
-  const { user } = useAuth();
+const AdminDoctorsPage = () => {
   const { addNotification } = useNotifications();
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, verified, pending, rejected
-  const [searchTerm, setSearchTerm] = useState('');
-  const [specialtyFilter, setSpecialtyFilter] = useState('');
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [nextCursor, setNextCursor] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    fetchDoctors();
-  }, []);
-
-  const fetchDoctors = async () => {
-    try {
-      setLoading(true);
-      console.log('Fetching doctors for admin...');
-      const response = await apiClient.get('/doctors');
-      console.log('Admin doctors API response:', response);
-      
-      // Handle different response formats
-      let doctorsArray = [];
-      if (Array.isArray(response)) {
-        doctorsArray = response;
-      } else if (response && response.success && Array.isArray(response.data)) {
-        doctorsArray = response.data;
-      } else if (response && Array.isArray(response.data)) {
-        doctorsArray = response.data;
+    const fetchDoctors = async (cursor = null, append = false) => {
+      try {
+        if (!append) setLoading(true);
+        const url = new URL(`${import.meta.env.VITE_API_URL}/admin/users`);
+        url.searchParams.set("role", "doctor");
+        url.searchParams.set("limit", "20");
+        if (cursor) url.searchParams.set("cursor", cursor);
+        const res = await fetch(url.toString(), {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        if (!res.ok) throw new Error(`Failed to fetch doctors (${res.status})`);
+        const data = await res.json();
+        const users = Array.isArray(data?.users)
+          ? data.users
+          : Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data?.users)
+          ? data.data.users
+          : Array.isArray(data?.data)
+          ? data.data
+          : [];
+        const onlyDoctors = users.filter((u) => u.role === "doctor");
+        setDoctors((prev) =>
+          append ? [...prev, ...onlyDoctors] : onlyDoctors
+        );
+        setNextCursor(data?.nextCursor || null);
+      } catch (err) {
+        setError(err.message || "Failed to fetch doctors");
+      } finally {
+        if (!append) setLoading(false);
       }
-      
-      console.log('Processed doctors array for admin:', doctorsArray);
-      setDoctors(doctorsArray);
-    } catch (error) {
-      console.error('Error fetching doctors:', error);
-      addNotification('Failed to load doctors', 'error');
-      setDoctors([]); // Ensure it's always an array
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const updateDoctorStatus = async (doctorId, status) => {
+    // initial load
+    fetchDoctors();
+
+    // Expose a load-more handler bound to state
+    const loadMore = async () => {
+      if (!nextCursor) return;
+      setLoadingMore(true);
+      await fetchDoctors(nextCursor, true);
+      setLoadingMore(false);
+    };
+    // Attach to instance for onClick usage without recreating per row
+    AdminDoctorsPage.loadMore = loadMore;
+  }, [nextCursor]);
+
+  const filteredDoctors = useMemo(() => {
+    const needle = searchTerm.trim().toLowerCase();
+    return doctors.filter((u) => {
+      if (
+        statusFilter !== "all" &&
+        (u.status || "").toLowerCase() !== statusFilter
+      ) {
+        return false;
+      }
+      if (!needle) return true;
+      const email = (u.email || "").toLowerCase();
+      const first = u.profile?.firstName?.toLowerCase() || "";
+      const last = u.profile?.lastName?.toLowerCase() || "";
+      const full =
+        u.profile?.fullName?.toLowerCase() || `${first} ${last}`.trim();
+      return email.includes(needle) || full.includes(needle);
+    });
+  }, [doctors, searchTerm, statusFilter]);
+
+  const updateStatus = async (userId, newStatus) => {
     try {
-      await apiClient.put(`/admin/doctors/${doctorId}/status`, { status });
-      addNotification(`Doctor ${status} successfully`, 'success');
-      fetchDoctors(); // Refresh the list
-    } catch (error) {
-      addNotification('Failed to update doctor status', 'error');
+      const resp = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/users/${userId}/status`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+      if (!resp.ok) throw new Error("Failed to update status");
+      setDoctors((prev) =>
+        prev.map((u) => (u._id === userId ? { ...u, status: newStatus } : u))
+      );
+      addNotification("Doctor status updated", "success");
+    } catch (e) {
+      addNotification(e.message || "Failed to update status", "error");
     }
   };
 
-  const filteredDoctors = Array.isArray(doctors) ? doctors.filter(doctor => {
-    const matchesSearch = !searchTerm || 
-      `${doctor.user?.profile?.firstName} ${doctor.user?.profile?.lastName}`
-        .toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesSpecialty = !specialtyFilter || doctor.specialization === specialtyFilter;
-    
-    const matchesStatus = filter === 'all' || doctor.verificationStatus === filter;
-
-    return matchesSearch && matchesSpecialty && matchesStatus;
-  }) : [];
-
-  const specialties = [...new Set(doctors.map(d => d.specialization).filter(Boolean))];
+  const openDoctorProfile = async (userId) => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/users/${userId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      if (!res.ok) throw new Error("Failed to resolve doctor profile");
+      const data = await res.json();
+      const doctorId = data?.doctorDetails?._id;
+      if (!doctorId) throw new Error("Doctor profile not found");
+      window.open(`/doctors/${doctorId}`, "_blank");
+    } catch (e) {
+      addNotification(e.message || "Could not open doctor profile", "error");
+    }
+  };
 
   if (loading) {
     return (
-      <div className="admin-page">
-        <div className="loading-spinner"></div>
-        <p>Loading doctors...</p>
+      <div className="flex justify-center items-center h-64">
+        <div className="loader">Loading...</div>
       </div>
     );
   }
 
+  if (error) {
+    return <div className="text-red-500 text-center p-4">Error: {error}</div>;
+  }
+
   return (
-    <div className="admin-page">
-      <div className="page-header">
-        <h1>Doctor Management</h1>
-        <p>Manage doctor accounts and verifications</p>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Manage Doctors</h1>
+
+      <div className="flex gap-3 mb-4">
+        <input
+          type="text"
+          placeholder="Search by name or email"
+          className="border rounded px-3 py-2 w-full max-w-md"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <select
+          className="border rounded px-3 py-2"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+          <option value="inactive">Inactive</option>
+        </select>
       </div>
 
-      <div className="filters-section">
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search doctors..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="filter-controls">
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="all">All Doctors</option>
-            <option value="verified">Verified</option>
-            <option value="pending">Pending Verification</option>
-            <option value="rejected">Rejected</option>
-          </select>
-
-          <select value={specialtyFilter} onChange={(e) => setSpecialtyFilter(e.target.value)}>
-            <option value="">All Specialties</option>
-            {specialties.map(specialty => (
-              <option key={specialty} value={specialty}>{specialty}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="stats-overview">
-        <div className="stat-card">
-          <h3>{doctors.filter(d => d.verificationStatus === 'verified').length}</h3>
-          <p>Verified Doctors</p>
-        </div>
-        <div className="stat-card">
-          <h3>{doctors.filter(d => d.verificationStatus === 'pending').length}</h3>
-          <p>Pending Verification</p>
-        </div>
-        <div className="stat-card">
-          <h3>{doctors.length}</h3>
-          <p>Total Doctors</p>
-        </div>
-      </div>
-
-      <div className="doctors-table">
-        <table>
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <table className="min-w-full leading-normal">
           <thead>
             <tr>
-              <th>Doctor</th>
-              <th>Specialization</th>
-              <th>License</th>
-              <th>Status</th>
-              <th>Joined</th>
-              <th>Actions</th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Name
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Email
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Verification
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Account Status
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
-            {filteredDoctors.map(doctor => (
-              <tr key={doctor._id}>
-                <td>
-                  <div className="doctor-info">
-                    <img 
-                      src={doctor.user?.profile?.photo || '/default-doctor.png'} 
-                      alt="Doctor"
-                      className="doctor-avatar"
-                    />
-                    <div>
-                      <div className="doctor-name">
-                        {doctor.user?.profile?.firstName} {doctor.user?.profile?.lastName}
-                      </div>
-                      <div className="doctor-email">{doctor.user?.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td>{doctor.specialization || 'Not specified'}</td>
-                <td>{doctor.licenseNumber || 'Not provided'}</td>
-                <td>
-                  <span className={`status-badge ${doctor.verificationStatus || 'pending'}`}>
-                    {doctor.verificationStatus || 'pending'}
-                  </span>
-                </td>
-                <td>
-                  {new Date(doctor.user?.createdAt || doctor.createdAt).toLocaleDateString()}
-                </td>
-                <td>
-                  <div className="action-buttons">
-                    {doctor.verificationStatus !== 'verified' && (
-                      <button 
-                        className="btn btn-success"
-                        onClick={() => updateDoctorStatus(doctor._id, 'verified')}
-                      >
-                        Verify
-                      </button>
-                    )}
-                    {doctor.verificationStatus !== 'rejected' && (
-                      <button 
-                        className="btn btn-danger"
-                        onClick={() => updateDoctorStatus(doctor._id, 'rejected')}
-                      >
-                        Reject
-                      </button>
-                    )}
-                    <button 
-                      className="btn btn-secondary"
-                      onClick={() => window.open(`/doctors/${doctor._id}`, '_blank')}
+            {filteredDoctors.length > 0 ? (
+              filteredDoctors.map((u) => (
+                <tr key={u._id}>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <p className="text-gray-900 whitespace-no-wrap">
+                      {u.profile?.fullName ||
+                        `${u.profile?.firstName || ""} ${
+                          u.profile?.lastName || ""
+                        }`.trim()}
+                    </p>
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <p className="text-gray-900 whitespace-no-wrap">
+                      {u.email}
+                    </p>
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        /^(approved|verified)$/i.test(
+                          u.verificationStatus || ""
+                        )
+                          ? "bg-green-100 text-green-800"
+                          : /^(rejected)$/i.test(u.verificationStatus || "")
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
                     >
-                      View Profile
-                    </button>
-                  </div>
+                      {(u.verificationStatus || "pending")
+                        .toString()
+                        .replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </span>
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        /^(active)$/i.test(u.status || "")
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {u.status || "unknown"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="text-blue-500 hover:text-blue-700"
+                        title="View Profile"
+                        onClick={() => openDoctorProfile(u._id)}
+                      >
+                        <Eye size={18} />
+                      </button>
+                      {/^active$/i.test(u.status || "") ? (
+                        <button
+                          className="text-red-600 hover:text-red-800 text-sm border px-2 py-1 rounded"
+                          onClick={() => updateStatus(u._id, "suspended")}
+                        >
+                          Suspend
+                        </button>
+                      ) : (
+                        <button
+                          className="text-green-600 hover:text-green-800 text-sm border px-2 py-1 rounded"
+                          onClick={() => updateStatus(u._id, "active")}
+                        >
+                          Activate
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="text-center py-10 text-gray-500">
+                  No doctors found.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
-
-        {filteredDoctors.length === 0 && (
-          <div className="empty-state">
-            <p>No doctors found matching your criteria.</p>
-          </div>
-        )}
       </div>
+
+      {nextCursor && (
+        <div className="flex justify-center py-4">
+          <button
+            className="border px-4 py-2 rounded disabled:opacity-50"
+            onClick={() => AdminDoctorsPage.loadMore?.()}
+            disabled={loadingMore}
+          >
+            {loadingMore ? "Loading…" : "Load More"}
+          </button>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default AdminDoctorsPage;

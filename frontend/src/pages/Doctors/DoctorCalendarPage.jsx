@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContextCore';
-import apiClient from '../../api/apiClient';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import './DoctorCalendarPage.css';
+import { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNotifications } from "../../contexts/NotificationContextCore";
+import apiClient from "../../api/apiClient";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import "./DoctorCalendarPage.css";
 
 export default function DoctorCalendarPage() {
   const { user } = useAuth();
@@ -14,7 +14,7 @@ export default function DoctorCalendarPage() {
   const [availability, setAvailability] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [view, setView] = useState('month'); // month, week, day
+  const [view, setView] = useState("month"); // month, week, day
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
 
@@ -32,21 +32,29 @@ export default function DoctorCalendarPage() {
       const endDate = getViewEndDate();
 
       const [appointmentsResponse, availabilityResponse] = await Promise.all([
-        apiClient.get('/appointments', {
+        apiClient.get("/appointments", {
           params: {
             startDate: startDate.toISOString(),
-            endDate: endDate.toISOString()
-          }
+            endDate: endDate.toISOString(),
+          },
         }),
-        apiClient.get('/doctors/my-availability')
+        apiClient.get("/doctors/my-availability"),
       ]);
 
       setAppointments(appointmentsResponse.data?.data || []);
-      setAvailability(availabilityResponse.data || []);
+      // Normalize availability response: could be {success, blocks} or raw array
+      const avRaw = availabilityResponse.data;
+      let blocks = [];
+      if (avRaw) {
+        if (Array.isArray(avRaw)) blocks = avRaw;
+        else if (Array.isArray(avRaw.blocks)) blocks = avRaw.blocks;
+        else if (Array.isArray(avRaw.data?.blocks)) blocks = avRaw.data.blocks;
+      }
+      setAvailability(blocks);
     } catch (error) {
-      console.error('Error fetching calendar data:', error);
-      setError('Failed to load calendar data');
-      addNotification('Failed to load calendar data', 'error');
+      console.error("Error fetching calendar data:", error);
+      setError("Failed to load calendar data");
+      addNotification("Failed to load calendar data", "error");
     } finally {
       setLoading(false);
     }
@@ -54,10 +62,10 @@ export default function DoctorCalendarPage() {
 
   const getViewStartDate = () => {
     const date = new Date(currentDate);
-    if (view === 'month') {
+    if (view === "month") {
       date.setDate(1);
       date.setDate(date.getDate() - date.getDay());
-    } else if (view === 'week') {
+    } else if (view === "week") {
       date.setDate(date.getDate() - date.getDay());
     }
     date.setHours(0, 0, 0, 0);
@@ -66,11 +74,11 @@ export default function DoctorCalendarPage() {
 
   const getViewEndDate = () => {
     const date = new Date(currentDate);
-    if (view === 'month') {
+    if (view === "month") {
       date.setMonth(date.getMonth() + 1);
       date.setDate(0);
       date.setDate(date.getDate() + (6 - date.getDay()));
-    } else if (view === 'week') {
+    } else if (view === "week") {
       date.setDate(date.getDate() + 6);
     }
     date.setHours(23, 59, 59, 999);
@@ -79,50 +87,55 @@ export default function DoctorCalendarPage() {
 
   const navigateCalendar = (direction) => {
     const newDate = new Date(currentDate);
-    if (view === 'month') {
+    if (view === "month") {
       newDate.setMonth(newDate.getMonth() + direction);
-    } else if (view === 'week') {
-      newDate.setDate(newDate.getDate() + (direction * 7));
-    } else if (view === 'day') {
+    } else if (view === "week") {
+      newDate.setDate(newDate.getDate() + direction * 7);
+    } else if (view === "day") {
       newDate.setDate(newDate.getDate() + direction);
     }
     setCurrentDate(newDate);
   };
 
   const getAppointmentsForDate = (date) => {
-    return appointments.filter(apt => {
+    return appointments.filter((apt) => {
       const aptDate = new Date(apt.date);
       return aptDate.toDateString() === date.toDateString();
     });
   };
 
   const getAvailableSlotsForDate = (date) => {
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'lowercase' });
-    const dayAvailability = availability.find(avail => avail.day === dayName);
-    
-    if (!dayAvailability || !dayAvailability.isAvailable) {
-      return [];
-    }
-
+    const dayName = date
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+    const dayBlocks = availability.filter((av) => av.day === dayName);
+    if (!dayBlocks.length) return [];
     const slots = [];
-    const startTime = new Date(`1970-01-01T${dayAvailability.startTime}`);
-    const endTime = new Date(`1970-01-01T${dayAvailability.endTime}`);
-    const slotDuration = 30; // 30 minutes
-
-    for (let time = startTime; time < endTime; time.setMinutes(time.getMinutes() + slotDuration)) {
-      const timeString = time.toTimeString().slice(0, 5);
-      const isBooked = appointments.some(apt => {
-        const aptDate = new Date(apt.date);
-        return aptDate.toDateString() === date.toDateString() && apt.time === timeString;
-      });
-
-      slots.push({
-        time: timeString,
-        isBooked,
-        date: date
-      });
+    for (const block of dayBlocks) {
+      const startTime = new Date(`1970-01-01T${block.startTime}`);
+      const endTime = new Date(`1970-01-01T${block.endTime}`);
+      const slotDuration = block.slotDuration || 30;
+      for (
+        let time = new Date(startTime);
+        time < endTime;
+        time.setMinutes(time.getMinutes() + slotDuration)
+      ) {
+        const timeString = time.toTimeString().slice(0, 5);
+        const isBooked = appointments.some((apt) => {
+          const aptDate = new Date(apt.date);
+          return (
+            aptDate.toDateString() === date.toDateString() &&
+            apt.time === timeString
+          );
+        });
+        // Avoid duplicate slot times if overlapping blocks (keep earliest definition)
+        if (!slots.some((s) => s.time === timeString)) {
+          slots.push({ time: timeString, isBooked, date });
+        }
+      }
     }
-
+    // Sort times
+    slots.sort((a, b) => a.time.localeCompare(b.time));
     return slots;
   };
 
@@ -135,29 +148,29 @@ export default function DoctorCalendarPage() {
 
   const createTimeSlot = async (slotData) => {
     try {
-      await apiClient.post('/doctors/time-slots', {
+      await apiClient.post("/doctors/time-slots", {
         date: slotData.date,
         startTime: slotData.time,
-        duration: 30
+        duration: 30,
       });
-      
-      addNotification('Time slot created successfully', 'success');
+
+      addNotification("Time slot created successfully", "success");
       setShowScheduleModal(false);
       fetchCalendarData();
     } catch (error) {
-      console.error('Error creating time slot:', error);
-      addNotification('Failed to create time slot', 'error');
+      console.error("Error creating time slot:", error);
+      addNotification("Failed to create time slot", "error");
     }
   };
 
   const updateAppointmentStatus = async (appointmentId, status) => {
     try {
       await apiClient.put(`/appointments/${appointmentId}`, { status });
-      addNotification(`Appointment ${status} successfully`, 'success');
+      addNotification(`Appointment ${status} successfully`, "success");
       fetchCalendarData();
     } catch (error) {
-      console.error('Error updating appointment:', error);
-      addNotification('Failed to update appointment', 'error');
+      console.error("Error updating appointment:", error);
+      addNotification("Failed to update appointment", "error");
     }
   };
 
@@ -169,7 +182,7 @@ export default function DoctorCalendarPage() {
     for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
-      
+
       const dayAppointments = getAppointmentsForDate(date);
       const isCurrentMonth = date.getMonth() === currentDate.getMonth();
       const isToday = date.toDateString() === new Date().toDateString();
@@ -178,35 +191,42 @@ export default function DoctorCalendarPage() {
       currentWeek.push(
         <div
           key={date.toISOString()}
-          className={`calendar-day ${!isCurrentMonth ? 'other-month' : ''} 
-                     ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
+          className={`calendar-day ${!isCurrentMonth ? "other-month" : ""} 
+                     ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}`}
           onClick={() => setSelectedDate(new Date(date))}
         >
           <div className="day-header">
             <span className="day-number">{date.getDate()}</span>
           </div>
           <div className="day-appointments">
-            {dayAppointments.slice(0, 3).map(apt => (
-              <div 
-                key={apt._id} 
+            {dayAppointments.slice(0, 3).map((apt) => (
+              <div
+                key={apt._id}
                 className={`appointment-item ${apt.status}`}
                 title={`${apt.time} - ${apt.patient?.profile?.firstName} ${apt.patient?.profile?.lastName}`}
               >
                 <span className="appointment-time">{apt.time}</span>
                 <span className="appointment-patient">
-                  {apt.patient?.profile?.firstName} {apt.patient?.profile?.lastName}
+                  {apt.patient?.profile?.firstName}{" "}
+                  {apt.patient?.profile?.lastName}
                 </span>
               </div>
             ))}
             {dayAppointments.length > 3 && (
-              <div className="more-appointments">+{dayAppointments.length - 3} more</div>
+              <div className="more-appointments">
+                +{dayAppointments.length - 3} more
+              </div>
             )}
           </div>
         </div>
       );
 
       if (currentWeek.length === 7) {
-        weeks.push(<div key={weeks.length} className="calendar-week">{currentWeek}</div>);
+        weeks.push(
+          <div key={weeks.length} className="calendar-week">
+            {currentWeek}
+          </div>
+        );
         currentWeek = [];
       }
     }
@@ -221,29 +241,39 @@ export default function DoctorCalendarPage() {
     for (let i = 0; i < 7; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
-      
+
       const dayAppointments = getAppointmentsForDate(date);
       const availableSlots = getAvailableSlotsForDate(date);
       const isToday = date.toDateString() === new Date().toDateString();
 
       days.push(
-        <div key={date.toISOString()} className={`week-day ${isToday ? 'today' : ''}`}>
+        <div
+          key={date.toISOString()}
+          className={`week-day ${isToday ? "today" : ""}`}
+        >
           <div className="week-day-header">
-            <div className="day-name">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+            <div className="day-name">
+              {date.toLocaleDateString("en-US", { weekday: "short" })}
+            </div>
             <div className="day-date">{date.getDate()}</div>
           </div>
           <div className="week-day-content">
             <div className="time-slots">
-              {availableSlots.map(slot => (
+              {availableSlots.map((slot) => (
                 <div
                   key={`${date.toISOString()}-${slot.time}`}
-                  className={`time-slot ${slot.isBooked ? 'booked' : 'available'}`}
+                  className={`time-slot ${
+                    slot.isBooked ? "booked" : "available"
+                  }`}
                   onClick={() => handleTimeSlotClick(slot)}
                 >
                   <span className="slot-time">{slot.time}</span>
                   {slot.isBooked && (
                     <div className="booked-appointment">
-                      {dayAppointments.find(apt => apt.time === slot.time)?.patient?.profile?.firstName}
+                      {
+                        dayAppointments.find((apt) => apt.time === slot.time)
+                          ?.patient?.profile?.firstName
+                      }
                     </div>
                   )}
                 </div>
@@ -264,22 +294,28 @@ export default function DoctorCalendarPage() {
     return (
       <div className="calendar-day-view">
         <div className="day-view-header">
-          <h3>{selectedDate.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}</h3>
+          <h3>
+            {selectedDate.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </h3>
         </div>
         <div className="day-view-content">
           <div className="time-schedule">
-            {availableSlots.map(slot => {
-              const appointment = dayAppointments.find(apt => apt.time === slot.time);
-              
+            {availableSlots.map((slot) => {
+              const appointment = dayAppointments.find(
+                (apt) => apt.time === slot.time
+              );
+
               return (
                 <div
                   key={slot.time}
-                  className={`schedule-slot ${slot.isBooked ? 'booked' : 'available'}`}
+                  className={`schedule-slot ${
+                    slot.isBooked ? "booked" : "available"
+                  }`}
                   onClick={() => handleTimeSlotClick(slot)}
                 >
                   <div className="slot-time">{slot.time}</div>
@@ -287,27 +323,38 @@ export default function DoctorCalendarPage() {
                     {appointment ? (
                       <div className="appointment-details">
                         <div className="patient-name">
-                          {appointment.patient?.profile?.firstName} {appointment.patient?.profile?.lastName}
+                          {appointment.patient?.profile?.firstName}{" "}
+                          {appointment.patient?.profile?.lastName}
                         </div>
-                        <div className="appointment-reason">{appointment.reason}</div>
-                        <div className="appointment-status">{appointment.status}</div>
+                        <div className="appointment-reason">
+                          {appointment.reason}
+                        </div>
+                        <div className="appointment-status">
+                          {appointment.status}
+                        </div>
                         <div className="appointment-actions">
-                          {appointment.status === 'scheduled' && (
+                          {appointment.status === "scheduled" && (
                             <>
-                              <button 
+                              <button
                                 className="btn-complete"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  updateAppointmentStatus(appointment._id, 'completed');
+                                  updateAppointmentStatus(
+                                    appointment._id,
+                                    "completed"
+                                  );
                                 }}
                               >
                                 Complete
                               </button>
-                              <button 
+                              <button
                                 className="btn-cancel"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  updateAppointmentStatus(appointment._id, 'cancelled');
+                                  updateAppointmentStatus(
+                                    appointment._id,
+                                    "cancelled"
+                                  );
                                 }}
                               >
                                 Cancel
@@ -342,48 +389,56 @@ export default function DoctorCalendarPage() {
           <h1>Schedule & Calendar</h1>
           <p>Manage your appointments and availability</p>
         </div>
-        
+
         <div className="calendar-controls">
           <div className="view-selector">
-            <button 
-              className={view === 'month' ? 'active' : ''}
-              onClick={() => setView('month')}
+            <button
+              className={view === "month" ? "active" : ""}
+              onClick={() => setView("month")}
             >
               Month
             </button>
-            <button 
-              className={view === 'week' ? 'active' : ''}
-              onClick={() => setView('week')}
+            <button
+              className={view === "week" ? "active" : ""}
+              onClick={() => setView("week")}
             >
               Week
             </button>
-            <button 
-              className={view === 'day' ? 'active' : ''}
-              onClick={() => setView('day')}
+            <button
+              className={view === "day" ? "active" : ""}
+              onClick={() => setView("day")}
             >
               Day
             </button>
           </div>
-          
+
           <div className="navigation-controls">
-            <button onClick={() => navigateCalendar(-1)}>
-              ←
-            </button>
-            <button onClick={() => setCurrentDate(new Date())}>
-              Today
-            </button>
-            <button onClick={() => navigateCalendar(1)}>
-              →
-            </button>
+            <button onClick={() => navigateCalendar(-1)}>←</button>
+            <button onClick={() => setCurrentDate(new Date())}>Today</button>
+            <button onClick={() => navigateCalendar(1)}>→</button>
           </div>
         </div>
       </div>
 
       <div className="calendar-navigation">
         <div className="current-period">
-          {view === 'month' && currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-          {view === 'week' && `Week of ${getViewStartDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
-          {view === 'day' && selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          {view === "month" &&
+            currentDate.toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric",
+            })}
+          {view === "week" &&
+            `Week of ${getViewStartDate().toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}`}
+          {view === "day" &&
+            selectedDate.toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
         </div>
       </div>
 
@@ -395,28 +450,33 @@ export default function DoctorCalendarPage() {
       )}
 
       <div className="calendar-content">
-        {view === 'month' && (
+        {view === "month" && (
           <>
             <div className="calendar-weekdays">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="weekday-header">{day}</div>
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div key={day} className="weekday-header">
+                  {day}
+                </div>
               ))}
             </div>
             {renderMonthView()}
           </>
         )}
-        
-        {view === 'week' && renderWeekView()}
-        {view === 'day' && renderDayView()}
+
+        {view === "week" && renderWeekView()}
+        {view === "day" && renderDayView()}
       </div>
 
       {/* Schedule Modal */}
       {showScheduleModal && selectedTimeSlot && (
-        <div className="schedule-modal-overlay" onClick={() => setShowScheduleModal(false)}>
+        <div
+          className="schedule-modal-overlay"
+          onClick={() => setShowScheduleModal(false)}
+        >
           <div className="schedule-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Create Time Slot</h3>
-              <button 
+              <button
                 className="close-button"
                 onClick={() => setShowScheduleModal(false)}
               >
@@ -425,7 +485,8 @@ export default function DoctorCalendarPage() {
             </div>
             <div className="modal-content">
               <p>
-                <strong>Date:</strong> {selectedTimeSlot.date.toLocaleDateString()}
+                <strong>Date:</strong>{" "}
+                {selectedTimeSlot.date.toLocaleDateString()}
               </p>
               <p>
                 <strong>Time:</strong> {selectedTimeSlot.time}
@@ -433,13 +494,13 @@ export default function DoctorCalendarPage() {
               <p>Create an available time slot for patient bookings?</p>
             </div>
             <div className="modal-actions">
-              <button 
+              <button
                 className="btn-cancel"
                 onClick={() => setShowScheduleModal(false)}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className="btn-confirm"
                 onClick={() => createTimeSlot(selectedTimeSlot)}
               >

@@ -11,6 +11,7 @@ import {
   getDoctorProfile
   //rescheduleAppointment
 } from './doctor.controller.js';
+import { updateDoctorProfile, addVerificationDocument, removeVerificationDocument, listVerificationDocuments, uploadVerificationDocuments, adminGetDoctorFullProfile } from './doctor.controller.js';
 import { 
   getDoctorAvailability,
   setDoctorAvailability,
@@ -41,6 +42,14 @@ router.use(authenticate);
 // All authenticated routes go here (before the /:id wildcard route)
 router.get('/stats', getDoctorStats);
 router.get('/profile', getDoctorProfile);
+router.put('/profile', checkRole(['doctor','admin']), updateDoctorProfile);
+router.get('/verification-documents', checkRole(['doctor','admin']), listVerificationDocuments);
+router.post('/verification-documents/upload', checkRole(['doctor']), uploadVerificationDocuments);
+// Verification document management (doctor only)
+router.post('/verification-documents', checkRole(['doctor']), addVerificationDocument);
+router.delete('/verification-documents/:type', checkRole(['doctor']), removeVerificationDocument);
+// Admin fetch full doctor profile (documents included)
+router.get('/admin/:id/full', checkRole(['admin']), adminGetDoctorFullProfile);
 router.get('/my-availability', checkRole(['doctor']), getDoctorAvailability); // Renamed to avoid conflict
 router.post('/availability', checkRole(['doctor']), setDoctorAvailability);
 router.delete('/availability/:day', checkRole(['doctor']), deleteDoctorAvailability);

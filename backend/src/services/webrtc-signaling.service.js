@@ -5,7 +5,11 @@ import crypto from 'crypto-js';
 
 class WebRTCSignalingServer {
   constructor(server) {
+    // Use a distinct path so this Socket.IO instance does not conflict with the general-purpose one
+    // created in socket.service.js (which uses the default '/socket.io'). Without a distinct path both
+    // engine.io servers attempt to handle the same upgrade, causing "server.handleUpgrade() was called more than once".
     this.io = new Server(server, {
+      path: '/webrtc',
       cors: {
         origin: process.env.FRONTEND_URL || "http://localhost:5173",
         methods: ["GET", "POST"],
@@ -63,9 +67,16 @@ class WebRTCSignalingServer {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      socket.userId = decoded.user.id;
-      socket.userRole = decoded.user.role;
-      socket.userName = decoded.user.name || decoded.user.email;
+      // Support tokens shaped either as { user: { id, role, ... } } or flat { userId, userRole, ... }
+      if (decoded.user) {
+        socket.userId = decoded.user.id || decoded.user._id;
+        socket.userRole = decoded.user.role;
+        socket.userName = decoded.user.name || decoded.user.email || decoded.user.id;
+      } else {
+        socket.userId = decoded.userId || decoded.id;
+        socket.userRole = decoded.userRole || decoded.role;
+        socket.userName = decoded.userName || decoded.email || socket.userId;
+      }
       
       next();
     } catch (error) {

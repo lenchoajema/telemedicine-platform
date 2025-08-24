@@ -103,6 +103,23 @@ async function testDashboardData(token, userType) {
       console.log(`✗ All appointments failed: ${allResponse.status}`);
     }
 
+    // Doctor-specific: stats endpoint used by DoctorDashboardPage
+    if (userType === 'DOCTOR') {
+      console.log('\n4. Testing doctor stats...');
+      const doctorStatsResp = await fetch(`${API_BASE}/doctors/stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (doctorStatsResp.ok) {
+        const doctorStats = await doctorStatsResp.json();
+        console.log('✓ Doctor stats:', JSON.stringify(doctorStats));
+      } else {
+        console.log(`✗ Doctor stats failed: ${doctorStatsResp.status}`);
+      }
+    }
+
   } catch (error) {
     console.error(`Error testing ${userType} dashboard:`, error.message);
   }

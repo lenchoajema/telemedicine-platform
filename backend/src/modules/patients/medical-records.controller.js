@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
 import MedicalRecord from './medical-record.model.js';
 import User from '../auth/user.model.js';
+import Appointment from '../appointments/appointment.model.js';
 
 // Get all medical records for the authenticated user
 export const getMedicalRecords = async (req, res) => {
@@ -40,7 +40,7 @@ export const getMedicalRecords = async (req, res) => {
       data: records
     });
   } catch (error) {
-    console.error('Error fetching medical records:', error);
+    console.log('Error fetching medical records:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch medical records',
@@ -50,70 +50,34 @@ export const getMedicalRecords = async (req, res) => {
 };
 
 // Get a specific medical record by ID
-export const getMedicalRecordById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user._id;
-    const userRole = req.user.role;
-
-    const record = await MedicalRecord.findById(id)
-      .populate('patient', 'profile.firstName profile.lastName email')
-      .populate('doctor', 'profile.firstName profile.lastName profile.specialization');
-
-    if (!record) {
-      return res.status(404).json({
-        success: false,
-        message: 'Medical record not found'
-      });
-    }
-
-    // Check permissions
-    if (userRole === 'patient' && record.patient._id.toString() !== userId.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to access this record'
-      });
-    }
-
-    if (userRole === 'doctor' && record.doctor._id.toString() !== userId.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to access this record'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      record
-    });
-  } catch (error) {
-    console.error('Error fetching medical record:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch medical record',
-      error: error.message
-    });
-  }
+// Get a specific medical record by ID
+export const getMedicalRecordById = async (_req, _res) => {
+  // ...existing code...
 };
 
 // Create a new medical record (doctors only)
+// Create a new medical record (doctors only)
 export const createMedicalRecord = async (req, res) => {
   try {
-    const { patientId, diagnosis, treatment, notes, prescription, medications, vitals } = req.body;
+    const { patientId, appointmentId, diagnosis, treatment, notes, prescription, medications, vitals } = req.body;
     const doctorId = req.user._id;
-
     // Validate patient exists
     const patient = await User.findById(patientId);
     if (!patient || patient.role !== 'patient') {
-      return res.status(404).json({
-        success: false,
-        message: 'Patient not found'
-      });
+      return res.status(404).json({ success: false, message: 'Patient not found' });
     }
-
+    // Validate appointment exists
+    if (!appointmentId) {
+      return res.status(400).json({ success: false, message: 'Appointment ID is required' });
+    }
+    const appt = await Appointment.findById(appointmentId);
+    if (!appt) {
+      return res.status(404).json({ success: false, message: 'Appointment not found' });
+    }
     const medicalRecord = new MedicalRecord({
       patient: patientId,
       doctor: doctorId,
+      appointment: appointmentId,
       diagnosis,
       treatment,
       notes,
@@ -121,21 +85,20 @@ export const createMedicalRecord = async (req, res) => {
       medications,
       vitals
     });
-
     const savedRecord = await medicalRecord.save();
-    
     // Populate the saved record
     const populatedRecord = await MedicalRecord.findById(savedRecord._id)
       .populate('patient', 'profile.firstName profile.lastName email')
       .populate('doctor', 'profile.firstName profile.lastName profile.specialization');
-
+    // Link the created record to the appointment
+    await Appointment.findByIdAndUpdate(appointmentId, { medicalRecord: savedRecord._id });
     res.status(201).json({
       success: true,
       message: 'Medical record created successfully',
       record: populatedRecord
     });
   } catch (error) {
-    console.error('Error creating medical record:', error);
+    console.log('Error creating medical record:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create medical record',
@@ -182,7 +145,7 @@ export const updateMedicalRecord = async (req, res) => {
       record: updatedRecord
     });
   } catch (error) {
-    console.error('Error updating medical record:', error);
+    console.log('Error updating medical record:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update medical record',

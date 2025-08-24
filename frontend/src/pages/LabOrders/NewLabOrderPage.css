@@ -1,0 +1,22 @@
+/* Styles for NewLabOrderPage */
+.new-lab-order-page {
+  padding: 1rem;
+}
+.lab-order-form .form-group {
+  margin-bottom: 1rem;
+}
+.tests-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.test-option {
+  display: flex;
+  align-items: center;
+}
+.test-option input {
+  margin-right: 0.25rem;
+}
+.btn {
+  margin-right: 0.5rem;
+}

@@ -23,7 +23,10 @@ async function login(credentials) {
     });
     
     const data = await response.json();
-    return data;
+    return {
+      token: data?.data?.token || data?.token,
+      user: data?.data?.user || data?.user,
+    };
   } catch (error) {
     console.error('Login error:', error.message);
     return null;
@@ -40,7 +43,7 @@ async function testDoctorAppointments(credentials, doctorName) {
   }
 
   console.log(`✅ Successfully logged in as ${doctorName}`);
-  console.log(`Doctor User ID: ${loginResult.user._id}`);
+  console.log(`Doctor User ID: ${loginResult.user?._id}`);
 
   try {
     // Test /appointments endpoint

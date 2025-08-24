@@ -15,7 +15,11 @@ class AppointmentService {
   static async getStats() {
     try {
       const response = await apiClient.get('/appointments/stats');
-      return response.data;
+      const payload = response.data;
+      if (payload && payload.success && payload.data) {
+        return payload.data;
+      }
+      return payload;
     } catch (error) {
       console.log("Error fetching appointment stats:", error);
       return { upcomingCount: 0, completedCount: 0, todayCount: 0 };
@@ -24,28 +28,12 @@ class AppointmentService {
 
   static async getAvailableSlots(date, doctorId = null) {
     try {
-      const params = { 
-        date: date.toISOString().split("T")[0]
-      };
-      
-      // Add doctorId to params if provided
-      if (doctorId) {
-        params.doctorId = doctorId;
-      }
-      
-      // Use the working availability endpoint instead of the one requiring auth
-      const response = await apiClient.get('/doctors/availability', { params });
-
-      // Ensure response.data is always an array
-      const slots = Array.isArray(response.data) ? response.data : [];
-      
-      // Convert time strings to full Date objects for the selected date
-      return slots.map(timeSlot => {
-        const [hours, minutes] = timeSlot.split(':').map(Number);
-        const slotDate = new Date(date);
-        slotDate.setHours(hours, minutes, 0, 0);
-        return slotDate;
-      });
+  if (!doctorId) return [];
+  const day = date.toISOString().split("T")[0];
+  const response = await apiClient.get(`/doctors/${doctorId}/slots`, { params: { from: day, to: day } });
+  const payload = response.data;
+  if (payload && payload.success && Array.isArray(payload.data)) return payload.data; // [{id,startTime,endTime,slotHash}]
+  return [];
     } catch (error) {
       console.log("Error fetching available slots:", error);
       return [];

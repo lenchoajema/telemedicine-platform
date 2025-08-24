@@ -1,0 +1,58 @@
+/* Global language direction + writing alignment */
+
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+/* Inputs, textareas, selects, and contentEditable should follow body rtl/ltr */
+body.rtl input,
+body.rtl textarea,
+body.rtl select,
+body.rtl [contenteditable="true"] {
+  direction: rtl;
+  text-align: right;
+}
+
+body:not(.rtl) input,
+body:not(.rtl) textarea,
+body:not(.rtl) select,
+body:not(.rtl) [contenteditable="true"] {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Placeholder alignment mirrors text alignment */
+body.rtl ::placeholder {
+  text-align: right;
+}
+
+body:not(.rtl) ::placeholder {
+  text-align: left;
+}
+
+/* Optional: help Ethiopic scripts render with a suitable font when available */
+body.ethiopic {
+  font-feature-settings: "liga" 1, "kern" 1;
+  /* If you add a font like Noto Sans Ethiopic to public assets, it will be used below */
+}
+
+/* Ethiopic font wiring: if files exist in /public/fonts, they will be served by Vite */
+@font-face {
+  font-family: 'Noto Sans Ethiopic';
+  src: url('/fonts/NotoSansEthiopic-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Ethiopic';
+  src: url('/fonts/NotoSansEthiopic-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+body.ethiopic {
+  font-family: 'Noto Sans Ethiopic', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}

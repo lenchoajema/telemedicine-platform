@@ -12,6 +12,8 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+  const locale = localStorage.getItem('locale') || 'en';
+  config.headers['Accept-Language'] = locale;
     return config;
   },
   error => Promise.reject(error)

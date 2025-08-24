@@ -1,38 +1,28 @@
-<<<<<<< HEAD
-import request from 'supertest';
-import mongoose from 'mongoose';
-=======
+// ESM imports and global test setup
 process.env.JWT_SECRET = 'test_secret';
-
 import request from 'supertest';
 import mongoose from 'mongoose';
 import express from 'express';
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
-import app from '../app';
-import Doctor from '../modules/doctors/doctor.model';
-import User from '../modules/auth/user.model';
+// import app from '../app.js'; // unused, using testApp
+import Doctor from '../modules/doctors/doctor.model.js';
+import User from '../modules/auth/user.model.js';
 import jwt from 'jsonwebtoken';
-<<<<<<< HEAD
-=======
 import verificationRoutes from '../modules/admin/verification.routes.js';
 import doctorRoutes from '../modules/doctors/doctor.routes.js';
 
 // Create a test app with a mock authenticate middleware
 const testApp = express();
 testApp.use(express.json());
-
 testApp.use((req, res, next) => {
-  // Simple mock: set req.user based on Authorization header
+  // Mock user role based on token
   req.user = {
-    id: 'mockedUserId',
+    id: req.headers.authorization ? jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET).id : null,
     role: req.headers.authorization && req.headers.authorization.includes('admin') ? 'admin' : 'doctor',
   };
   next();
 });
-
 testApp.use('/api/admin/verifications', verificationRoutes);
 testApp.use('/api/doctors', doctorRoutes);
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
 
 // Mock users for testing
 let doctorUser;
@@ -49,18 +39,12 @@ beforeAll(async () => {
     profile: {
       firstName: 'Test',
       lastName: 'Doctor',
-<<<<<<< HEAD
-    },
-    role: 'doctor'
-  });
-=======
       specialization: 'Cardiology',
       licenseNumber: 'TEST123456'
     },
     role: 'doctor'
   });
   await doctorUser.save();
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
 
   adminUser = await User.create({
     email: 'admin_test@example.com',
@@ -68,63 +52,36 @@ beforeAll(async () => {
     profile: {
       firstName: 'Test',
       lastName: 'Admin',
-<<<<<<< HEAD
-    },
-    role: 'admin'
-  });
-
-  // Generate tokens
-  doctorToken = jwt.sign(
-    { id: doctorUser._id },
-=======
       specialization: 'General Medicine',
       licenseNumber: 'ADMIN123456'
     },
     role: 'admin'
   });
-  await adminUser.save();
+    await adminUser.save();
 
-  // Generate tokens after users are fully saved
+  // Generate JWT tokens for doctor and admin users
   doctorToken = jwt.sign(
     { id: doctorUser._id.toString(), role: doctorUser.role },
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
     process.env.JWT_SECRET || 'test_secret',
     { expiresIn: '1h' }
   );
-
   adminToken = jwt.sign(
-<<<<<<< HEAD
-    { id: adminUser._id },
-=======
     { id: adminUser._id.toString(), role: adminUser.role },
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
     process.env.JWT_SECRET || 'test_secret',
     { expiresIn: '1h' }
   );
 });
 
 afterAll(async () => {
-<<<<<<< HEAD
-  // Clean up
+  // Clean up test data
   await Doctor.deleteMany({});
   await User.deleteMany({});
   await mongoose.connection.close();
-=======
-  // Clean up test data only if mongoose is connected
-  if (mongoose.connection.readyState === 1) {
-    await Doctor.deleteMany({});
-    await User.deleteMany({});
-  }
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
 });
 
 describe('Doctor Verification Workflow', () => {
   test('Doctor submits verification', async () => {
-<<<<<<< HEAD
-    const res = await request(app)
-=======
     const res = await request(testApp)
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
       .post('/api/doctors/verify')
       .set('Authorization', `Bearer ${doctorToken}`)
       .send({
@@ -162,11 +119,7 @@ describe('Doctor Verification Workflow', () => {
   });
 
   test('Admin sees pending verification', async () => {
-<<<<<<< HEAD
-    const res = await request(app)
-=======
     const res = await request(testApp)
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
       .get('/api/admin/verifications/pending')
       .set('Authorization', `Bearer ${adminToken}`);
 
@@ -177,11 +130,7 @@ describe('Doctor Verification Workflow', () => {
   });
 
   test('Admin gets verification details', async () => {
-<<<<<<< HEAD
-    const res = await request(app)
-=======
     const res = await request(testApp)
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
       .get(`/api/admin/verifications/${doctorId}`)
       .set('Authorization', `Bearer ${adminToken}`);
 
@@ -192,11 +141,7 @@ describe('Doctor Verification Workflow', () => {
   });
 
   test('Admin approves verification', async () => {
-<<<<<<< HEAD
-    const res = await request(app)
-=======
     const res = await request(testApp)
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
       .put(`/api/admin/verifications/${doctorId}/approve`)
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ notes: 'Documents verified successfully' });
@@ -207,11 +152,7 @@ describe('Doctor Verification Workflow', () => {
   });
 
   test('Doctor checks verification status', async () => {
-<<<<<<< HEAD
-    const res = await request(app)
-=======
     const res = await request(testApp)
->>>>>>> a67abca257d39517a26d636c680d417d5adda03f
       .get('/api/doctors/verification-status')
       .set('Authorization', `Bearer ${doctorToken}`);
 

@@ -2,6 +2,30 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import Appointment from '../appointments/appointment.model.js';
 
+// In-memory waiting room presence tracking (ephemeral)
+// Structure: Map<appointmentId, { patient: { lastSeen:number }, doctor: { lastSeen:number } }>
+const waitingRoomPresence = new Map();
+const PRESENCE_TIMEOUT_MS = 30000; // consider present if pinged within last 30s
+function updatePresence(appointmentId, roleKey) {
+  if (!appointmentId || !roleKey) return;
+  const entry = waitingRoomPresence.get(appointmentId) || { patient: { lastSeen: 0 }, doctor: { lastSeen: 0 } };
+  entry[roleKey].lastSeen = Date.now();
+  waitingRoomPresence.set(appointmentId, entry);
+}
+function getPresence(appointmentId) {
+  const entry = waitingRoomPresence.get(appointmentId) || { patient: { lastSeen: 0 }, doctor: { lastSeen: 0 } };
+  const now = Date.now();
+  const doctorPresent = (now - entry.doctor.lastSeen) <= PRESENCE_TIMEOUT_MS;
+  const patientPresent = (now - entry.patient.lastSeen) <= PRESENCE_TIMEOUT_MS;
+  return {
+    doctorPresent,
+    patientPresent,
+    doctorLastSeen: entry.doctor.lastSeen || null,
+    patientLastSeen: entry.patient.lastSeen || null,
+    participantsPresent: [doctorPresent, patientPresent].filter(Boolean).length
+  };
+}
+
 // Generate secure video call room and tokens
 export const createVideoCallRoom = async (req, res) => {
   try {
@@ -33,24 +57,35 @@ export const createVideoCallRoom = async (req, res) => {
       });
     }
 
-    // Check appointment status and timing
+    // Compute precise start time including separate HH:MM field
     const now = new Date();
     const appointmentTime = new Date(appointment.date);
-    const timeDifference = Math.abs(appointmentTime - now) / (1000 * 60); // minutes
-
-    // Allow joining 15 minutes before or up to 60 minutes after appointment time
-    if (timeDifference > 15 && appointmentTime > now) {
-      return res.status(400).json({
-        success: false,
-        message: 'Video call not available yet. Please join closer to appointment time.'
-      });
+    if (appointment.time && /^\d{2}:\d{2}$/.test(appointment.time)) {
+      const [hh, mm] = appointment.time.split(':').map(Number);
+      appointmentTime.setHours(hh, mm, 0, 0);
     }
 
-    if (timeDifference > 60 && appointmentTime < now) {
-      return res.status(400).json({
-        success: false,
-        message: 'Video call session has expired.'
-      });
+    // Determine early join override (doctor/admin enabling early access)
+    const earlyJoinActive = appointment.earlyJoinEnabled && (!appointment.earlyJoinVisibleAt || now >= appointment.earlyJoinVisibleAt);
+    const earlyOverride = (isDoctor || isAdmin) && earlyJoinActive;
+
+    // Timing constraints (standard window: 15 min before to 60 min after). Allow doctor/admin override if earlyOverride.
+    if (appointmentTime > now) {
+      const minutesUntil = (appointmentTime.getTime() - now.getTime()) / 60000;
+      if (minutesUntil > 15 && !earlyOverride) {
+        return res.status(400).json({
+          success: false,
+          message: 'Video call not available yet. Please join closer to appointment time.'
+        });
+      }
+    } else {
+      const minutesSinceStart = (now.getTime() - appointmentTime.getTime()) / 60000;
+      if (minutesSinceStart > 60) {
+        return res.status(400).json({
+          success: false,
+          message: 'Video call session has expired.'
+        });
+      }
     }
 
     // Generate room ID and tokens
@@ -320,5 +355,86 @@ export const testVideoCallConnection = async (req, res) => {
       message: 'Failed to test connection',
       error: error.message
     });
+  }
+};
+
+// Waiting room: ensures meetingUrl exists and returns join readiness
+export const getWaitingRoomInfo = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const userId = req.user.id;
+    const appointment = await Appointment.findById(appointmentId)
+      .populate('patient', 'firstName lastName email')
+      .populate('doctor', 'firstName lastName email specialization');
+    if (!appointment) {
+      return res.status(404).json({ success:false, message:'Appointment not found' });
+    }
+    const isPatient = appointment.patient._id.toString() === userId;
+    const isDoctor = appointment.doctor._id.toString() === userId;
+    const isAdmin = req.user.role === 'admin';
+    if (!isPatient && !isDoctor && !isAdmin) {
+      return res.status(403).json({ success:false, message:'Not authorized' });
+    }
+    // Ensure a stable meetingUrl (persisted) – use existing or generate deterministic base + appointment id
+    if (!appointment.meetingUrl) {
+      const base = process.env.MEETING_BASE_URL || 'https://meet.telemedicine.com/room';
+      appointment.meetingUrl = `${base}/${appointment._id}`;
+      await appointment.save();
+    }
+    const now = new Date();
+    const start = new Date(appointment.date);
+    const duration = appointment.duration || 30;
+    const end = new Date(start.getTime() + duration * 60000);
+    const minutesUntil = Math.floor((start.getTime() - now.getTime()) / 60000);
+    const minutesSinceStart = Math.floor((now.getTime() - start.getTime()) / 60000);
+    // Determine if early join override applies
+    let earlyOverride = false;
+    if (appointment.earlyJoinEnabled) {
+      // If a specific visibleAt provided, require now >= visibleAt; otherwise allow any time doctor enabled
+      if (appointment.earlyJoinVisibleAt) {
+        earlyOverride = now >= new Date(appointment.earlyJoinVisibleAt);
+      } else {
+        // Fallback: allow up to 4 hours early maximum to avoid indefinite exposure
+        const fourHoursMs = 4 * 60 * 60000;
+        if (start.getTime() - now.getTime() <= fourHoursMs) earlyOverride = true;
+      }
+    }
+    const joinWindowOpen = (minutesUntil <= 15 && minutesSinceStart < 90) || earlyOverride; // standard window OR early override
+    if (joinWindowOpen && appointment.status === 'scheduled' && now >= start) {
+      appointment.status = 'in-progress';
+      await appointment.save();
+    }
+  // Presence tracking (update who just pinged the waiting room)
+  if (isPatient) updatePresence(appointment._id.toString(), 'patient');
+  if (isDoctor) updatePresence(appointment._id.toString(), 'doctor');
+  const presence = getPresence(appointment._id.toString());
+    res.json({
+      success: true,
+      data: {
+        appointmentId: appointment._id,
+        meetingUrl: appointment.meetingUrl,
+        scheduledTime: appointment.date,
+        duration,
+        status: appointment.status,
+        joinAllowed: joinWindowOpen,
+        earlyJoin: {
+          enabled: !!appointment.earlyJoinEnabled,
+            visibleAt: appointment.earlyJoinVisibleAt,
+            note: appointment.earlyJoinNote || null,
+            overrideActive: earlyOverride
+        },
+    presence,
+        startsInMinutes: minutesUntil,
+        sinceStartMinutes: minutesSinceStart,
+        endsAt: end,
+        participants: {
+          patient: { id: appointment.patient._id, name: `${appointment.patient.firstName} ${appointment.patient.lastName}` },
+          doctor: { id: appointment.doctor._id, name: `Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName}` }
+        }
+      }
+    });
+  } catch (error) {
+    console.log('Error in waiting room info:', error);
+    res.status(500).json({ success:false, message:'Failed to get waiting room info', error: error.message });
   }
 };

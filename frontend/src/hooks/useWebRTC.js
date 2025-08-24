@@ -22,7 +22,9 @@ const useWebRTC = (roomId, userToken, appointmentId) => {
   useEffect(() => {
     if (!roomId || !userToken) return;
 
-    const socketInstance = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000', {
+    const base = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    const socketInstance = io(base, {
+      path: '/webrtc',
       auth: { token: userToken },
       transports: ['websocket']
     });
@@ -280,68 +282,77 @@ const useWebRTC = (roomId, userToken, appointmentId) => {
     }
   }, [socket, roomId, isAudioEnabled]);
 
-  // Screen sharing
+  // Helper to switch peer tracks
+  const _replaceVideoTrackOnPeers = (newTrack) => {
+    peersRef.current.forEach(peer => {
+      try {
+        const existingStream = peer.streams[0];
+        if (existingStream && existingStream.getVideoTracks()[0]) {
+          peer.replaceTrack(
+            existingStream.getVideoTracks()[0],
+            newTrack,
+            existingStream
+          );
+        }
+      } catch (e) {
+        console.log('Failed to replace track on a peer', e);
+      }
+    });
+  };
+
+  // Stop screen share & revert to camera
+  const stopScreenShare = useCallback(async () => {
+    try {
+      const camStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+      // Stop old screen tracks
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(t => t.stop());
+      }
+      setLocalStream(camStream);
+      localStreamRef.current = camStream;
+      const camTrack = camStream.getVideoTracks()[0];
+      if (camTrack) _replaceVideoTrackOnPeers(camTrack);
+      setIsScreenSharing(false);
+      socket?.emit('screen-share', { roomId, enabled: false });
+    } catch (e) {
+      setError('Failed to restore camera after screen sharing');
+    }
+  }, [roomId, socket]);
+
+  // Screen sharing toggle
   const toggleScreenShare = useCallback(async () => {
     if (isScreenSharing) {
-      // Stop screen sharing, return to camera
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        });
-        
-        setLocalStream(stream);
-        localStreamRef.current = stream;
-        
-        // Update all peer connections with new stream
-        peersRef.current.forEach(peer => {
-          peer.replaceTrack(
-            peer.streams[0].getVideoTracks()[0],
-            stream.getVideoTracks()[0],
-            peer.streams[0]
-          );
-        });
-        
-        setIsScreenSharing(false);
-      } catch (error) {
-        setError('Failed to stop screen sharing');
-      }
-    } else {
-      // Start screen sharing
-      try {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true
-        });
-        
-        setLocalStream(screenStream);
-        localStreamRef.current = screenStream;
-        
-        // Update all peer connections with screen stream
-        peersRef.current.forEach(peer => {
-          peer.replaceTrack(
-            peer.streams[0].getVideoTracks()[0],
-            screenStream.getVideoTracks()[0],
-            peer.streams[0]
-          );
-        });
-        
-        setIsScreenSharing(true);
-        
-        // Listen for screen share end
-        screenStream.getVideoTracks()[0].onended = () => {
-          toggleScreenShare(); // This will switch back to camera
-        };
-      } catch (error) {
-        setError('Failed to start screen sharing');
-      }
+      return stopScreenShare();
     }
-    
-    socket?.emit('screen-share', {
-      roomId,
-      enabled: !isScreenSharing
-    });
-  }, [socket, roomId, isScreenSharing, toggleScreenShare]);
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true
+      });
+      // Stop previous local tracks
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(t => t.stop());
+      }
+      setLocalStream(screenStream);
+      localStreamRef.current = screenStream;
+      const screenTrack = screenStream.getVideoTracks()[0];
+      if (screenTrack) _replaceVideoTrackOnPeers(screenTrack);
+      setIsScreenSharing(true);
+      socket?.emit('screen-share', { roomId, enabled: true });
+      // When user stops sharing via browser UI
+      if (screenTrack) {
+        screenTrack.onended = () => {
+          // Use dedicated stop function (no recursion / stale state)
+            stopScreenShare();
+        };
+      }
+    } catch (e) {
+      setError('Failed to start screen sharing');
+    }
+  }, [isScreenSharing, roomId, socket, stopScreenShare]);
 
   // Send chat message
   const sendChatMessage = useCallback((message) => {

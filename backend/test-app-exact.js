@@ -21,9 +21,7 @@ const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:5000',
-  'https://scaling-xylophone-r4677j9j947g3594j-5173.app.github.dev',
-  'https://stunning-journey-wv5pxxvw49xh565g-5173.app.github.dev',
+  'http://localhost:8081',
   // Add pattern for any Codespace URL
   /^https:\/\/[a-z0-9-]+-5173\.app\.github\.dev$/
 ];

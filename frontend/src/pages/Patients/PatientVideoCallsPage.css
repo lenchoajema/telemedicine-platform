@@ -184,6 +184,78 @@
   gap: 8px;
 }
 
+/* Early access enhancements */
+.early-badge {
+  margin-left: 8px;
+  background: linear-gradient(135deg,#fcd34d,#f59e0b);
+  color:#1f2937;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:0.65rem;
+  font-weight:600;
+  letter-spacing:.5px;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  box-shadow:0 1px 2px rgba(0,0,0,.12);
+  position:relative;
+  cursor:help;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.early-badge::before {
+  content:'';
+  width:6px; height:6px;
+  background:#fbbf24;
+  border-radius:50%;
+  box-shadow:0 0 0 4px rgba(251,191,36,.35);
+  animation:pulseDot 1.8s infinite ease-in-out;
+}
+.early-badge:hover { transform:translateY(-2px); box-shadow:0 4px 10px -2px rgba(0,0,0,.18); }
+
+.early-note {
+  background:#fffbeb;
+  border:1px solid #fcd34d;
+  padding:6px 10px;
+  border-radius:6px;
+  font-size:0.75rem;
+  color:#92400e;
+  position:relative;
+  margin-top:6px;
+  line-height:1.2;
+}
+.early-note:before {
+  content:'🕒';
+  margin-right:4px;
+}
+
+.btn-waiting-room {
+  padding:8px 16px;
+  border:none;
+  border-radius:6px;
+  background:#2563eb;
+  color:#fff;
+  font-weight:500;
+  font-size:0.875rem;
+  cursor:pointer;
+  flex:1;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  position:relative;
+  transition:background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.btn-waiting-room:hover:not(.disabled) { background:#1d4ed8; box-shadow:0 4px 10px -3px rgba(29,78,216,.35); }
+.btn-waiting-room:active:not(.disabled) { transform:translateY(1px); }
+.btn-waiting-room.disabled { background:#cbd5e1; color:#64748b; cursor:not-allowed; box-shadow:none; }
+
+/* Early pending animation */
+.btn-waiting-room.disabled.early-pending { background:repeating-linear-gradient(45deg,#e2e8f0,#e2e8f0 10px,#f1f5f9 10px,#f1f5f9 20px); position:relative; }
+.btn-waiting-room.disabled.early-pending::after { content:'⏳'; position:absolute; right:8px; animation:spin 2s linear infinite; }
+
+@keyframes pulseDot { 0%,100% { transform:scale(.9); opacity:.7;} 50% { transform:scale(1.35); opacity:1; } }
+@keyframes spin { from { transform:rotate(0deg);} to { transform:rotate(360deg);} }
+
 .btn-join, .btn-reschedule {
   padding: 8px 16px;
   border: none;

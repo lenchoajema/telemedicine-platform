@@ -3,7 +3,8 @@ import {
   createVideoCallRoom, 
   endVideoCallSession, 
   getVideoCallSession,
-  testVideoCallConnection 
+  testVideoCallConnection,
+  getWaitingRoomInfo
 } from './video-call.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
 
@@ -17,6 +18,9 @@ router.post('/appointment/:appointmentId/room', createVideoCallRoom);
 
 // Get video call session details
 router.get('/appointment/:appointmentId/session', getVideoCallSession);
+
+// Waiting room info (stable meeting link & join window)
+router.get('/appointment/:appointmentId/waiting-room', getWaitingRoomInfo);
 
 // End video call session
 router.post('/appointment/:appointmentId/end', endVideoCallSession);

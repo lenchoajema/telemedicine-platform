@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContextCore';
-import apiClient from '../../api/apiClient';
-import './DoctorPages.css';
+import { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNotifications } from "../../contexts/NotificationContextCore";
+import apiClient from "../../api/apiClient";
+import "./DoctorPages.css";
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
@@ -11,10 +11,10 @@ export default function AnalyticsPage() {
     overview: {},
     appointments: {},
     patients: {},
-    revenue: {}
+    revenue: {},
   });
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('30'); // days
+  const [timeRange, setTimeRange] = useState("30"); // days
 
   useEffect(() => {
     fetchAnalytics();
@@ -23,56 +23,83 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      
-      // Fetch various analytics data
+
       const [statsResponse, appointmentsResponse] = await Promise.all([
-        apiClient.get('/doctors/stats'),
-        apiClient.get('/appointments')
+        apiClient.get("/doctors/stats"),
+        apiClient.get("/appointments"),
       ]);
 
-      const stats = statsResponse.data || {};
-      const appointments = appointmentsResponse.data || [];
-      
-      // Calculate analytics based on appointments data
+      // CORRECTED: Safely parse the stats data
+      let stats = {};
+      if (statsResponse.data && statsResponse.data.data) {
+        stats = statsResponse.data.data;
+      } else if (statsResponse.data) {
+        stats = statsResponse.data;
+      }
+
+      // CORRECTED: Safely parse the appointments array
+      let appointments = [];
+      if (
+        appointmentsResponse.data &&
+        appointmentsResponse.data.data &&
+        Array.isArray(appointmentsResponse.data.data.appointments)
+      ) {
+        appointments = appointmentsResponse.data.data.appointments;
+      } else if (
+        appointmentsResponse.data &&
+        Array.isArray(appointmentsResponse.data.data)
+      ) {
+        appointments = appointmentsResponse.data.data;
+      } else if (Array.isArray(appointmentsResponse.data)) {
+        appointments = appointmentsResponse.data;
+      }
+
+      // All the calculation logic below should now work correctly
       const now = new Date();
-      const daysAgo = new Date(now.getTime() - parseInt(timeRange) * 24 * 60 * 60 * 1000);
-      
-      const filteredAppointments = appointments.filter(apt => 
-        new Date(apt.date) >= daysAgo
+      const daysAgo = new Date(
+        now.getTime() - parseInt(timeRange) * 24 * 60 * 60 * 1000
       );
 
-      const completedAppointments = filteredAppointments.filter(apt => 
-        apt.status === 'completed'
+      const filteredAppointments = appointments.filter(
+        (apt) => new Date(apt.date || apt.startTime) >= daysAgo
       );
 
-      const cancelledAppointments = filteredAppointments.filter(apt => 
-        apt.status === 'cancelled'
+      const completedAppointments = filteredAppointments.filter(
+        (apt) => apt.status === "completed"
       );
 
-      // Calculate daily appointment counts for chart
+      const cancelledAppointments = filteredAppointments.filter(
+        (apt) => apt.status === "cancelled"
+      );
+
       const dailyCounts = {};
       for (let i = parseInt(timeRange); i >= 0; i--) {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        const dateKey = date.toISOString().split('T')[0];
+        const dateKey = date.toISOString().split("T")[0];
         dailyCounts[dateKey] = 0;
       }
 
-      completedAppointments.forEach(apt => {
-        const dateKey = new Date(apt.date).toISOString().split('T')[0];
+      completedAppointments.forEach((apt) => {
+        const dateKey = new Date(apt.date || apt.startTime)
+          .toISOString()
+          .split("T")[0];
         if (dailyCounts.hasOwnProperty(dateKey)) {
           dailyCounts[dateKey]++;
         }
       });
 
-      // Unique patients
       const uniquePatients = new Set(
-        completedAppointments.map(apt => apt.patient?._id || apt.patientId)
+        completedAppointments.map((apt) => apt.patient?._id || apt.patientId)
       ).size;
 
-      // Average rating calculation
-      const ratingsSum = completedAppointments.reduce((sum, apt) => sum + (apt.rating || 0), 0);
-      const avgRating = completedAppointments.length > 0 ? 
-        (ratingsSum / completedAppointments.length).toFixed(1) : 0;
+      const ratingsSum = completedAppointments.reduce(
+        (sum, apt) => sum + (apt.rating || 0),
+        0
+      );
+      const avgRating =
+        completedAppointments.length > 0
+          ? (ratingsSum / completedAppointments.length).toFixed(1)
+          : 0;
 
       setAnalytics({
         overview: {
@@ -81,31 +108,41 @@ export default function AnalyticsPage() {
           cancelledAppointments: cancelledAppointments.length,
           uniquePatients,
           averageRating: avgRating,
-          completionRate: filteredAppointments.length > 0 ? 
-            Math.round((completedAppointments.length / filteredAppointments.length) * 100) : 0
+          completionRate:
+            filteredAppointments.length > 0
+              ? Math.round(
+                  (completedAppointments.length / filteredAppointments.length) *
+                    100
+                )
+              : 0,
         },
         appointments: {
           daily: dailyCounts,
           byStatus: {
             completed: completedAppointments.length,
             cancelled: cancelledAppointments.length,
-            scheduled: filteredAppointments.filter(apt => apt.status === 'scheduled').length
-          }
+            scheduled: filteredAppointments.filter(
+              (apt) => apt.status === "scheduled"
+            ).length,
+          },
         },
         patients: {
           new: uniquePatients,
-          returning: Math.max(0, completedAppointments.length - uniquePatients)
+          returning: Math.max(0, completedAppointments.length - uniquePatients),
         },
         revenue: {
           total: completedAppointments.length * 50, // Assuming $50 per appointment
           average: 50,
-          projected: (completedAppointments.length * 50) + (filteredAppointments.filter(apt => apt.status === 'scheduled').length * 50)
-        }
+          projected:
+            completedAppointments.length * 50 +
+            filteredAppointments.filter((apt) => apt.status === "scheduled")
+              .length *
+              50,
+        },
       });
-
     } catch (error) {
-      console.error('Error fetching analytics:', error);
-      addNotification('Failed to load analytics data', 'error');
+      console.error("Error fetching analytics:", error);
+      addNotification("Failed to load analytics data", "error");
     } finally {
       setLoading(false);
     }
@@ -113,7 +150,7 @@ export default function AnalyticsPage() {
 
   const getChartData = () => {
     const dates = Object.keys(analytics.appointments.daily || {}).sort();
-    const values = dates.map(date => analytics.appointments.daily[date]);
+    const values = dates.map((date) => analytics.appointments.daily[date]);
     return { dates, values };
   };
 
@@ -128,14 +165,23 @@ export default function AnalyticsPage() {
 
   const chartData = getChartData();
 
+  // Ensure analytics.overview and other properties are not undefined before rendering
+  if (!analytics.overview || !analytics.appointments.byStatus) {
+    return (
+      <div className="doctor-page">
+        <p>Analytics data is being processed...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="doctor-page">
       <div className="page-header">
         <h1>Analytics Dashboard</h1>
         <div className="time-filter">
           <label>Time Range:</label>
-          <select 
-            value={timeRange} 
+          <select
+            value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
           >
             <option value="7">Last 7 days</option>
@@ -146,7 +192,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Overview Stats */}
       <div className="analytics-overview">
         <div className="stat-card">
           <div className="stat-icon">📅</div>
@@ -197,7 +242,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Charts Section */}
       <div className="analytics-charts">
         <div className="chart-section">
           <h2>Appointments Over Time</h2>
@@ -205,17 +249,16 @@ export default function AnalyticsPage() {
             <div className="chart-container">
               {chartData.dates.map((date, index) => (
                 <div key={date} className="chart-bar">
-                  <div 
-                    className="bar" 
-                    style={{ 
+                  <div
+                    className="bar"
+                    style={{
                       height: `${Math.max(chartData.values[index] * 20, 5)}px`,
-                      backgroundColor: chartData.values[index] > 0 ? '#2563eb' : '#e5e7eb'
+                      backgroundColor:
+                        chartData.values[index] > 0 ? "#2563eb" : "#e5e7eb",
                     }}
                     title={`${date}: ${chartData.values[index]} appointments`}
                   ></div>
-                  <div className="bar-label">
-                    {new Date(date).getDate()}
-                  </div>
+                  <div className="bar-label">{new Date(date).getDate()}</div>
                 </div>
               ))}
             </div>
@@ -226,28 +269,54 @@ export default function AnalyticsPage() {
           <h2>Appointment Status Distribution</h2>
           <div className="status-distribution">
             <div className="status-item">
-              <div className="status-bar completed" 
-                   style={{ width: `${(analytics.appointments.byStatus.completed / analytics.overview.totalAppointments) * 100}%` }}>
-              </div>
-              <span>Completed ({analytics.appointments.byStatus.completed})</span>
+              <div
+                className="status-bar completed"
+                style={{
+                  width: `${
+                    (analytics.appointments.byStatus.completed /
+                      (analytics.overview.totalAppointments || 1)) *
+                    100
+                  }%`,
+                }}
+              ></div>
+              <span>
+                Completed ({analytics.appointments.byStatus.completed})
+              </span>
             </div>
             <div className="status-item">
-              <div className="status-bar scheduled" 
-                   style={{ width: `${(analytics.appointments.byStatus.scheduled / analytics.overview.totalAppointments) * 100}%` }}>
-              </div>
-              <span>Scheduled ({analytics.appointments.byStatus.scheduled})</span>
+              <div
+                className="status-bar scheduled"
+                style={{
+                  width: `${
+                    (analytics.appointments.byStatus.scheduled /
+                      (analytics.overview.totalAppointments || 1)) *
+                    100
+                  }%`,
+                }}
+              ></div>
+              <span>
+                Scheduled ({analytics.appointments.byStatus.scheduled})
+              </span>
             </div>
             <div className="status-item">
-              <div className="status-bar cancelled" 
-                   style={{ width: `${(analytics.appointments.byStatus.cancelled / analytics.overview.totalAppointments) * 100}%` }}>
-              </div>
-              <span>Cancelled ({analytics.appointments.byStatus.cancelled})</span>
+              <div
+                className="status-bar cancelled"
+                style={{
+                  width: `${
+                    (analytics.appointments.byStatus.cancelled /
+                      (analytics.overview.totalAppointments || 1)) *
+                    100
+                  }%`,
+                }}
+              ></div>
+              <span>
+                Cancelled ({analytics.appointments.byStatus.cancelled})
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Detailed Analytics */}
       <div className="analytics-details">
         <div className="detail-section">
           <h2>Patient Analytics</h2>
@@ -263,8 +332,13 @@ export default function AnalyticsPage() {
             <div className="detail-item">
               <span className="label">Patient Retention:</span>
               <span className="value">
-                {analytics.patients.new > 0 ? 
-                  Math.round((analytics.patients.returning / analytics.patients.new) * 100) : 0}%
+                {analytics.patients.new > 0
+                  ? Math.round(
+                      (analytics.patients.returning / analytics.patients.new) *
+                        100
+                    )
+                  : 0}
+                %
               </span>
             </div>
           </div>
@@ -289,14 +363,16 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Insights */}
       <div className="analytics-insights">
         <h2>Key Insights</h2>
         <div className="insights-list">
           {analytics.overview.completionRate > 90 && (
             <div className="insight-item positive">
               <span className="insight-icon">🎉</span>
-              <p>Excellent completion rate! You're maintaining high patient satisfaction.</p>
+              <p>
+                Excellent completion rate! You're maintaining high patient
+                satisfaction.
+              </p>
             </div>
           )}
           {analytics.overview.averageRating >= 4.5 && (
@@ -308,13 +384,20 @@ export default function AnalyticsPage() {
           {analytics.patients.returning > analytics.patients.new && (
             <div className="insight-item positive">
               <span className="insight-icon">🔄</span>
-              <p>High patient retention rate indicates strong trust and satisfaction.</p>
+              <p>
+                High patient retention rate indicates strong trust and
+                satisfaction.
+              </p>
             </div>
           )}
-          {analytics.overview.cancelledAppointments > analytics.overview.completedAppointments * 0.2 && (
+          {analytics.overview.cancelledAppointments >
+            analytics.overview.completedAppointments * 0.2 && (
             <div className="insight-item warning">
               <span className="insight-icon">⚠️</span>
-              <p>Consider reviewing cancellation patterns to improve appointment scheduling.</p>
+              <p>
+                Consider reviewing cancellation patterns to improve appointment
+                scheduling.
+              </p>
             </div>
           )}
         </div>

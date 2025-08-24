@@ -1,32 +1,38 @@
-import { Fragment, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { 
-  Bars3Icon, 
-  XMarkIcon, 
-  BellIcon,
+import { Fragment, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  Bars3Icon,
+  XMarkIcon,
   UserIcon,
   Cog6ToothIcon,
-  ArrowRightOnRectangleIcon
-} from '@heroicons/react/24/outline';
-import './Header.css';
+  ArrowRightOnRectangleIcon,
+} from "@heroicons/react/24/outline";
+import RemindersDropdown from "./RemindersDropdown";
+import ThemeToggle from "../shared/ThemeToggle";
+import LanguageSwitcher from "../shared/LanguageSwitcher";
+import "./Header.css";
+import { useI18n } from "../../contexts/I18nContext.jsx";
 
 export default function Header({ sidebarOpen, setSidebarOpen }) {
+  const { t } = useTranslation("common");
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { locale, locales, setLocale } = useI18n();
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'About', href: '/about' },
-    { name: 'Services', href: '/services' },
-    { name: 'Contact', href: '/contact' },
+    { name: t("nav.home", "Home"), href: "/" },
+    { name: t("nav.about", "About"), href: "/about" },
+    { name: t("nav.services", "Services"), href: "/services" },
+    { name: t("nav.contact", "Contact"), href: "/contact" },
   ];
 
   return (
@@ -62,11 +68,7 @@ export default function Header({ sidebarOpen, setSidebarOpen }) {
           {!user && (
             <nav className="header-nav">
               {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className="nav-link"
-                >
+                <Link key={item.name} to={item.href} className="nav-link">
                   {item.name}
                 </Link>
               ))}
@@ -75,13 +77,16 @@ export default function Header({ sidebarOpen, setSidebarOpen }) {
 
           {/* Right side - Auth buttons or user menu */}
           <div className="header-right">
+            {/* Language selector */}
+            <LanguageSwitcher className="lang-switcher" />
             {user ? (
               <>
-                {/* Notifications */}
-                <button type="button" className="notification-btn">
-                  <span className="sr-only">View notifications</span>
-                  <BellIcon className="notification-icon" aria-hidden="true" />
-                </button>
+                {/* Reminders Dropdown */}
+                <RemindersDropdown />
+
+                {/* Theme toggle (compact icon) */}
+                <ThemeToggle variant="icon" />
+                {/* Language switcher (duplicate removed; we now render once above) */}
 
                 {/* User menu */}
                 <div className="user-menu">
@@ -99,7 +104,10 @@ export default function Header({ sidebarOpen, setSidebarOpen }) {
                           alt=""
                         />
                       ) : (
-                        <UserIcon className="user-avatar-icon" aria-hidden="true" />
+                        <UserIcon
+                          className="user-avatar-icon"
+                          aria-hidden="true"
+                        />
                       )}
                     </div>
                   </button>
@@ -107,22 +115,27 @@ export default function Header({ sidebarOpen, setSidebarOpen }) {
                   {userMenuOpen && (
                     <div className="user-menu-dropdown">
                       <div className="user-info">
-                        <p className="user-name">{user.profile?.firstName} {user.profile?.lastName}</p>
+                        <p className="user-name">
+                          {user.profile?.firstName} {user.profile?.lastName}
+                        </p>
                         <p className="user-email">{user.email}</p>
                       </div>
                       <div className="menu-divider"></div>
                       <Link to="/profile" className="menu-item">
                         <UserIcon className="menu-icon" />
-                        Profile
+                        {t("nav.profile", "Profile")}
                       </Link>
                       <Link to="/settings" className="menu-item">
                         <Cog6ToothIcon className="menu-icon" />
-                        Settings
+                        {t("nav.settings", "Settings")}
                       </Link>
                       <div className="menu-divider"></div>
-                      <button onClick={handleLogout} className="menu-item menu-item-logout">
+                      <button
+                        onClick={handleLogout}
+                        className="menu-item menu-item-logout"
+                      >
                         <ArrowRightOnRectangleIcon className="menu-icon" />
-                        Sign out
+                        {t("actions.signOut", "Sign out")}
                       </button>
                     </div>
                   )}
@@ -131,11 +144,12 @@ export default function Header({ sidebarOpen, setSidebarOpen }) {
             ) : (
               <div className="auth-buttons">
                 <Link to="/login" className="btn btn-secondary">
-                  Sign in
+                  {t("actions.signIn", "Sign in")}
                 </Link>
                 <Link to="/register" className="btn btn-primary">
-                  Get Started
+                  {t("actions.getStarted", "Get Started")}
                 </Link>
+                <LanguageSwitcher className="lang-switcher" />
               </div>
             )}
           </div>

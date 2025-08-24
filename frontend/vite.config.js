@@ -33,7 +33,18 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+          if (id.includes('/src/pages/Admin/')) {
+            return 'admin';
+          }
+          if (id.includes('/src/pages/Analytics/')) {
+            return 'analytics';
+          }
+          // Add more feature splits as needed
+        },
       },
     },
   }

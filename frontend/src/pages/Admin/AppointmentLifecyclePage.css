@@ -1,0 +1,33 @@
+.lifecycle-page {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.lifecycle-header table,
+.lifecycle-events {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+
+.lifecycle-header th,
+.lifecycle-header td,
+.lifecycle-events th,
+.lifecycle-events td {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.lifecycle-header th {
+  background-color: #f8f9fa;
+}
+
+.lifecycle-events th {
+  background-color: #f1f3f5;
+}
+
+.lifecycle-events tr:nth-child(even) {
+  background-color: #fafafa;
+}

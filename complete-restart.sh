@@ -41,3 +41,11 @@ echo ""
 
 # Start Expo
 npx expo start --web --port 19007 --clear --offline
+
+echo "✅ All services are up and running."
+echo "---"
+echo "🔗 URLs:"
+echo "  - 🌐 Frontend: http://localhost:5173"
+echo "  - ⚙️  Backend: http://localhost:5000"
+echo "  - 📦 MongoDB: mongodb://localhost:27017"
+echo "---"

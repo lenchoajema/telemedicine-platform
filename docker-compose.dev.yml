@@ -1,20 +1,8 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  mongodb:
-    image: mongo:7.0
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_DATABASE: telemedicine
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - app-network
-
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
@@ -22,12 +10,10 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=5000
-      - MONGO_URI=mongodb://mongodb:27017/telemedicine
+      - MONGO_URI=mongodb+srv://lenchoajema:[password]@cluster0.teaih.mongodb.net/telemedicine_test?retryWrites=true&w=majority
       - JWT_SECRET=your_secure_jwt_secret_key_12345
-      - USE_API_ROUTES=true
-      - FRONTEND_URL=https://stunning-journey-wv5pxxvw49xh565g-5173.app.github.dev
-    depends_on:
-      - mongodb
+      - LOG_ROUTES=false
+      - FRONTEND_URL=http://localhost:5173
     networks:
       - app-network
     volumes:
@@ -42,7 +28,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=https://stunning-journey-wv5pxxvw49xh565g-5000.app.github.dev
+      - VITE_API_URL=http://localhost:5000
     networks:
       - app-network
     volumes:

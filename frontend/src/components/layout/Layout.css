@@ -178,3 +178,11 @@
     padding-bottom: 1rem;
   }
 }
+
+/* RTL and locale-specific helpers */
+body.rtl {
+  direction: rtl;
+}
+body.ethiopic {
+  font-family: 'Noto Sans Ethiopic', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}

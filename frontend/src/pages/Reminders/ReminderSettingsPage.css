@@ -1,0 +1,103 @@
+/* Styles for the Reminder Settings Page */
+.reminder-settings-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+.reminder-settings-page h1 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+.reminder-settings-page section {
+  margin-bottom: 2rem;
+}
+.reminder-settings-page section h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+  color: #444;
+}
+.appointments-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+.appointments-list li {
+  background: #f9f9f9;
+  padding: 0.75rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+.appointments-list label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.appointments-list input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+.channels-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.channels-list label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background: #eef;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.channels-list input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+.channels-list input:checked + span {
+  font-weight: bold;
+}
+.time-field {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.time-field input[type="datetime-local"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.time-field button {
+  margin-left: 0.5rem;
+}
+.btn-primary {
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+.btn-secondary {
+  background-color: #6c757d;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+.form-actions {
+  text-align: right;
+}

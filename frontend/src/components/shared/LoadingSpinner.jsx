@@ -1,28 +1,26 @@
-import './LoadingSpinner.css';
+import "./LoadingSpinner.css";
 
 export default function LoadingSpinner({
-  size = 'medium',
-  color = 'primary',
+  size = "medium",
+  color = "primary",
   fullPage = false,
-  className = ''
+  className = "",
 }) {
-  const sizeClasses = {
-    small: 'h-5 w-5 border-2',
-    medium: 'h-8 w-8 border-3',
-    large: 'h-12 w-12 border-4'
-  };
-
-  const colorClasses = {
-    primary: 'border-t-blue-500',
-    secondary: 'border-t-purple-500',
-    white: 'border-t-white',
-    dark: 'border-t-gray-800'
-  };
+  // Construct the className string based on props
+  const spinnerClassName = `
+    loading-spinner 
+    ${size} 
+    ${color}
+  `;
 
   return (
-    <div className={`loading-spinner-container ${fullPage ? 'full-page' : ''} ${className}`}>
-      <div 
-        className={`loading-spinner ${sizeClasses[size]} ${colorClasses[color]}`}
+    <div
+      className={`loading-spinner-container ${
+        fullPage ? "full-page" : ""
+      } ${className}`}
+    >
+      <div
+        className={spinnerClassName.trim()}
         aria-label="Loading"
         role="status"
       />

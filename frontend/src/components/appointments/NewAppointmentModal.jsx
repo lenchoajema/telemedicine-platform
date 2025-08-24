@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { formatDate } from "../../utils/dateUtils";
 import AppointmentService from "../../api/AppointmentService";
+import { useAuth } from "../../contexts/AuthContext";
 
-export default function NewAppointmentModal({ 
-  onClose, 
-  onCreate, 
+export default function NewAppointmentModal({
+  onClose,
+  onCreate,
   availableSlots = [],
-  selectedDate 
+  selectedDate,
 }) {
+  const { user } = useAuth();
   const [doctors, setDoctors] = useState([]);
   const [dynamicSlots, setDynamicSlots] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -18,14 +20,23 @@ export default function NewAppointmentModal({
     slot: "",
     reason: "",
     symptoms: "",
-    duration: 30
+    duration: 30,
   });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/doctors`);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/doctors`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         if (!response.ok) throw new Error("Failed to fetch doctors");
         const data = await response.json();
         const doctorsArray = data.data || data;
@@ -46,7 +57,10 @@ export default function NewAppointmentModal({
       if (formData.doctorId && selectedDate) {
         setFetchingSlots(true);
         try {
-          const slots = await AppointmentService.getAvailableSlots(selectedDate, formData.doctorId);
+          const slots = await AppointmentService.getAvailableSlots(
+            selectedDate,
+            formData.doctorId
+          );
           setDynamicSlots(slots);
         } catch (error) {
           console.error("Error fetching slots for doctor:", error);
@@ -64,11 +78,11 @@ export default function NewAppointmentModal({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // Reset slot selection when doctor changes
-    if (name === 'doctorId') {
-      setFormData(prev => ({ ...prev, slot: "" }));
+    if (name === "doctorId") {
+      setFormData((prev) => ({ ...prev, slot: "" }));
     }
   };
 
@@ -80,23 +94,54 @@ export default function NewAppointmentModal({
 
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/appointments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify({
-          doctorId: formData.doctorId,
-          date: new Date(formData.slot),
-          duration: formData.duration,
-          reason: formData.reason,
-          symptoms: formData.symptoms ? formData.symptoms.split(",").map(s => s.trim()) : []
-        })
-      });
+      // Upload document if provided
+      let docId;
+      if (selectedFile) {
+        setUploadingFile(true);
+        const uploadData = new FormData();
+        uploadData.append("file", selectedFile);
+        uploadData.append("patientId", user._id);
+        const upRes = await fetch(
+          `${import.meta.env.VITE_API_URL}/medical-documents/upload`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: uploadData,
+          }
+        );
+        if (upRes.ok) {
+          const json = await upRes.json();
+          docId = json.data?._id;
+        }
+        setUploadingFile(false);
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/appointments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            doctorId: formData.doctorId,
+            slotId: formData.slot,
+            duration: formData.duration,
+            reason: formData.reason,
+            caseDetails: formData.reason,
+            symptoms: formData.symptoms
+              ? formData.symptoms.split(",").map((s) => s.trim())
+              : [],
+            medicalDocumentId: docId,
+          }),
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to create appointment");
-      
+
       const appointment = await response.json();
       onCreate(appointment);
     } catch (error) {
@@ -115,38 +160,45 @@ export default function NewAppointmentModal({
       <div className="modal-content">
         <div className="modal-header">
           <h2>Schedule New Appointment</h2>
-          <button onClick={onClose} className="close-button">&times;</button>
+          <button onClick={onClose} className="close-button">
+            &times;
+          </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="appointment-form">
           <div className="form-group">
             <label>Select Doctor:</label>
-            <select 
-              name="doctorId" 
+            <select
+              name="doctorId"
               value={formData.doctorId}
               onChange={handleChange}
               required
             >
               <option value="">-- Select a doctor --</option>
-              {doctors.map(doctor => (
+              {doctors.map((doctor) => (
                 <option key={doctor._id} value={doctor._id}>
-                  Dr. {doctor.user?.profile?.fullName || `${doctor.user?.profile?.firstName || ''} ${doctor.user?.profile?.lastName || ''}`.trim()} - {doctor.specialization}
+                  Dr.{" "}
+                  {doctor.user?.profile?.fullName ||
+                    `${doctor.user?.profile?.firstName || ""} ${
+                      doctor.user?.profile?.lastName || ""
+                    }`.trim()}{" "}
+                  - {doctor.specialization}
                 </option>
               ))}
             </select>
           </div>
-          
+
           <div className="form-group">
             <label>Date:</label>
             <div className="selected-date">{formatDate(selectedDate)}</div>
           </div>
-          
+
           <div className="form-group">
             <label>Available Slots:</label>
             {fetchingSlots ? (
               <div className="loading-slots">Loading available slots...</div>
             ) : (
-              <select 
+              <select
                 name="slot"
                 value={formData.slot}
                 onChange={handleChange}
@@ -154,24 +206,26 @@ export default function NewAppointmentModal({
               >
                 <option value="">-- Select a time --</option>
                 {slotsArray.length > 0 ? (
-                  slotsArray.map((slot, index) => (
-                    <option key={index} value={slot}>
-                      {new Date(slot).toLocaleTimeString([], {hour: "2-digit", minute:"2-digit"})}
+                  slotsArray.map((slot) => (
+                    <option key={slot._id} value={slot._id}>
+                      {slot.startTime} - {slot.endTime}
                     </option>
                   ))
                 ) : (
                   <option value="" disabled>
-                    {formData.doctorId ? "No available slots for this doctor on selected date" : "Please select a doctor first"}
+                    {formData.doctorId
+                      ? "No available slots for this doctor on selected date"
+                      : "Please select a doctor first"}
                   </option>
                 )}
               </select>
             )}
           </div>
-          
+
           <div className="form-group">
             <label>Duration (minutes):</label>
-            <select 
-              name="duration" 
+            <select
+              name="duration"
               value={formData.duration}
               onChange={handleChange}
             >
@@ -181,7 +235,7 @@ export default function NewAppointmentModal({
               <option value={60}>60 min</option>
             </select>
           </div>
-          
+
           <div className="form-group">
             <label>Reason for Visit:</label>
             <input
@@ -193,7 +247,7 @@ export default function NewAppointmentModal({
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label>Symptoms (comma separated):</label>
             <textarea
@@ -204,16 +258,26 @@ export default function NewAppointmentModal({
               rows={3}
             ></textarea>
           </div>
-          
+          {/* Upload medical document */}
+          <div className="form-group">
+            <label>Upload Medical Document</label>
+            <input
+              type="file"
+              onChange={(e) => setSelectedFile(e.target.files[0] || null)}
+              disabled={uploadingFile}
+            />
+            {selectedFile && <p>Selected: {selectedFile.name}</p>}
+          </div>
+
           <div className="form-actions">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={onClose}
               className="btn btn-secondary"
             >
               Cancel
             </button>
-            <button 
+            <button
               type="submit"
               className="btn btn-primary"
               disabled={loading}

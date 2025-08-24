@@ -47,3 +47,15 @@ export const authorizeDoctorOrAdmin = (req, res, next) => {
   
   return res.status(403).json({ error: 'Unauthorized: Insufficient permissions' });
 };
+
+// Super admin middleware based on root admin email
+export const authorizeSuperAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  const rootEmail = process.env.ROOT_ADMIN_EMAIL || 'admin@telemedicine.com';
+  if (String(req.user.email).toLowerCase() !== String(rootEmail).toLowerCase()) {
+    return res.status(403).json({ error: 'Unauthorized: Super admin access required' });
+  }
+  return next();
+};

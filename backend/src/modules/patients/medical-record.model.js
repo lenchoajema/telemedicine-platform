@@ -11,6 +11,11 @@ const medicalRecordSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  appointment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Appointment',
+    required: true
+  },
   date: {
     type: Date,
     default: Date.now,
@@ -53,6 +58,8 @@ const medicalRecordSchema = new mongoose.Schema({
     weight: Number,
     height: Number
   },
+  // Lab orders associated with this record
+  labOrders: [String],
   attachments: [{
     filename: String,
     url: String,

@@ -68,6 +68,18 @@ const doctorSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Ensure only one doctor profile per user (runtime safeguard – index creation may fail if duplicates already exist)
+// Using sparse to avoid issues if some historical docs had null user (should not happen) and to allow migration cleanup.
+// This will be a no-op if already defined.
+if (!doctorSchema.indexes().some(i => i[0] && Object.keys(i[0]).length === 1 && i[0].user === 1)) {
+  try {
+    doctorSchema.index({ user: 1 }, { unique: true, sparse: true });
+  } catch (e) {
+    // Index definition errors are logged but not fatal
+    console.log('Doctor model: could not define unique user index:', e.message);
+  }
+}
+
 const Doctor = mongoose.model('Doctor', doctorSchema);
 
 export default Doctor;

@@ -1,8 +1,35 @@
 {
-  "type": "module",
+  "name": "telemedicine-platform-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local development runner for the Telemedicine Platform",
+  "scripts": {
+    "install:all": "npm install && (cd backend && npm install) && (cd frontend && npm install)",
+    "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+  "dev:frontend": "cd frontend && npm run dev",
+  "test:e2e:sockets": "node test-order-transitions-and-sockets.js",
+  "cypress:open": "cypress open",
+  "cypress:run": "cypress run --spec cypress/e2e/i18n-e2e.spec.js",
+  "i18n:seed:amharic": "cd backend && npm run seed:amharic",
+  "i18n:test:amharic": "cd backend && npm run test:i18n:amharic",
+  "i18n:refresh:amharic": "cd backend && npm run i18n:refresh:amharic"
+  },
   "dependencies": {
-    "axios": "^1.10.0",
-    "node-fetch": "^3.3.2",
-    "puppeteer": "^24.12.1"
+    "amqplib": "^0.10.8",
+    "axios": "^1.11.0",
+    "concurrently": "^8.2.2",
+    "dotenv": "^17.2.0",
+    "mongoose": "^8.16.4",
+  "node-fetch": "^3.3.2",
+  "puppeteer": "^24.14.0",
+  "socket.io-client": "^4.8.1"
+  },
+  "main": "api-endpoint-test.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^13.12.0"
   }
 }

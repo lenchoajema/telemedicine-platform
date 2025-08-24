@@ -1,0 +1,58 @@
+.error-boundary {
+  padding: 2rem;
+  margin: 1rem;
+  border: 1px solid #fecaca; /* Light red border */
+  background-color: #fef2f2; /* Lighter red background */
+  color: #b91c1c; /* Dark red text */
+  border-radius: 8px;
+  text-align: center;
+}
+
+.error-boundary h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #991b1b; /* Darker red for heading */
+}
+
+.error-boundary details {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: #fee2e2;
+  border-radius: 4px;
+  padding: 1rem;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.error-boundary summary {
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.error-boundary pre {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #fecaca;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.875rem;
+  overflow-x: auto;
+}
+
+.error-boundary button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #ef4444; /* Red button */
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.error-boundary button:hover {
+  background-color: #dc2626; /* Darker red on hover */
+}

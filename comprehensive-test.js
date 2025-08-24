@@ -2,7 +2,7 @@ import http from 'http';
 import https from 'https';
 
 console.log('🩺 Telemedicine Platform - Comprehensive Test Suite');
-console.log('===================================================');
+      console.log('===================================================');
 
 // Test function for HTTP requests
 function testEndpoint(name, host, port, path, method = 'GET', data = null, headers = {}) {
@@ -101,7 +101,7 @@ async function runTests() {
     if (doctorsList.success) passed++;
     
     total++;
-    const publicAPI = await testEndpoint('Public API Test', 'localhost', 5000, '/api/public/doctors');
+    const publicAPI = await testEndpoint('Public API Test', 'localhost', 5000, '/api/doctors');
     if (publicAPI.success) passed++;
     
     console.log('\n4. Protected Route Tests');

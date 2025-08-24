@@ -2,26 +2,15 @@
 import request from 'supertest';
 import app from '../../src/app.js';
 import User from '../../src/modules/auth/user.model.js';
-import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+// Use global MongoMemoryServer setup (setup.cjs)
+jest.setTimeout(30000);
 
 describe('Authentication Module - Comprehensive Tests', () => {
   
-  beforeAll(async () => {
-    // Connect to test database
-    const MONGO_TEST_URI = process.env.MONGO_TEST_URI || 'mongodb://localhost:27017/telemedicine_test';
-    await mongoose.connect(MONGO_TEST_URI);
-  });
-
   beforeEach(async () => {
     // Clean database before each test
     await User.deleteMany({});
-  });
-
-  afterAll(async () => {
-    // Clean up and close connection
-    await User.deleteMany({});
-    await mongoose.connection.close();
   });
 
   describe('User Registration', () => {

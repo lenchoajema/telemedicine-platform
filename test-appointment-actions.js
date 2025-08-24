@@ -18,7 +18,10 @@ async function login(credentials) {
     });
     
     const data = await response.json();
-    return data;
+    return {
+      token: data?.data?.token || data?.token,
+      user: data?.data?.user || data?.user,
+    };
   } catch (error) {
     console.error('Login error:', error.message);
     return null;

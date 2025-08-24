@@ -1,0 +1,24 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "timestamp": "2025-08-08T18:22:53.065Z",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "6895dbeab1966dc97fc3c97b",
+        "date": "2025-08-08T11:13:46.047Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/42518620-b30d-4045-a76b-af9c6737d0ec.jpeg",
+              "title": "AI IN AGRICULTURE.jpeg",
+              "contentType": "image/jpeg",
+              "size": 128685
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

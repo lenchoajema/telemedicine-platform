@@ -8,10 +8,12 @@ import {
   resetUserPassword,
   bulkUserActions,
   getUserStats,
-  updateUserProfile
+  updateUserProfile,
+  exportUsersCsv,
+  importUsersCsv
 } from './users.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
-import { authorizeAdmin } from '../../middleware/authorization.middleware.js';
+import { authorizeAdmin, authorizeSuperAdmin } from '../../middleware/authorization.middleware.js';
 
 const router = express.Router();
 
@@ -33,11 +35,20 @@ router.post('/', createUser);
 // Bulk user actions
 router.post('/bulk', bulkUserActions);
 
+// Export users CSV
+router.get('/export/csv', exportUsersCsv);
+
+// Import users CSV (expects { csv, dryRun })
+router.post('/import/csv', importUsersCsv);
+
 // Get specific user by ID
 router.get('/:userId', getUserById);
 
 // Update user profile
 router.put('/:userId', updateUserProfile);
+
+// Super Admin: edit/update any user (explicit route)
+router.patch('/super/:userId', authorizeSuperAdmin, updateUserProfile);
 
 // Update user status
 router.put('/:userId/status', updateUserStatus);

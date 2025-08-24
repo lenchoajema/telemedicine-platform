@@ -23,7 +23,9 @@
 			"label": "Test Doctor Endpoints",
 			"type": "shell",
 			"command": "node",
-			"args": ["test-doctor-endpoints.js"],
+			"args": [
+				"test-doctor-endpoints.js"
+			],
 			"group": "test",
 			"isBackground": false,
 			"problemMatcher": [],
@@ -32,8 +34,11 @@
 		{
 			"label": "Test Backend Health",
 			"type": "shell",
-			"command": "curl",
-			"args": ["-s", "http://localhost:5000/api/health"],
+			"command": "curl.exe",
+			"args": [
+				"-s",
+				"http://localhost:5000/api/health"
+			],
 			"group": "test",
 			"isBackground": false,
 			"problemMatcher": []
@@ -42,10 +47,23 @@
 			"label": "Debug Start Platform",
 			"type": "shell",
 			"command": "bash",
-			"args": ["debug-start.sh"],
+			"args": [
+				"debug-start.sh"
+			],
 			"group": "build",
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "Test Backend Health",
+			"type": "shell",
+			"command": "curl",
+			"args": [
+				"-s",
+				"http://localhost:5000/api/health"
+			],
+			"isBackground": false,
+			"group": "test"
 		}
 	]
 }

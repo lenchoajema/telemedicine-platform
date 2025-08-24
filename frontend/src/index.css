@@ -4,7 +4,7 @@
   font-weight: 400;
 
   /* Color Scheme for Light Mode */
-  color-scheme: light;
+  color-scheme: light dark;
   color: #1f2937;
   background-color: #f9fafb;
 
@@ -20,11 +20,49 @@
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --border: #e5e7eb;
+  --surface-raised: #ffffff; /* raised cards and modals */
+  --surface-muted: #f3f4f6;  /* subtle backgrounds */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Auto dark mode via system preference unless explicitly forced to light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --primary: #60a5fa; /* blue-400 */
+    --primary-dark: #3b82f6; /* blue-500 */
+    --secondary: #94a3b8; /* slate-400 */
+    --success: #34d399; /* emerald-400 */
+    --warning: #f59e0b; /* amber-500 */
+    --error: #f87171;   /* red-400 */
+    --background: #0b1220; /* near-slate-950-ish */
+    --surface: #111827;   /* gray-900 */
+    --text-primary: #e5e7eb; /* gray-200 */
+    --text-secondary: #9ca3af; /* gray-400 */
+    --border: #1f2937; /* gray-800 */
+  --surface-raised: #111827; /* gray-900 */
+  --surface-muted: #0f172a;  /* slate-900 */
+  }
+}
+
+/* Explicit override for dark theme via data attribute */
+[data-theme='dark'] {
+  --primary: #60a5fa;
+  --primary-dark: #3b82f6;
+  --secondary: #94a3b8;
+  --success: #34d399;
+  --warning: #f59e0b;
+  --error: #f87171;
+  --background: #0b1220;
+  --surface: #111827;
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --border: #1f2937;
+  --surface-raised: #111827;
+  --surface-muted: #0f172a;
 }
 
 * {
@@ -38,6 +76,13 @@ body {
   background-color: var(--background);
   color: var(--text-primary);
 }
+
+/* Ensure headings and text maintain contrast across themes */
+h1, h2, h3, h4, h5, h6 { color: var(--text-primary); }
+p, small, label, .label, .help, .muted { color: var(--text-secondary); }
+
+::selection { background: rgba(37, 99, 235, 0.35); color: #fff; }
+[data-theme='dark'] ::selection { background: rgba(96, 165, 250, 0.45); color: #0b1220; }
 
 #root {
   min-height: 100vh;
@@ -76,6 +121,188 @@ h3 {
   font-size: 1.5rem;
   line-height: 1.4;
 }
+
+/* Design system primitives */
+.card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.btn:hover {
+  border-color: #cbd5e1; /* slate-300 */
+  background: #f8fafc;   /* slate-50 */
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.btn-secondary {
+  background: #f3f4f6; /* light */
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover { background: #e5e7eb; }
+
+/* Dark-specific tweaks */
+[data-theme='dark'] .btn-secondary {
+  background: #1f2937; /* gray-800 */
+  color: #e5e7eb;
+  border-color: #374151; /* gray-700 */
+}
+[data-theme='dark'] .btn-secondary:hover { background: #111827; }
+
+/* Ensure text contrast on filled buttons in dark mode */
+[data-theme='dark'] .btn-primary,
+[data-theme='dark'] .btn-success,
+[data-theme='dark'] .btn.warning,
+[data-theme='dark'] .btn-danger,
+[data-theme='dark'] .btn.info,
+[data-theme='dark'] .btn-primary:hover,
+[data-theme='dark'] .btn-success:hover,
+[data-theme='dark'] .btn.warning:hover,
+[data-theme='dark'] .btn-danger:hover,
+[data-theme='dark'] .btn.info:hover {
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* Form controls */
+.input, .select, .textarea {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.input:focus, .select:focus, .textarea:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.25);
+  border-color: var(--primary);
+}
+
+.input::placeholder, .textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.input:disabled, .select:disabled, .textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-sm { padding: 0.35rem 0.6rem; font-size: 0.8rem; }
+
+.btn-primary, .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover, .btn.primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+
+.btn-success, .btn.success { background: var(--success); color: #052e1a; border-color: var(--success); }
+[data-theme='dark'] .btn-success, [data-theme='dark'] .btn.success { color: #052e1a; }
+
+.btn-warning, .btn.warning { background: var(--warning); color: #3b2f09; border-color: var(--warning); }
+[data-theme='dark'] .btn-warning, [data-theme='dark'] .btn.warning { color: #3b2f09; }
+
+.btn-danger, .btn.danger { background: var(--error); color: #3c0a0a; border-color: var(--error); }
+[data-theme='dark'] .btn-danger, [data-theme='dark'] .btn.danger { color: #3c0a0a; }
+
+.btn-info, .btn.info { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+
+.btn.text, .btn-ghost { color: var(--primary); background: transparent; border-color: transparent; }
+.btn.text:hover, .btn-ghost:hover { background: rgba(37,99,235,0.08); }
+
+input[type="checkbox"], input[type="radio"] { accent-color: var(--primary); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+thead th { text-align: left; color: var(--text-secondary); background: var(--surface-muted); }
+tbody tr:hover { background: rgba(2, 6, 23, 0.03); }
+[data-theme='dark'] tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+/* Modals */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+.modal-content { background: var(--surface-raised); color: var(--text-primary); border: 1px solid var(--border); border-radius: 0.75rem; max-height: 90vh; overflow: auto; }
+
+/* Code blocks */
+pre, code { background: var(--surface-muted); color: var(--text-primary); border-radius: 0.5rem; }
+pre { padding: 0.75rem; overflow: auto; }
+
+/* Legacy utility remaps for better dark-mode coverage */
+.bg-white { background: var(--surface-raised) !important; }
+.bg-gray-50 { background: var(--surface-muted) !important; }
+.bg-gray-100 { background: var(--surface-muted) !important; }
+.text-gray-900 { color: var(--text-primary) !important; }
+.text-gray-700, .text-gray-600, .text-gray-500 { color: var(--text-secondary) !important; }
+.border-gray-200 { border-color: var(--border) !important; }
+
+/* Status badge compatibility */
+.status-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; color: var(--text-primary); border: 1px solid var(--border); background: var(--surface-muted); }
+
+.label { font-size: 0.85rem; color: var(--text-secondary); }
+.field { display: grid; gap: 0.35rem; }
+.help { font-size: 0.8rem; color: var(--text-secondary); }
+
+/* Badges / Tags */
+.badge, .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  background: #f8fafc;
+}
+[data-theme='dark'] .badge, [data-theme='dark'] .tag { background: #0f172a; /* slate-900 */ }
+
+.badge.success { border-color: #bbf7d0; background: #f0fdf4; color: #065f46; }
+.badge.warn { border-color: #fde68a; background: #fffbeb; color: #92400e; }
+.badge.error { border-color: #fecaca; background: #fef2f2; color: #991b1b; }
+
+/* Subtle text helpers */
+.muted { color: var(--text-secondary); }
+.subtle { color: #374151; }
 
 /* Button base styles */
 button {
@@ -127,4 +354,71 @@ button:disabled {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Forms: common grids and groups used across admin/doctor/patient pages */
+.form-grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.form-grid .form-group { grid-column: span 6; }
+.form-grid .form-group.full-width { grid-column: 1 / -1; }
+.form-group { display: grid; gap: 0.35rem; }
+.form-group label { font-size: 0.85rem; color: var(--text-secondary); }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.25);
+  border-color: var(--primary);
+}
+.settings-section { background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1rem; }
+
+/* Buttons compatibility classes found in pages */
+.save-button {
+  border-radius: 0.5rem;
+  border: 1px solid var(--primary);
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--primary);
+  color: #fff;
+}
+.save-button:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+
+.danger-button {
+  border-radius: 0.5rem;
+  border: 1px solid var(--error);
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--error);
+  color: #3c0a0a;
+}
+
+.secondary-button {
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: #f3f4f6;
+  color: var(--text-primary);
+}
+.secondary-button:hover { background: #e5e7eb; }
+
+/* Responsive typography scaling */
+@media (max-width: 1024px) {
+  h1 { font-size: 2.1rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.3rem; }
+  .container { padding: 0 0.75rem; }
+}
+
+@media (max-width: 640px) {
+  .form-grid .form-group { grid-column: 1 / -1; }
+  button { width: 100%; }
 }

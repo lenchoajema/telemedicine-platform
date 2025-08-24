@@ -36,17 +36,25 @@ const storage = multer.diskStorage({
   }
 });
 
+// Build allowed extensions list (configurable via ALLOWED_UPLOAD_EXTS env, comma-separated)
+const DEFAULT_ALLOWED_EXTS = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.doc', '.docx'];
+const envExts = (process.env.ALLOWED_UPLOAD_EXTS || '')
+  .split(',')
+  .map(e => e.trim().toLowerCase())
+  .filter(Boolean)
+  .map(e => (e.startsWith('.') ? e : `.${e}`));
+const ALLOWED_EXTENSIONS = envExts.length ? envExts : DEFAULT_ALLOWED_EXTS;
+// Basic mimetype allow list derived from common types (fallback to extension check)
+const ALLOWED_MIME_PREFIXES = ['image/', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
 // File filter to check file types
 const fileFilter = (req, file, cb) => {
-  // Allowed extensions
-  const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
   const fileExt = path.extname(file.originalname).toLowerCase();
-  
-  if (allowedTypes.includes(fileExt)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only PDF, JPG, PNG, and DOC files are allowed.'));
+  const mime = (file.mimetype || '').toLowerCase();
+  if (ALLOWED_EXTENSIONS.includes(fileExt) || ALLOWED_MIME_PREFIXES.some(p => mime === p || mime.startsWith(p.replace(/\/$/, '')))) {
+    return cb(null, true);
   }
+  cb(new Error(`Invalid file type (${fileExt || mime}). Allowed: ${ALLOWED_EXTENSIONS.join(', ')}`));
 };
 
 // Create multer upload object with 5MB file size limit
@@ -60,7 +68,11 @@ const upload = multer({
 
 // Helper to get file URL
 export const getFileUrl = (file, req) => {
-  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+  let baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+  // If baseUrl already ends with /api, prefer root for static file (auth-free)
+  if (/\/api\/?$/.test(baseUrl)) {
+    baseUrl = baseUrl.replace(/\/api\/?$/, '');
+  }
   const type = req.body.type || file.fieldname || 'documents';
   return `${baseUrl}/uploads/${type}/${file.filename}`;
 };

@@ -32,8 +32,8 @@ async function login(credentials) {
       throw new Error(`Login failed: ${response.status} ${response.statusText}`);
     }
     
-    const data = await response.json();
-    return data.token;
+  const data = await response.json();
+  return data?.data?.token || data?.token || null;
   } catch (error) {
     console.error('Login error:', error.message);
     return null;

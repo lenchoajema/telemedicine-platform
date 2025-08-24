@@ -1,0 +1,298 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "timestamp": "2025-08-12T01:39:15.767Z",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "68922f3f2dbe5f71fe795be8",
+        "date": "2025-08-05T16:20:15.074Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/21faf505-d2b9-47b4-bf3f-b7937b6e3a87.jpeg",
+              "title": "TELEMEDICINE.jpeg",
+              "contentType": "image/jpeg",
+              "size": 296529
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "689350bc2dbe5f71fe795daf",
+        "date": "2025-08-06T12:55:24.068Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/a0bdcaa9-584b-4d79-9efa-066beac027c4.jpeg",
+              "title": "AI IN AGRICULTURE.jpeg",
+              "contentType": "image/jpeg",
+              "size": 128685
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "689358ceaaab519ce260872c",
+        "date": "2025-08-06T13:29:50.382Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/6dbcb979-78e5-445a-956f-5a26cfc3a3da.jpeg",
+              "title": "AI IN AGRICULTURE.jpeg",
+              "contentType": "image/jpeg",
+              "size": 128685
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "68936412aaab519ce2608868",
+        "date": "2025-08-06T14:17:54.677Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/f6ae0200-2cbd-4536-a43c-55b415c9cc78.jpeg",
+              "title": "AI IN AGRICULTURE.jpeg",
+              "contentType": "image/jpeg",
+              "size": 128685
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "6893673ba2789e071f83a873",
+        "date": "2025-08-06T14:31:23.865Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/1e29fb33-8481-41c8-a162-1d34a7000525.jpeg",
+              "title": "AI IN AGRICULTURE.jpeg",
+              "contentType": "image/jpeg",
+              "size": 128685
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "68936b7aa2789e071f83a986",
+        "date": "2025-08-06T14:49:30.650Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/33c36484-81d7-4b7c-adb7-254cf63d2d48.png",
+              "title": "Ai powered predictive maintenance.png",
+              "contentType": "image/png",
+              "size": 891297
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "68936e3c14cfe43db8677d84",
+        "date": "2025-08-06T15:01:16.407Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/2fe62774-8777-450d-b05b-eb5a75453e10.png",
+              "title": "Ai powered predictive maintenance.png",
+              "contentType": "image/png",
+              "size": 891297
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "689377b3ccc00c21aab1f0c0",
+        "date": "2025-08-06T15:41:39.072Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/3ae2b641-6bee-4f47-9073-348aecba7343.png",
+              "title": "Ai powered predictive maintenance.png",
+              "contentType": "image/png",
+              "size": 891297
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "68937cc2ccc00c21aab1f157",
+        "date": "2025-08-06T16:03:14.314Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/9d3e3fe2-9631-4e62-8bf7-e87ce5e71e63.jpeg",
+              "title": "Techlife picture1.jpeg",
+              "contentType": "image/jpeg",
+              "size": 870455
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "68937d41ccc00c21aab1f284",
+        "date": "2025-08-06T16:05:21.397Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/1c177718-723d-4a79-b00e-81e6c1666305.jpeg",
+              "title": "bishoftu hospital.jpeg",
+              "contentType": "image/jpeg",
+              "size": 11675
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "68938172ccc00c21aab1f315",
+        "date": "2025-08-06T16:23:14.636Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/c0fe562a-c003-4491-b778-3244cf529ce0.jpeg",
+              "title": "bishoftu hospital.jpeg",
+              "contentType": "image/jpeg",
+              "size": 11675
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "689385642670deebb7cc15d0",
+        "date": "2025-08-06T16:40:04.958Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/3451c023-9df4-4c04-811e-c20a0671f1b2.jpeg",
+              "title": "AI IN AGRICULTURE.jpeg",
+              "contentType": "image/jpeg",
+              "size": 128685
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "689385652670deebb7cc15d5",
+        "date": "2025-08-06T16:40:05.205Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/c92e22dc-c20c-4f36-9336-6d6577871f9b.png",
+              "title": "Ai powered predictive maintenance.png",
+              "contentType": "image/png",
+              "size": 891297
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "689385652670deebb7cc15da",
+        "date": "2025-08-06T16:40:05.252Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/3bf2d9b9-7a4c-4db5-8fc6-b9ab199caab8.jpeg",
+              "title": "bishoftu hospital.jpeg",
+              "contentType": "image/jpeg",
+              "size": 11675
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DocumentReference",
+        "id": "6898f092479709ebdf84c13f",
+        "date": "2025-08-10T19:18:42.017Z",
+        "content": [
+          {
+            "attachment": {
+              "url": "http://localhost:5000/uploads/file/5fe03cad-18b7-46a2-94c5-4807eecd4546.jpeg",
+              "title": "bishoftu hospital.jpeg",
+              "contentType": "image/jpeg",
+              "size": 11675
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DiagnosticReport",
+        "id": "68976488156d134a1ca23091",
+        "status": "partial",
+        "code": {
+          "text": "X-Ray"
+        },
+        "conclusion": "",
+        "presentedForm": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DiagnosticReport",
+        "id": "68976dff9cee0cfff39cbdc7",
+        "status": "partial",
+        "code": {
+          "text": "MRI"
+        },
+        "conclusion": "",
+        "presentedForm": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "DiagnosticReport",
+        "id": "68977c7a0f6925e84d6804c4",
+        "status": "partial",
+        "code": {
+          "text": "X-Ray"
+        },
+        "conclusion": "",
+        "presentedForm": []
+      }
+    }
+  ]
+}

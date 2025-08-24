@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContextCore';
-import apiClient from '../../api/apiClient';
-import './DoctorPages.css';
+import { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNotifications } from "../../contexts/NotificationContextCore";
+import apiClient from "../../api/apiClient";
+import diagnoses from "../../data/who-diagnoses.json";
+import medicines from "../../data/essential-medicines.json";
+import "./DoctorPages.css";
 
 export default function DoctorPatientsPage() {
   const { user } = useAuth();
@@ -10,9 +12,25 @@ export default function DoctorPatientsPage() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [medicalRecords, setMedicalRecords] = useState([]);
+  const [showRecordForm, setShowRecordForm] = useState(false);
+  const [newRecord, setNewRecord] = useState({
+    diagnosis: "",
+    medications: [
+      {
+        name: "",
+        dosage: "",
+        frequency: "",
+        instructions: "",
+      },
+    ],
+    notes: "",
+    date: new Date().toISOString(),
+  });
+  // WHO diagnosis list
+  const diseaseOptions = Array.isArray(diagnoses) ? diagnoses : [];
 
   useEffect(() => {
     fetchPatients();
@@ -23,12 +41,14 @@ export default function DoctorPatientsPage() {
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.get('/doctors/my-patients');
-      setPatients(response.data.patients || response.data || []);
+      const response = await apiClient.get("/doctors/my-patients");
+      if (response.data.success) {
+        setPatients(response.data.data);
+      }
     } catch (error) {
-      console.error('Error fetching patients:', error);
-      setError('Failed to load patients');
-      addNotification('Failed to load patients', 'error');
+      console.error("Error fetching patients:", error);
+      setError("Failed to load patients");
+      addNotification("Failed to load patients", "error");
     } finally {
       setLoading(false);
     }
@@ -36,32 +56,47 @@ export default function DoctorPatientsPage() {
 
   const fetchPatientMedicalRecords = async (patientId) => {
     try {
-      const response = await apiClient.get(`/medical-records?patientId=${patientId}`);
-      setMedicalRecords(response.data.records || response.data || []);
+      const response = await apiClient.get(
+        `/medical-records?patientId=${patientId}`
+      );
+      // Normalize response to array
+      const resData = response.data;
+      const records =
+        Array.isArray(resData) ||
+        Array.isArray(resData.data) ||
+        Array.isArray(resData.records)
+          ? resData.records || resData.data || resData
+          : [];
+      setMedicalRecords(records);
     } catch (error) {
-      console.error('Error fetching medical records:', error);
-      addNotification('Failed to load medical records', 'error');
+      console.error("Error fetching medical records:", error);
+      addNotification("Failed to load medical records", "error");
     }
   };
 
   const addMedicalRecord = async (patientId, recordData) => {
     try {
-      await apiClient.post('/medical-records', {
+      const response = await apiClient.post("/medical-records", {
         patientId,
-        ...recordData
+        ...recordData,
       });
-      addNotification('Medical record added successfully', 'success');
+      addNotification("Medical record added successfully", "success");
+      // Prepend created record into local state
+      const createdRecord = response.data.record || response.data;
+      setMedicalRecords((prev) => [createdRecord, ...prev]);
+      // Also refetch full list for consistency
       fetchPatientMedicalRecords(patientId);
     } catch (error) {
-      console.error('Error adding medical record:', error);
-      addNotification('Failed to add medical record', 'error');
+      console.error("Error adding medical record:", error);
+      addNotification("Failed to add medical record", "error");
     }
   };
 
-  const filteredPatients = patients.filter(patient =>
-    patient.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPatients = patients.filter(
+    (patient) =>
+      patient.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const openPatientDetails = (patient) => {
@@ -74,12 +109,65 @@ export default function DoctorPatientsPage() {
     setMedicalRecords([]);
   };
 
+  const openRecordForm = () => {
+    setShowRecordForm(true);
+  };
+
+  const closeRecordForm = () => {
+    setShowRecordForm(false);
+    setNewRecord({
+      diagnosis: "",
+      medications: [
+        {
+          name: "",
+          dosage: "",
+          frequency: "",
+          instructions: "",
+        },
+      ],
+      notes: "",
+      date: new Date().toISOString(),
+    });
+  };
+
+  const handleRecordChange = (field, value) => {
+    setNewRecord((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleMedicationChange = (index, field, value) => {
+    const meds = [...newRecord.medications];
+    meds[index][field] = value;
+    setNewRecord((prev) => ({ ...prev, medications: meds }));
+  };
+
+  const addMedication = () => {
+    setNewRecord((prev) => ({
+      ...prev,
+      medications: [
+        ...prev.medications,
+        { name: "", dosage: "", frequency: "", instructions: "" },
+      ],
+    }));
+  };
+
+  const removeMedication = (index) => {
+    setNewRecord((prev) => ({
+      ...prev,
+      medications: prev.medications.filter((_, i) => i !== index),
+    }));
+  };
+
+  const saveRecord = () => {
+    addMedicalRecord(selectedPatient._id, newRecord);
+    closeRecordForm();
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -125,15 +213,22 @@ export default function DoctorPatientsPage() {
           filteredPatients.map((patient) => (
             <div key={patient._id} className="patient-card">
               <div className="patient-info">
-                <h3>{patient.firstName} {patient.lastName}</h3>
+                <h3>
+                  {patient.firstName} {patient.lastName}
+                </h3>
                 <p className="patient-email">{patient.email}</p>
-                <p className="patient-phone">{patient.phone || 'No phone number'}</p>
+                <p className="patient-phone">
+                  {patient.phone || "No phone number"}
+                </p>
                 <p className="patient-dob">
-                  DOB: {patient.dateOfBirth ? formatDate(patient.dateOfBirth) : 'Not provided'}
+                  DOB:{" "}
+                  {patient.dateOfBirth
+                    ? formatDate(patient.dateOfBirth)
+                    : "Not provided"}
                 </p>
               </div>
               <div className="patient-actions">
-                <button 
+                <button
                   className="btn btn-primary"
                   onClick={() => openPatientDetails(patient)}
                 >
@@ -150,8 +245,12 @@ export default function DoctorPatientsPage() {
         <div className="modal-overlay">
           <div className="modal-content patient-details-modal">
             <div className="modal-header">
-              <h2>{selectedPatient.firstName} {selectedPatient.lastName}</h2>
-              <button className="close-btn" onClick={closePatientDetails}>×</button>
+              <h2>
+                {selectedPatient.firstName} {selectedPatient.lastName}
+              </h2>
+              <button className="close-btn" onClick={closePatientDetails}>
+                ×
+              </button>
             </div>
 
             <div className="modal-body">
@@ -162,17 +261,22 @@ export default function DoctorPatientsPage() {
                     <strong>Email:</strong> {selectedPatient.email}
                   </div>
                   <div className="info-item">
-                    <strong>Phone:</strong> {selectedPatient.phone || 'Not provided'}
+                    <strong>Phone:</strong>{" "}
+                    {selectedPatient.phone || "Not provided"}
                   </div>
                   <div className="info-item">
-                    <strong>Date of Birth:</strong> 
-                    {selectedPatient.dateOfBirth ? formatDate(selectedPatient.dateOfBirth) : 'Not provided'}
+                    <strong>Date of Birth:</strong>
+                    {selectedPatient.dateOfBirth
+                      ? formatDate(selectedPatient.dateOfBirth)
+                      : "Not provided"}
                   </div>
                   <div className="info-item">
-                    <strong>Gender:</strong> {selectedPatient.gender || 'Not specified'}
+                    <strong>Gender:</strong>{" "}
+                    {selectedPatient.gender || "Not specified"}
                   </div>
                   <div className="info-item">
-                    <strong>Address:</strong> {selectedPatient.address || 'Not provided'}
+                    <strong>Address:</strong>{" "}
+                    {selectedPatient.address || "Not provided"}
                   </div>
                 </div>
               </div>
@@ -180,22 +284,7 @@ export default function DoctorPatientsPage() {
               <div className="medical-records-section">
                 <div className="section-header">
                   <h3>Medical Records</h3>
-                  <button 
-                    className="btn btn-primary"
-                    onClick={() => {
-                      const diagnosis = prompt('Enter diagnosis:');
-                      const treatment = prompt('Enter treatment:');
-                      const notes = prompt('Enter notes:');
-                      if (diagnosis) {
-                        addMedicalRecord(selectedPatient._id, {
-                          diagnosis,
-                          treatment,
-                          notes,
-                          date: new Date().toISOString()
-                        });
-                      }
-                    }}
-                  >
+                  <button className="btn btn-primary" onClick={openRecordForm}>
                     Add Record
                   </button>
                 </div>
@@ -208,17 +297,26 @@ export default function DoctorPatientsPage() {
                       <div key={record._id} className="medical-record-card">
                         <div className="record-header">
                           <h4>{record.diagnosis}</h4>
-                          <span className="record-date">{formatDate(record.date)}</span>
+                          <span className="record-date">
+                            {formatDate(record.date)}
+                          </span>
                         </div>
                         <div className="record-content">
                           {record.treatment && (
-                            <p><strong>Treatment:</strong> {record.treatment}</p>
+                            <p>
+                              <strong>Treatment:</strong> {record.treatment}
+                            </p>
                           )}
                           {record.notes && (
-                            <p><strong>Notes:</strong> {record.notes}</p>
+                            <p>
+                              <strong>Notes:</strong> {record.notes}
+                            </p>
                           )}
                           {record.prescription && (
-                            <p><strong>Prescription:</strong> {record.prescription}</p>
+                            <p>
+                              <strong>Prescription:</strong>{" "}
+                              {record.prescription}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -229,8 +327,103 @@ export default function DoctorPatientsPage() {
             </div>
 
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={closePatientDetails}>
+              <button
+                className="btn btn-secondary"
+                onClick={closePatientDetails}
+              >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedPatient && showRecordForm && (
+        <div className="modal-overlay form-modal">
+          <div className="modal-content record-form">
+            <h3>New Medical Record</h3>
+            <div className="form-group">
+              <label>Diagnosis:</label>
+              <select
+                value={newRecord.diagnosis}
+                onChange={(e) =>
+                  handleRecordChange("diagnosis", e.target.value)
+                }
+              >
+                <option value="">Select disease</option>
+                {diseaseOptions.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Medications:</label>
+              <datalist id="med-list">
+                {medicines.map((medName) => (
+                  <option key={medName} value={medName} />
+                ))}
+              </datalist>
+              {newRecord.medications.map((med, idx) => (
+                <div key={idx} className="med-row">
+                  <input
+                    list="med-list"
+                    placeholder="Medication"
+                    value={med.name}
+                    onChange={(e) =>
+                      handleMedicationChange(idx, "name", e.target.value)
+                    }
+                  />
+                  <input
+                    placeholder="Dosage"
+                    value={med.dosage}
+                    onChange={(e) =>
+                      handleMedicationChange(idx, "dosage", e.target.value)
+                    }
+                  />
+                  <input
+                    placeholder="Frequency"
+                    value={med.frequency}
+                    onChange={(e) =>
+                      handleMedicationChange(idx, "frequency", e.target.value)
+                    }
+                  />
+                  <input
+                    placeholder="Instructions"
+                    value={med.instructions}
+                    onChange={(e) =>
+                      handleMedicationChange(
+                        idx,
+                        "instructions",
+                        e.target.value
+                      )
+                    }
+                  />
+                  {newRecord.medications.length > 1 && (
+                    <button onClick={() => removeMedication(idx)}>
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button className="btn btn-secondary" onClick={addMedication}>
+                Add Medication
+              </button>
+            </div>
+            <div className="form-group">
+              <label>Notes:</label>
+              <textarea
+                value={newRecord.notes}
+                onChange={(e) => handleRecordChange("notes", e.target.value)}
+              />
+            </div>
+            <div className="form-actions">
+              <button className="btn btn-primary" onClick={saveRecord}>
+                Save Record
+              </button>
+              <button className="btn btn-secondary" onClick={closeRecordForm}>
+                Cancel
               </button>
             </div>
           </div>

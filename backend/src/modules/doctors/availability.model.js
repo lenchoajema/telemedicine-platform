@@ -40,8 +40,13 @@ const DoctorAvailabilitySchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Compound index to ensure unique availability per doctor per day
-DoctorAvailabilitySchema.index({ doctor: 1, day: 1 }, { unique: true });
+// Previous implementation enforced a single availability block per day via a unique index on (doctor, day).
+// The UI now supports multiple discrete blocks per day, so we relax this to allow multiple documents.
+// We instead create a uniqueness guarantee on (doctor, day, startTime) so identical duplicate blocks
+// are prevented while allowing multiple ranges in the same day.
+// NOTE: If an existing unique index (doctor_1_day_1) exists in a deployed database it must be dropped
+// manually (e.g. db.doctoravailabilities.dropIndex('doctor_1_day_1')) before this new one can be created.
+DoctorAvailabilitySchema.index({ doctor: 1, day: 1, startTime: 1 }, { unique: true });
 
 // Virtual for generating time slots
 DoctorAvailabilitySchema.virtual('timeSlots').get(function() {

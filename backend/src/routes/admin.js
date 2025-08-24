@@ -1,11 +1,13 @@
 import express from 'express';
 import AuditService from '../../services/AuditService.js';
-import { authenticateToken, authorizeRole } from '../../middleware/auth.js';
+import protect from '../middleware/authMiddleware.js';
+import authorizeRole from '../middleware/authorizeRole.js';
+import Appointment from '../../models/Appointment.js';
 
 const router = express.Router();
 
 // Get audit logs (Admin only)
-router.get('/audit-logs', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+router.get('/audit-logs', protect, authorizeRole(['admin']), async (req, res) => {
   try {
     const {
       userId,
@@ -40,13 +42,13 @@ router.get('/audit-logs', authenticateToken, authorizeRole(['admin']), async (re
       }
     });
   } catch (error) {
-    console.error('Error fetching audit logs:', error);
+    console.log('Error fetching audit logs:', error);
     res.status(500).json({ error: 'Failed to fetch audit logs' });
   }
 });
 
 // Get resource history (Admin and resource owner)
-router.get('/audit-logs/resource/:resourceType/:resourceId', authenticateToken, async (req, res) => {
+router.get('/audit-logs/resource/:resourceType/:resourceId', protect, async (req, res) => {
   try {
     const { resourceType, resourceId } = req.params;
     const { user } = req;
@@ -66,13 +68,13 @@ router.get('/audit-logs/resource/:resourceType/:resourceId', authenticateToken, 
     const logs = await AuditService.getResourceHistory(resourceType, resourceId);
     res.json({ success: true, logs });
   } catch (error) {
-    console.error('Error fetching resource history:', error);
+    console.log('Error fetching resource history:', error);
     res.status(500).json({ error: 'Failed to fetch resource history' });
   }
 });
 
 // Get user activity (Admin or own activity)
-router.get('/audit-logs/user/:userId', authenticateToken, async (req, res) => {
+router.get('/audit-logs/user/:userId', protect, async (req, res) => {
   try {
     const { userId } = req.params;
     const { user } = req;
@@ -86,7 +88,7 @@ router.get('/audit-logs/user/:userId', authenticateToken, async (req, res) => {
     const logs = await AuditService.getUserActivity(userId, parseInt(limit));
     res.json({ success: true, logs });
   } catch (error) {
-    console.error('Error fetching user activity:', error);
+    console.log('Error fetching user activity:', error);
     res.status(500).json({ error: 'Failed to fetch user activity' });
   }
 });

@@ -6,12 +6,14 @@ import {
   updateAppointment,
   completeAppointment,
   rescheduleAppointment,
-  deleteAppointment,
+  cancelAppointment,
   getAppointmentStats,
   getUpcomingAppointments,
   getAvailableSlots
 } from './appointment.controller.js';
-import authenticate from '../shared/middleware/auth.js';
+// Corrected import path for the authentication middleware
+import { authenticate } from '../../middleware/auth.middleware.js';
+import { authorizePrivilege, attachUserPrivileges } from '../../middleware/rbac.middleware.js';
 import mongoose from 'mongoose';
 
 const router = express.Router();
@@ -24,37 +26,27 @@ const validateObjectId = (req, res, next) => {
   next();
 };
 
-// Apply authentication middleware to all routes
-router.use(authenticate);
+// Apply authentication + re-attach privileges (authenticate will overwrite req.user each time)
+router.use(authenticate, attachUserPrivileges);
 
-// Dashboard stats endpoint
+// --- Public or Role-Agnostic Routes (if any) ---
+
+// --- Admin Only Routes ---
 router.get('/stats', getAppointmentStats);
 
-// Upcoming appointments endpoint
+// --- Doctor/Patient Shared Routes ---
+router.get('/', getAppointments); // Logic inside controller handles roles
 router.get('/upcoming', getUpcomingAppointments);
-
-// Available slots endpoint
 router.get('/available-slots', getAvailableSlots);
-
-// Get all appointments (filtered by user role)
-router.get('/', getAppointments);
-
-// Get a single appointment
 router.get('/:id', validateObjectId, getAppointmentById);
-
-// Create a new appointment
 router.post('/', createAppointment);
-
-// Update an appointment
 router.put('/:id', validateObjectId, updateAppointment);
-
-// Complete an appointment (Doctor only)
-router.put('/:id/complete', validateObjectId, completeAppointment);
-
-// Cancel an appointment
-router.delete('/:id', validateObjectId, deleteAppointment);
-
-// Reschedule an appointment
+router.delete('/:id', validateObjectId, cancelAppointment);
 router.put('/:id/reschedule', validateObjectId, rescheduleAppointment);
+
+// --- Doctor/Admin Routes and Privilege-Based Authorization ---
+// Complete an appointment (requires Create/Edit Consultation Notes privilege)
+router.put('/:id/complete', validateObjectId, authorizePrivilege('Create/Edit Consultation Notes'), completeAppointment);
+
 
 export default router;

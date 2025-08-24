@@ -5,7 +5,14 @@ dotenv.config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
+    if (mongoose.connection.readyState === 1) {
+      return;
+    }
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/telemedicine';
+    if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
+      console.log('[db] MONGO_URI not set – using default', uri);
+    }
+    await mongoose.connect(uri, {
       // Use the database name from the connection string
       autoIndex: process.env.NODE_ENV !== 'production' // Better performance in prod
     });
@@ -14,15 +21,15 @@ const connectDB = async () => {
     
     // Connection events
     mongoose.connection.on('error', (err) => {
-      console.error('MongoDB connection error:', err);
+      console.log('MongoDB connection error:', err);
     });
     
     mongoose.connection.on('disconnected', () => {
-      console.warn('MongoDB disconnected');
+      console.log('MongoDB disconnected');
     });
     
   } catch (err) {
-    console.error('MongoDB connection failed:', err);
+  console.log('MongoDB connection failed:', err);
     process.exit(1);
   }
 };

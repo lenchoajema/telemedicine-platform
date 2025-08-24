@@ -1,3 +1,35 @@
+# Telemedicine Platform
+
+Minimal quickstart and developer notes for the Telemedicine Platform repository.
+
+## Quick start (local with Docker)
+
+1. Copy example env and edit values:
+
+   cp .env.example .env
+
+2. Build and start services with Docker Compose:
+
+   docker-compose up --build
+
+3. Check backend health endpoint:
+
+   curl -s http://localhost:5000/api/health
+
+## Project contents
+
+- `backend/` - backend services and API
+- `docker-compose.yml` - compose setup for local development
+- `create-test-data.js`, `comprehensive-test.js`, etc. - test and utility scripts
+
+## Contributing
+
+Please open issues or PRs. See `IMPLEMENTATION_PLAN.md` for high-level tasks.
+
+## License
+
+This project is licensed under the MIT License - see the `LICENSE` file for details.
+
 # 🏥 Telemedicine Platform
 
 A comprehensive telemedicine platform with web and mobile applications for patients, doctors, and administrators.
@@ -5,6 +37,7 @@ A comprehensive telemedicine platform with web and mobile applications for patie
 ## 🚀 Platform Overview
 
 This platform provides:
+
 - **Web Application**: Full-featured React web app
 - **Mobile Application**: React Native + Expo mobile app
 - **Backend API**: Node.js + Express server
@@ -15,18 +48,21 @@ This platform provides:
 ## 📱 Applications
 
 ### 🌐 Web Application
+
 - **Location**: `/frontend/`
 - **Tech Stack**: React + Vite + TypeScript
 - **Access**: http://localhost:5173
 - **Features**: Complete web-based telemedicine platform
 
 ### 📱 Mobile Application
+
 - **Location**: `/mobile-app/`
 - **Tech Stack**: React Native + Expo + TypeScript
 - **Features**: Native mobile app for iOS and Android
 - **Setup**: See [Mobile App Setup Guide](mobile-app/SETUP-GUIDE.md)
 
 ### 🔧 Backend API
+
 - **Location**: `/backend/`
 - **Tech Stack**: Node.js + Express + MongoDB
 - **Access**: http://localhost:5000
@@ -35,17 +71,20 @@ This platform provides:
 ## 🚀 Quick Start
 
 ### 1. Start the Platform
+
 ```bash
 # Start all services (web + backend + database)
 docker-compose up --build
 ```
 
 ### 2. Access Applications
+
 - **Web App**: http://localhost:5173
 - **API**: http://localhost:5000
 - **Database**: mongodb://localhost:27017
 
 ### 3. Start Mobile App
+
 ```bash
 cd mobile-app
 npm install
@@ -55,6 +94,7 @@ npm start
 ## 🔧 Development Commands
 
 ### Backend Services
+
 ```bash
 # Start all services
 docker-compose up --build
@@ -70,6 +110,7 @@ docker exec telemedicine-platform-mongodb-1 mongosh telemedicine --eval "db.user
 ```
 
 ### Mobile App
+
 ```bash
 cd mobile-app
 npm install      # Install dependencies
@@ -81,6 +122,7 @@ npm run android  # Run on Android emulator
 ## 🎯 Features
 
 ### For Patients
+
 - Register and login
 - Browse and book doctors
 - Video consultations
@@ -88,6 +130,7 @@ npm run android  # Run on Android emulator
 - Prescription management
 
 ### For Doctors
+
 - Professional dashboard
 - Manage appointments
 - Video consultations
@@ -95,6 +138,7 @@ npm run android  # Run on Android emulator
 - Availability scheduling
 
 ### For Administrators
+
 - User management
 - System oversight
 - Analytics dashboard
@@ -112,6 +156,7 @@ npm run android  # Run on Android emulator
 ## 📱 Mobile App Features
 
 The mobile app includes all web platform features:
+
 - Native iOS and Android apps
 - WebRTC video calling
 - Real-time notifications
@@ -122,6 +167,7 @@ The mobile app includes all web platform features:
 ## 🔗 Integration
 
 Both web and mobile applications share:
+
 - Same backend API
 - Same database
 - Same user accounts

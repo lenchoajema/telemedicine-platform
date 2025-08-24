@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">81.25% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>12/15</span>
+                <span class='fraction'>13/16</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">81.25% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>12/15</span>
+                <span class='fraction'>13/16</span>
             </div>
         
             
@@ -114,11 +114,7 @@
 <a name='L49'></a><a href='#L49'>49</a>
 <a name='L50'></a><a href='#L50'>50</a>
 <a name='L51'></a><a href='#L51'>51</a>
-<a name='L52'></a><a href='#L52'>52</a>
-<a name='L53'></a><a href='#L53'>53</a>
-<a name='L54'></a><a href='#L54'>54</a>
-<a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L52'></a><a href='#L52'>52</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -133,10 +129,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -144,34 +143,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import express from 'express';
 import { 
@@ -179,13 +171,16 @@ import {
   getAppointmentById,
   createAppointment,
   updateAppointment,
+  completeAppointment,
   rescheduleAppointment,
-  deleteAppointment,
+  cancelAppointment,
   getAppointmentStats,
   getUpcomingAppointments,
   getAvailableSlots
 } from './appointment.controller.js';
+// Corrected import path for the authentication middleware
 import { authenticate } from '../../middleware/auth.middleware.js';
+import { authorizePrivilege, attachUserPrivileges } from '../../middleware/rbac.middleware.js';
 import mongoose from 'mongoose';
 &nbsp;
 const router = express.Router();
@@ -198,35 +193,28 @@ const validateObjectId = <span class="fstat-no" title="function not covered" >(r
 <span class="cstat-no" title="statement not covered" >  next();</span>
 };
 &nbsp;
-// Apply authentication middleware to all routes
-router.use(authenticate);
+// Apply authentication + re-attach privileges (authenticate will overwrite req.user each time)
+router.use(authenticate, attachUserPrivileges);
 &nbsp;
-// Dashboard stats endpoint
+// --- Public or Role-Agnostic Routes (if any) ---
+&nbsp;
+// --- Admin Only Routes ---
 router.get('/stats', getAppointmentStats);
 &nbsp;
-// Upcoming appointments endpoint
+// --- Doctor/Patient Shared Routes ---
+router.get('/', getAppointments); // Logic inside controller handles roles
 router.get('/upcoming', getUpcomingAppointments);
-&nbsp;
-// Available slots endpoint
 router.get('/available-slots', getAvailableSlots);
-&nbsp;
-// Get all appointments (filtered by user role)
-router.get('/', getAppointments);
-&nbsp;
-// Get a single appointment
 router.get('/:id', validateObjectId, getAppointmentById);
-&nbsp;
-// Create a new appointment
 router.post('/', createAppointment);
-&nbsp;
-// Update an appointment
 router.put('/:id', validateObjectId, updateAppointment);
-&nbsp;
-// Cancel an appointment
-router.delete('/:id', validateObjectId, deleteAppointment);
-&nbsp;
-// Reschedule an appointment
+router.delete('/:id', validateObjectId, cancelAppointment);
 router.put('/:id/reschedule', validateObjectId, rescheduleAppointment);
+&nbsp;
+// --- Doctor/Admin Routes and Privilege-Based Authorization ---
+// Complete an appointment (requires Create/Edit Consultation Notes privilege)
+router.put('/:id/complete', validateObjectId, authorizePrivilege('Create/Edit Consultation Notes'), completeAppointment);
+&nbsp;
 &nbsp;
 export default router;</pre></td></tr></table></pre>
 
@@ -235,7 +223,7 @@ export default router;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-26T20:38:14.879Z
+                at 2025-08-12T08:30:12.931Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

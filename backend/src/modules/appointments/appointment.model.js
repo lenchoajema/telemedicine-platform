@@ -27,12 +27,12 @@ const appointmentSchema = new mongoose.Schema({
   },
   timeSlot: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'TimeSlot',
-    default: null // Optional - for appointments created with time slot system
+    ref: 'AppointmentSlot',
+    default: null // Optional - for appointments created with appointment slot system
   },
   status: {
     type: String,
-    enum: ['scheduled', 'completed', 'cancelled', 'no-show'],
+  enum: ['scheduled', 'in-progress', 'completed', 'cancelled', 'no-show', 'referred', 'in-lab', 'pharmacy'],
     default: 'scheduled',
     index: true
   },
@@ -46,6 +46,18 @@ const appointmentSchema = new mongoose.Schema({
     type: String
   },
   meetingUrl: {
+    type: String
+  },
+  // Doctor can optionally make video link visible early
+  earlyJoinEnabled: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  earlyJoinVisibleAt: {
+    type: Date
+  },
+  earlyJoinNote: {
     type: String
   },
   followUpRequired: {
@@ -62,6 +74,8 @@ const appointmentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'MedicalRecord'
   },
+  // Attach uploaded medical documents to appointment
+  medicalDocuments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MedicalDocument' }],
   completionNotes: {
     type: String
   },

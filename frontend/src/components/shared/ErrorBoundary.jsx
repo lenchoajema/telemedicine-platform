@@ -1,21 +1,30 @@
-import React from 'react';
+import React from "react";
+import "./ErrorBoundary.css";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
+    // ...existing code...
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error) {
-    // Update state so the next render will show the fallback UI.
+    // ...existing code...
     return { hasError: true, error };
   }
 
   componentDidCatch(error, errorInfo) {
-    // You can also log the error to an error reporting service
+    // ...existing code...
     console.error("Error caught by ErrorBoundary:", error, errorInfo);
     this.setState({ errorInfo });
   }
+
+  handleReset = () => {
+    if (this.props.onReset) {
+      this.props.onReset();
+    }
+    this.setState({ hasError: false, error: null, errorInfo: null });
+  };
 
   render() {
     if (this.state.hasError) {
@@ -27,15 +36,11 @@ class ErrorBoundary extends React.Component {
             <summary>View error details</summary>
             <p>{this.state.error && this.state.error.toString()}</p>
             <p>Component Stack Error Details:</p>
-            <pre>{this.state.errorInfo && this.state.errorInfo.componentStack}</pre>
+            <pre>
+              {this.state.errorInfo && this.state.errorInfo.componentStack}
+            </pre>
           </details>
-          <button
-            onClick={() => {
-              this.setState({ hasError: false, error: null, errorInfo: null });
-              window.location.reload();
-            }}
-            className="btn-primary"
-          >
+          <button onClick={this.handleReset} className="btn-primary">
             Try again
           </button>
         </div>

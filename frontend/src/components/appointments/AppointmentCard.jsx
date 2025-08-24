@@ -1,17 +1,36 @@
-import { formatDate, formatTime } from '../../utils/dateUtils';
+import { formatDate, formatTime } from "../../utils/dateUtils";
 
-export default function AppointmentCard({ 
-  appointment, 
-  onCancel, 
+const formatStatusLabel = (status) => {
+  if (!status) return "";
+  return status
+    .split(/[-_]/)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(" ");
+};
+
+export default function AppointmentCard({
+  appointment,
+  onCancel,
   onViewDetails,
-  isPatient = true 
+  onEdit,
+  isPatient = true,
 }) {
   const getStatusClass = (status) => {
-    switch(status) {
-      case 'completed': return 'status-completed';
-      case 'cancelled': return 'status-cancelled';
-      case 'no-show': return 'status-no-show';
-      default: return 'status-scheduled';
+    switch (status) {
+      case "completed":
+        return "status-completed";
+      case "cancelled":
+        return "status-cancelled";
+      case "no-show":
+        return "status-no-show";
+      case "referred":
+        return "status-referred";
+      case "in-lab":
+        return "status-in-lab";
+      case "pharmacy":
+        return "status-pharmacy";
+      default:
+        return "status-scheduled";
     }
   };
 
@@ -21,34 +40,49 @@ export default function AppointmentCard({
         <div className="appointment-title">
           {isPatient ? (
             <h3>
-              Dr. {appointment.doctor?.profile?.firstName || appointment.doctor?.firstName} {appointment.doctor?.profile?.lastName || appointment.doctor?.lastName}
+              Dr.{" "}
+              {appointment.doctor?.profile?.firstName ||
+                appointment.doctor?.firstName}{" "}
+              {appointment.doctor?.profile?.lastName ||
+                appointment.doctor?.lastName}
               {appointment.doctor?.specialization && (
-                <span className="doctor-specialization"> - {appointment.doctor.specialization}</span>
+                <span className="doctor-specialization">
+                  {" "}
+                  - {appointment.doctor.specialization}
+                </span>
               )}
             </h3>
           ) : (
-            <h3>{appointment.patient?.profile?.firstName} {appointment.patient?.profile?.lastName}</h3>
+            <h3>
+              {appointment.patient?.profile?.firstName}{" "}
+              {appointment.patient?.profile?.lastName}
+            </h3>
           )}
           <span className={`status-badge ${appointment.status}`}>
-            {appointment.status}
+            {formatStatusLabel(appointment.status)}
           </span>
         </div>
       </div>
-      
+
       <div className="appointment-details">
         <div className="detail-row">
           <span className="detail-label">Date:</span>
           <span className="detail-value">{formatDate(appointment.date)}</span>
         </div>
-        
+
         <div className="detail-row">
           <span className="detail-label">Time:</span>
           <span className="detail-value">
-            {formatTime(appointment.date)} - 
-            {formatTime(new Date(new Date(appointment.date).getTime() + appointment.duration * 60000))}
+            {formatTime(appointment.date)} -
+            {formatTime(
+              new Date(
+                new Date(appointment.date).getTime() +
+                  appointment.duration * 60000
+              )
+            )}
           </span>
         </div>
-        
+
         {appointment.reason && (
           <div className="detail-row">
             <span className="detail-label">Reason:</span>
@@ -66,7 +100,9 @@ export default function AppointmentCard({
         {appointment.symptoms && appointment.symptoms.length > 0 && (
           <div className="detail-row">
             <span className="detail-label">Symptoms:</span>
-            <span className="detail-value">{appointment.symptoms.join(', ')}</span>
+            <span className="detail-value">
+              {appointment.symptoms.join(", ")}
+            </span>
           </div>
         )}
 
@@ -74,7 +110,9 @@ export default function AppointmentCard({
           <div className="detail-row">
             <span className="detail-label">Follow-up:</span>
             <span className="detail-value">
-              Required {appointment.followUpDate && `on ${formatDate(appointment.followUpDate)}`}
+              Required{" "}
+              {appointment.followUpDate &&
+                `on ${formatDate(appointment.followUpDate)}`}
             </span>
           </div>
         )}
@@ -82,44 +120,56 @@ export default function AppointmentCard({
         {isPatient && appointment.doctor?.specialization && (
           <div className="detail-row">
             <span className="detail-label">Specialization:</span>
-            <span className="detail-value">{appointment.doctor.specialization}</span>
+            <span className="detail-value">
+              {appointment.doctor.specialization}
+            </span>
           </div>
         )}
 
         {isPatient && appointment.doctor?.licenseNumber && (
           <div className="detail-row">
             <span className="detail-label">License:</span>
-            <span className="detail-value">{appointment.doctor.licenseNumber}</span>
+            <span className="detail-value">
+              {appointment.doctor.licenseNumber}
+            </span>
           </div>
         )}
       </div>
-      
+
       <div className="appointment-actions">
         {onViewDetails && (
-          <button 
-            onClick={() => onViewDetails(appointment)} 
+          <button
+            onClick={() => onViewDetails(appointment)}
             className="btn btn-secondary"
           >
             View Details
           </button>
         )}
+        {appointment.status === "scheduled" && onEdit && (
+          <button
+            onClick={() => onEdit(appointment)}
+            className="btn btn-primary"
+          >
+            Edit
+          </button>
+        )}
 
-        {appointment.status === 'scheduled' && (
+        {appointment.status === "scheduled" && (
           <>
             {onCancel && (
-              <button 
-                onClick={() => onCancel(appointment._id)} 
+              <button
+                onClick={() => onCancel(appointment._id)}
                 className="btn btn-outline"
               >
                 Cancel
               </button>
             )}
-            
+
             {appointment.meetingUrl && (
-              <a 
-                href={appointment.meetingUrl} 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                href={appointment.meetingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn btn-primary"
               >
                 Join Call
@@ -127,19 +177,17 @@ export default function AppointmentCard({
             )}
           </>
         )}
-        
-        {appointment.status === 'completed' && (
+
+        {appointment.status === "completed" && (
           <>
-            <button 
+            <button
               onClick={() => onViewDetails && onViewDetails(appointment)}
               className="btn btn-secondary"
             >
               View Summary
             </button>
             {appointment.medicalRecord && (
-              <button className="btn btn-info">
-                View Medical Record
-              </button>
+              <button className="btn btn-info">View Medical Record</button>
             )}
           </>
         )}
