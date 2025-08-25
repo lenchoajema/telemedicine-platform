@@ -8,7 +8,10 @@ exports.handler = async function (event, context) {
       const text = await res.text();
       return { statusCode: res.status, body: text };
     }
-    return { statusCode: 200, body: JSON.stringify([{ id: 'm1', text: 'hello' }]) };
+  const { supabaseSelect } = await import('./supabase.js');
+  const r = await supabaseSelect('messages', '?select=id,text&order=created_at.desc');
+  if (r.status === 200) return { statusCode: 200, body: JSON.stringify(r.body) };
+  return { statusCode: 200, body: JSON.stringify([{ id: 'm1', text: 'hello' }]) };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: 'messages failed', details: String(err) }) };
   }

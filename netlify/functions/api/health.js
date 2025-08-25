@@ -8,6 +8,12 @@ exports.handler = async function (event, context) {
       return { statusCode: res.status, body: text };
     }
 
+    // Try Supabase simple check
+    const { supabaseSelect } = await import('./supabase.js');
+    const r = await supabaseSelect('users', '?select=id&limit=1');
+    if (r.status === 200) {
+      return { statusCode: 200, body: JSON.stringify({ status: 'ok', source: 'supabase' }) };
+    }
     // Mock response if no backend configured
     return {
       statusCode: 200,

@@ -9,11 +9,28 @@ exports.handler = async function (event, context) {
       return { statusCode: res.status, body: text };
     }
 
-    // Mock login: accept any credentials and return fake token
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ token: 'mock-jwt-token', user: { id: 'mock-user', email: 'user@example.com' } })
-    };
+    // Prefer Supabase Auth token endpoint if configured
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      const body = JSON.parse(payload || '{}');
+      const url = `${SUPABASE_URL}/auth/v1/token?grant_type=password`;
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }, body: `username=${encodeURIComponent(body.email || '')}&password=${encodeURIComponent(body.password || '')}` });
+      const text = await res.text();
+      return { statusCode: res.status, body: text };
+    }
+
+    // Supabase table lookup fallback
+    const { supabaseSelect } = await import('./supabase.js');
+    const body = JSON.parse(payload || '{}');
+    const email = body.email;
+    if (email) {
+      const r = await supabaseSelect('users', `?select=id,email,password&email=eq.${encodeURIComponent(email)}`);
+      if (r.status === 200 && r.body && r.body.length) {
+        return { statusCode: 200, body: JSON.stringify({ token: 'supabase-mock-token', user: r.body[0] }) };
+      }
+    }
+    return { statusCode: 401, body: JSON.stringify({ error: 'invalid credentials (mock)' }) };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: 'login failed', details: String(err) }) };
   }

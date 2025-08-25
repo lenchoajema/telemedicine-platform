@@ -9,11 +9,23 @@ exports.handler = async function (event, context) {
       return { statusCode: res.status, body: text };
     }
 
-    // Mock register: echo back user info
-    return {
-      statusCode: 201,
-      body: JSON.stringify({ id: 'mock-user', message: 'registered (mock)' })
-    };
+    // Use Supabase Auth signup endpoint if available
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      const data = JSON.parse(payload || '{}');
+      const url = `${SUPABASE_URL}/auth/v1/signup`;
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }, body: JSON.stringify({ email: data.email, password: data.password }) });
+      const text = await res.text();
+      return { statusCode: res.status, body: text };
+    }
+
+    // Fallback to inserting into users table (not recommended for production)
+    const { supabaseInsert } = await import('./supabase.js');
+    const data = JSON.parse(payload || '{}');
+    const r = await supabaseInsert('users', data);
+    if (r.status === 201 || r.status === 200) return { statusCode: 201, body: JSON.stringify(r.body) };
+    return { statusCode: 201, body: JSON.stringify({ id: 'mock-user', message: 'registered (mock)' }) };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: 'register failed', details: String(err) }) };
   }

@@ -59,12 +59,13 @@ Notes
 
 Environment variables to set on Netlify (copy these names into Site → Settings → Build & deploy → Environment):
 
-- API_BACKEND_URL — Optional: full backend URL to proxy requests to (e.g., https://api.example.com). If empty, functions return mock responses.
-- SUPABASE_URL — If you use Supabase for DB/auth.
-- SUPABASE_ANON_KEY — Public anon key for client usage.
-- UPSTASH_REDIS_REST_URL — Upstash REST URL for Redis (if used).
-- UPSTASH_REDIS_REST_TOKEN — Upstash REST token.
-- JWT_SECRET — If serverless functions sign or verify JWTs (avoid exposing in client-side code).
+- API_BACKEND_URL — Optional: full backend URL to proxy requests to (e.g., https://api.example.com). If empty, functions fall back to Supabase/Upstash or return mock responses.
+- SUPABASE_URL — Your Supabase project URL (e.g., https://xyz.supabase.co).
+- SUPABASE_KEY — Service role key used by serverless functions (keep secret). Only use anon key if you understand client implications.
+- SUPABASE_ANON_KEY — Public anon key used by client or some auth endpoints.
+- UPSTASH_REST_URL — Upstash REST API base URL (for pub/sub).
+- UPSTASH_REST_TOKEN — Upstash REST token.
+- JWT_SECRET — If serverless functions sign or verify JWTs (keep secret).
 - SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD — If functions send email.
 - NODE_ENV — set to production
 
