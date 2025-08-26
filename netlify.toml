@@ -1,9 +1,14 @@
 [build]
   # Assumption: your frontend lives in `frontend/` and outputs to `build`
   # Change `frontend` and `build` below to match your repo layout.
-  command = "npm ci --prefix frontend && npm run build --prefix frontend"
-  publish = "frontend/build"
-  functions = "netlify/functions"
+  # Build from the frontend subdirectory (Vite)
+  base = "frontend"
+  # Use npm ci in the frontend base (requires package-lock.json). If you prefer
+  # a looser install, change to `npm install && npm run build`.
+  command = "npm ci && npm run build"
+  publish = "dist"
+  # functions path relative to the frontend base; functions live at repo/netlify/functions
+  functions = "../netlify/functions"
 
 [context.production.environment]
   # Example env var names used by the app; set actual values in Netlify site settings
@@ -13,5 +18,9 @@
   # UPSTASH_REDIS_REST_TOKEN = ""
 
 [[_redirects]]
-  # If you prefer netlify.toml redirects instead of a _redirects file, you can add rules here.
-  # This is just an example; a separate `_redirects` file is also provided.
+  # redirect /api/* to the proxy function
+  [[redirects]]
+    from = "/api/*"
+    to = "/.netlify/functions/api/proxy/:splat"
+    status = 200
+    force = true

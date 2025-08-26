@@ -8,8 +8,11 @@ exports.handler = async function (event, context) {
       const text = await res.text();
       return { statusCode: res.status, body: text };
     }
-    // Mock appointments list
-    return { statusCode: 200, body: JSON.stringify([{ id: 'a1', time: '2025-08-24T10:00:00Z' }]) };
+  const { supabaseSelect } = await import('./supabase.js');
+  const r = await supabaseSelect('appointments', '?select=*&order=start_time.desc');
+  if (r.status === 200) return { statusCode: 200, body: JSON.stringify(r.body) };
+  // Mock appointments list
+  return { statusCode: 200, body: JSON.stringify([{ id: 'a1', time: '2025-08-24T10:00:00Z' }]) };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: 'appointments failed', details: String(err) }) };
   }

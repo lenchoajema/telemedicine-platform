@@ -1,95 +1,101 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import AuthService from '../api/AuthService';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import apiClient from "../api/apiClient";
+import jwtDecode from "jwt-decode";
 
+// Create the auth context
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is stored in local storage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser && storedUser !== 'undefined') {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+    const loadUser = async () => {
+      if (token) {
+        try {
+          // Fetch current user profile from backend
+          const response = await apiClient.get("/auth/me");
+          // Response shape: { success: boolean, data: { user } }8
+          if (response.data?.success && response.data.data?.user) {
+            setUser(response.data.data.user);
+          } else {
+            console.warn(
+              "AuthContext: unexpected /auth/me response",
+              response.data
+            );
+            logout();
+          }
+        } catch (error) {
+          console.error("Failed to load user:", error);
+          logout();
+        }
       }
-    }
-    setLoading(false);
-  }, []);
+      setLoading(false);
+    };
+    loadUser();
+  }, [token]);
 
   const login = async (email, password) => {
     try {
-      const credentials = { email, password };
-      console.log('Attempting login with:', { email });
-      const response = await AuthService.login(credentials);
-      console.log('Login successful:', response);
-      
-      // Handle the standardized backend response format: {success: true, data: {user, token}}
-      const user = response.success ? response.data.user : response.user;
-      const token = response.success ? response.data.token : response.token;
-      
-      if (!user || !token) {
-        console.error('Invalid response format:', response);
-        throw new Error('Invalid response from server');
-      }
-      
-      console.log('Extracted user:', user);
-      console.log('Extracted token:', token ? 'Present' : 'Missing');
-      
-      setUser(user);
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('token', token);
-      return user;
+      const response = await apiClient.post("/auth/login", { email, password });
+      // Response data shape: { success, data: { user, token } }
+      const { user: loggedUser, token: newToken } = response.data.data;
+      // Store and set token; interceptor handles Authorization header
+      localStorage.setItem("token", newToken);
+      setToken(newToken);
+      // Set user information
+      setUser(loggedUser);
+      return loggedUser;
     } catch (error) {
-      console.error('Login error:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
-      // Provide a more specific error message based on the response
-      if (error.response?.status === 500) {
-        throw new Error('Server error. Please try again later.');
-      } else if (error.response?.status === 401) {
-        throw new Error('Invalid email or password.');
-      } else if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
-      } else {
-        throw new Error('Login failed. Please check your connection.');
-      }
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const data = await AuthService.register(userData);
-      return data;
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || error.message);
     }
   };
 
   const logout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+  };
+
+  // Register a new user and auto-login
+  const register = async (registrationData) => {
+    try {
+      const response = await apiClient.post("/auth/register", registrationData);
+      const { user: newUser, token: newToken } = response.data.data;
+      // Store and set token
+      localStorage.setItem("token", newToken);
+      setToken(newToken);
+      // Set user info
+      setUser(newUser);
+      return newUser;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || error.message);
+    }
+  };
+
+  const value = {
+    user,
+    token,
+    login,
+    register, // expose enhanced register
+    logout,
+    isAuthenticated: !!user,
+    loading,
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
 
+// Custom hook for using the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
