@@ -293,7 +293,7 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({ navigation, route }) 
   const initializeCall = async () => {
     try {
       // Initialize socket connection
-      socket.current = io(process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000', {
+  socket.current = io(process.env.EXPO_PUBLIC_API_URL || 'https://telemedicine-platform-mt8a.onrender.com', {
         query: {
           appointmentId,
           userId: user?.id,

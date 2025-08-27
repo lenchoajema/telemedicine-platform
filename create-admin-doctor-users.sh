@@ -36,7 +36,7 @@ create_user() {
     
     if [ "$role" = "doctor" ]; then
         # Create doctor with additional fields
-        RESPONSE=$(curl -s -X POST http://localhost:5000/api/auth/register \
+    RESPONSE=$(curl -s -X POST https://telemedicine-platform-mt8a.onrender.com/api/auth/register \
             -H "Content-Type: application/json" \
             -d "{
                 \"email\": \"$email\",
@@ -215,7 +215,7 @@ echo "   Role: Doctor"
 echo "   Specialization: $DOCTOR_SPECIALIZATION"
 echo ""
 echo "🌐 Access the platform at:"
-echo "   Frontend: http://localhost:5173"
-echo "   Backend API: http://localhost:5000"
+echo "   Frontend: https://lenhealth.netlify.app"
+echo "   Backend API: https://telemedicine-platform-mt8a.onrender.com"
 echo ""
 echo "💡 You can now log in with either of these accounts!"

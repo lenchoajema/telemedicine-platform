@@ -25,8 +25,10 @@ dotenv.config();
   
   server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📊 API Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🎥 WebRTC Signaling: ws://localhost:${PORT}`);
-    console.log(`🕸️  Socket.IO endpoint: ws://localhost:${PORT}`);
+    // Prefer explicit API_BACKEND_URL in logs to avoid exposing localhost when deployed
+    const logHost = process.env.API_BACKEND_URL || `http://localhost:${PORT}`;
+    console.log(`📊 API Health check: ${logHost}/api/health`);
+    console.log(`🎥 WebRTC Signaling: ${logHost.replace(/^http/, 'ws')}`);
+    console.log(`�  Socket.IO endpoint: ${logHost.replace(/^http/, 'ws')}`);
   });
 })();

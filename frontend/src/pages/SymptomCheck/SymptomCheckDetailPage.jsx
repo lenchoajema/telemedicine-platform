@@ -19,6 +19,12 @@ export default function SymptomCheckDetailPage() {
       setLoading(true);
       try {
         const data = await SymptomCheckService.getCheck(checkId);
+        const res = await fetch(
+          `${
+            import.meta.env.VITE_API_URL ||
+            "https://telemedicine-platform-mt8a.onrender.com/api"
+          }/symptom-checks/${checkId}`
+        );
         setCheck(data.check);
         setAnswers(data.answers);
         // If still pending, schedule another fetch
@@ -34,7 +40,10 @@ export default function SymptomCheckDetailPage() {
     };
     fetchData();
     // Setup WebSocket for real-time updates
-    const socket = io(import.meta.env.VITE_WS_URL || "http://localhost:5000");
+    const socket = io(
+      import.meta.env.VITE_WS_URL ||
+        "https://telemedicine-platform-mt8a.onrender.com"
+    );
     if (user && user._id) {
       socket.emit("joinUser", user._id);
       socket.on("symptom-check-complete", ({ checkId: cid }) => {

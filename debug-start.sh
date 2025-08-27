@@ -73,7 +73,7 @@ docker-compose logs --tail=10 backend
 
 # Test backend endpoints
 echo "🧪 Testing backend endpoints..."
-test_endpoint "http://localhost:5000/api/health" "Health check"
+test_endpoint "https://telemedicine-platform-mt8a.onrender.com/api/health" "Health check"
 
 # Try to create a test user
 echo "👤 Creating test user..."
@@ -125,9 +125,9 @@ check_service "Frontend" "5173"
 
 echo ""
 echo "📋 Quick reference:"
-echo "- Backend API: http://localhost:5000"
-echo "- Frontend: http://localhost:5173"
-echo "- Health check: http://localhost:5000/api/health"
+echo "- Backend API: https://telemedicine-platform-mt8a.onrender.com"
+echo "- Frontend: https://lenhealth.netlify.app"
+echo "- Health check: https://telemedicine-platform-mt8a.onrender.com/api/health"
 echo "- Logs: docker-compose logs <service>"
 echo "- Stop all: docker-compose down"
 

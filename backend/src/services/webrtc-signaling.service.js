@@ -11,7 +11,7 @@ class WebRTCSignalingServer {
     this.io = new Server(server, {
       path: '/webrtc',
       cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "https://lenhealth.netlify.app",
         methods: ["GET", "POST"],
         credentials: true
       }

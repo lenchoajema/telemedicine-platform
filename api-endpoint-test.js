@@ -3,7 +3,7 @@
 import axios from 'axios';
 
 async function testAPI() {
-  const baseURL = 'http://localhost:5000/api';
+  const baseURL = 'https://telemedicine-platform-mt8a.onrender.com/api';
   
   console.log('🔧 Testing API Endpoints');
   console.log('='.repeat(30));

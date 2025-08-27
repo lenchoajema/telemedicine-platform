@@ -128,11 +128,11 @@ seedDefaultNoteTemplates();
 
 const corsOptions = {
   origin: [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:8081',
-    // process.env.CLIENT_URL,
-  ],
+    'https://lenhealth.netlify.app',
+    'https://telemedicine-platform-mt8a.onrender.com',
+    // keep process env option for overrides
+    process.env.CLIENT_URL,
+  ].filter(Boolean),
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,

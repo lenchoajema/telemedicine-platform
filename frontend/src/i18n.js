@@ -2,7 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 // Backend API base (adjust if API proxied differently in prod)
-export const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || 'http://localhost:5000/api';
+export const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || 'https://telemedicine-platform-mt8a.onrender.com/api';
 
 // Limited i18n mode (MVP): if true we restrict functional translations to English only and mark others as coming soon
 export const LIMITED_I18N_MODE = (import.meta.env.VITE_I18N_LIMIT || '').toLowerCase() === 'true';

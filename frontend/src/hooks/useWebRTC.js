@@ -22,7 +22,7 @@ const useWebRTC = (roomId, userToken, appointmentId) => {
   useEffect(() => {
     if (!roomId || !userToken) return;
 
-    const base = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const base = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://telemedicine-platform-mt8a.onrender.com';
     const socketInstance = io(base, {
       path: '/webrtc',
       auth: { token: userToken },

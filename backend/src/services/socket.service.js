@@ -6,10 +6,11 @@ export const initializeSocket = (server, options = {}) => {
   io = new Server(server, {
     cors: {
       origin: [
-        'http://localhost:5173',
+        'https://lenhealth.netlify.app',
+        'https://telemedicine-platform-mt8a.onrender.com',
         'http://localhost:5174',
-        'http://localhost:8081'
-      ],
+        'http://localhost:8081',
+      ].filter(Boolean),
       methods: ['GET', 'POST']
     },
     ...options

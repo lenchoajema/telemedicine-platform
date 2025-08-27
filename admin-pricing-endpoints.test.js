@@ -4,7 +4,7 @@
 
 const axios = require('axios');
 
-const API_URL = process.env.API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.API_URL || 'https://telemedicine-platform-mt8a.onrender.com/api';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin+pricing@test.local';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Passw0rd!';
 

@@ -26,7 +26,8 @@ const PatientVideoCallsPage = () => {
 
       // Fetch real appointment data from API
       const apiUrl =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+        import.meta.env.VITE_API_URL ||
+        "https://telemedicine-platform-mt8a.onrender.com/api";
       const response = await fetch(`${apiUrl}/appointments`, {
         method: "GET",
         headers: {

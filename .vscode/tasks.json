@@ -37,7 +37,7 @@
 			"command": "curl.exe",
 			"args": [
 				"-s",
-				"http://localhost:5000/api/health"
+				"https://telemedicine-platform-mt8a.onrender.com/api/health"
 			],
 			"group": "test",
 			"isBackground": false,
@@ -60,7 +60,7 @@
 			"command": "curl",
 			"args": [
 				"-s",
-				"http://localhost:5000/api/health"
+				"https://telemedicine-platform-mt8a.onrender.com/api/health"
 			],
 			"isBackground": false,
 			"group": "test"

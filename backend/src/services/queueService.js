@@ -2,7 +2,7 @@ import amqplib from 'amqplib';
 import { Buffer } from 'buffer';
 
 // RabbitMQ connection URL from env
-const RABBIT_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
+const RABBIT_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672';
 
 let channel;
 

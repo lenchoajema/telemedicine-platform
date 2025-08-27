@@ -34,11 +34,11 @@ docker-compose exec mongodb mongosh --eval "
 
 echo ""
 echo "🌐 Testing API endpoints..."
-curl -s http://localhost:5000/api/health | jq . 2>/dev/null || curl -s http://localhost:5000/api/health
+curl -s https://telemedicine-platform-mt8a.onrender.com/api/health | jq . 2>/dev/null || curl -s https://telemedicine-platform-mt8a.onrender.com/api/health
 
 echo ""
 echo "👨‍⚕️ Checking doctors endpoint..."
-curl -s http://localhost:5000/api/doctors | jq . 2>/dev/null || curl -s http://localhost:5000/api/doctors
+curl -s https://telemedicine-platform-mt8a.onrender.com/api/doctors | jq . 2>/dev/null || curl -s https://telemedicine-platform-mt8a.onrender.com/api/doctors
 
 echo ""
 echo "✅ User discovery completed!"

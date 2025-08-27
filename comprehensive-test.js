@@ -62,11 +62,11 @@ async function runTests() {
     console.log('======================');
     
     total++;
-    const backendHealth = await testEndpoint('Backend Health', 'localhost', 5000, '/api/health');
+        const backendHealth = await testEndpoint('Backend Health', 'telemedicine-platform-mt8a.onrender.com', 443, '/api/health');
     if (backendHealth.success) passed++;
     
     total++;
-    const frontendAccess = await testEndpoint('Frontend Access', 'localhost', 5173, '/');
+        const frontendAccess = await testEndpoint('Frontend Access', 'lenhealth.netlify.app', 443, '/');
     if (frontendAccess.success) passed++;
     
     console.log('\n2. Authentication Tests');

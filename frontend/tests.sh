@@ -78,7 +78,7 @@ section "2. Backend Testing"
 # ===============================================
 
 subsection "Testing backend health endpoint"
-HEALTH_RESPONSE=$(curl -s http://localhost:5000/api/health)
+HEALTH_RESPONSE=$(curl -s https://telemedicine-platform-mt8a.onrender.com/api/health)
 echo "$HEALTH_RESPONSE" | jq '.' || echo "$HEALTH_RESPONSE"
 
 if [[ "$HEALTH_RESPONSE" == *"ok"* || "$HEALTH_RESPONSE" == *"healthy"* || "$HEALTH_RESPONSE" == *"running"* ]]; then
@@ -100,7 +100,7 @@ section "3. API Endpoint Testing"
 
 subsection "Testing auth endpoints"
 # Test registration
-REGISTER_RESPONSE=$(curl -s -X POST http://localhost:5000/api/auth/register \
+REGISTER_RESPONSE=$(curl -s -X POST https://telemedicine-platform-mt8a.onrender.com/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "Test",
@@ -112,7 +112,7 @@ REGISTER_RESPONSE=$(curl -s -X POST http://localhost:5000/api/auth/register \
 echo "$REGISTER_RESPONSE" | jq '.' || echo "$REGISTER_RESPONSE"
 
 # Test login and get token
-LOGIN_RESPONSE=$(curl -s -X POST http://localhost:5000/api/auth/login \
+LOGIN_RESPONSE=$(curl -s -X POST https://telemedicine-platform-mt8a.onrender.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test.user@example.com",
@@ -128,7 +128,7 @@ else
   error "Failed to obtain authentication token"
   # Try another user that might exist
   info "Trying to login with another user..."
-  LOGIN_RESPONSE=$(curl -s -X POST http://localhost:5000/api/auth/login \
+  LOGIN_RESPONSE=$(curl -s -X POST https://telemedicine-platform-mt8a.onrender.com/api/auth/login \
     -H "Content-Type: application/json" \
     -d '{
       "email": "admin@example.com",
@@ -143,15 +143,15 @@ fi
 
 subsection "Testing doctor endpoints"
 # Test getting all doctors
-DOCTORS_RESPONSE=$(curl -s "http://localhost:5000/api/doctors")
+DOCTORS_RESPONSE=$(curl -s "https://telemedicine-platform-mt8a.onrender.com/api/doctors")
 echo "$DOCTORS_RESPONSE" | jq '.doctors | length' || echo "$DOCTORS_RESPONSE"
 
 # Test doctor specializations
-SPECIALIZATIONS_RESPONSE=$(curl -s "http://localhost:5000/api/doctors/specializations")
+SPECIALIZATIONS_RESPONSE=$(curl -s "https://telemedicine-platform-mt8a.onrender.com/api/doctors/specializations")
 echo "$SPECIALIZATIONS_RESPONSE" | jq '.' || echo "$SPECIALIZATIONS_RESPONSE"
 
 subsection "Testing search functionality"
-SEARCH_RESPONSE=$(curl -s "http://localhost:5000/api/doctors/search?specialization=cardiology&limit=5")
+SEARCH_RESPONSE=$(curl -s "https://telemedicine-platform-mt8a.onrender.com/api/doctors/search?specialization=cardiology&limit=5")
 echo "$SEARCH_RESPONSE" | jq '.' || echo "$SEARCH_RESPONSE"
 
 # ===============================================
@@ -163,12 +163,12 @@ if [[ -f test_results/auth_token.txt ]]; then
   
   subsection "Testing appointment endpoints"
   # Test available slots
-  SLOTS_RESPONSE=$(curl -s "http://localhost:5000/api/appointments/available-slots/123?date=2024-12-25" \
+  SLOTS_RESPONSE=$(curl -s "https://telemedicine-platform-mt8a.onrender.com/api/appointments/available-slots/123?date=2024-12-25" \
     -H "Authorization: Bearer $TOKEN")
   echo "$SLOTS_RESPONSE" | jq '.' || echo "$SLOTS_RESPONSE"
 
   # Test appointment booking
-  BOOKING_RESPONSE=$(curl -s -X POST http://localhost:5000/api/appointments \
+  BOOKING_RESPONSE=$(curl -s -X POST https://telemedicine-platform-mt8a.onrender.com/api/appointments \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $TOKEN" \
     -d '{
@@ -180,7 +180,7 @@ if [[ -f test_results/auth_token.txt ]]; then
   echo "$BOOKING_RESPONSE" | jq '.' || echo "$BOOKING_RESPONSE"
 
   subsection "Testing medical records endpoints"
-  RECORDS_RESPONSE=$(curl -s "http://localhost:5000/api/medical-records" \
+  RECORDS_RESPONSE=$(curl -s "https://telemedicine-platform-mt8a.onrender.com/api/medical-records" \
     -H "Authorization: Bearer $TOKEN")
   echo "$RECORDS_RESPONSE" | jq '.' || echo "$RECORDS_RESPONSE"
 else
@@ -305,7 +305,7 @@ section "8. Security Testing"
 # ===============================================
 
 subsection "Testing auth with invalid token"
-INVALID_TOKEN_RESPONSE=$(curl -s http://localhost:5000/api/appointments \
+INVALID_TOKEN_RESPONSE=$(curl -s https://telemedicine-platform-mt8a.onrender.com/api/appointments \
   -H "Authorization: Bearer invalid_token")
 echo "$INVALID_TOKEN_RESPONSE" | jq '.' || echo "$INVALID_TOKEN_RESPONSE"
 
@@ -316,7 +316,7 @@ else
 fi
 
 subsection "Testing CORS headers"
-CORS_RESPONSE=$(curl -s -I -X OPTIONS http://localhost:5000/api/health \
+CORS_RESPONSE=$(curl -s -I -X OPTIONS https://telemedicine-platform-mt8a.onrender.com/api/health \
   -H "Origin: http://example.com")
 echo "$CORS_RESPONSE"
 
@@ -342,15 +342,15 @@ cat > test_results/test-report.md << EOF
 Date: $(date)
 Duration: ${minutes}m ${seconds}s
 
-## System Status
-- Backend: $(curl -s http://localhost:5000/api/health > /dev/null && echo "✅ Online" || echo "❌ Offline")
-- Frontend: $(curl -s -I http://localhost:5173 > /dev/null && echo "✅ Online" || echo "❌ Offline")
+-## System Status
+- Backend: $(curl -s https://telemedicine-platform-mt8a.onrender.com/api/health > /dev/null && echo "✅ Online" || echo "❌ Offline")
+- Frontend: $(curl -s -I https://lenhealth.netlify.app > /dev/null && echo "✅ Online" || echo "❌ Offline")
 - Database: $(docker exec telemedicine-platform-mongodb-1 mongosh --eval "db.runCommand({ ping: 1 })" > /dev/null && echo "✅ Connected" || echo "❌ Failed")
 
 ## API Endpoints
-- Auth: $(curl -s http://localhost:5000/api/auth/login -d '{"email":"fake","password":"fake"}' -H "Content-Type: application/json" > /dev/null && echo "✅ Responding" || echo "❌ Failed")
-- Doctors: $(curl -s http://localhost:5000/api/doctors > /dev/null && echo "✅ Responding" || echo "❌ Failed")
-- Appointments: $(curl -s http://localhost:5000/api/appointments -H "Authorization: Bearer invalid" > /dev/null && echo "✅ Responding" || echo "❌ Failed")
+-- Auth: $(curl -s https://telemedicine-platform-mt8a.onrender.com/api/auth/login -d '{"email":"fake","password":"fake"}' -H "Content-Type: application/json" > /dev/null && echo "✅ Responding" || echo "❌ Failed")
+-- Doctors: $(curl -s https://telemedicine-platform-mt8a.onrender.com/api/doctors > /dev/null && echo "✅ Responding" || echo "❌ Failed")
+-- Appointments: $(curl -s https://telemedicine-platform-mt8a.onrender.com/api/appointments -H "Authorization: Bearer invalid" > /dev/null && echo "✅ Responding" || echo "❌ Failed")
 
 ## Data Status
 - Users: $(docker exec telemedicine-platform-mongodb-1 mongosh telemedicine --eval "db.users.countDocuments()" 2>/dev/null || echo "Unknown")

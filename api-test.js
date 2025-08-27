@@ -1,5 +1,5 @@
 // Simple script to test API connectivity
-const apiUrl = 'http://localhost:5000/api/health';
+const apiUrl = 'https://telemedicine-platform-mt8a.onrender.com/api/health';
 
 fetch(apiUrl)
   .then(response => {

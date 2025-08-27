@@ -19,7 +19,11 @@ export const useChat = () => {
 export const ChatProvider = ({ children }) => {
   const { user } = useAuth();
   const socket = useMemo(
-    () => io(import.meta.env.VITE_WS_URL || "http://localhost:5000"),
+    () =>
+      io(
+        import.meta.env.VITE_WS_URL ||
+          "https://telemedicine-platform-mt8a.onrender.com"
+      ),
     []
   );
   const [sessions, setSessions] = useState([]);
